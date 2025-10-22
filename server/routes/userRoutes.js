@@ -32,7 +32,16 @@ router.post("/signup", async (req, res) => {
                 if (err) {
                     return res.status(500).json({ message: "Error inserting user", error: err });
                 }
-                return res.status(201).json({ message: "User registered successfully!" });
+                const token = jwt.sign(
+                    { id: user.id, username: user.username },
+                    JWT_SECRET,
+                    { expiresIn: "5h" }
+                );
+                return res.status(200).json({
+                    message: "Signup successful!",
+                    token: token,
+                });
+
             });
         });
     } catch (err) {
