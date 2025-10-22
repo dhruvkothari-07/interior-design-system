@@ -1,20 +1,22 @@
 const express = require("express");
-const { dashboardRoute } = require("./routes/dashboardRoute");
-const { materialsRoute } = require("./routes/materialsRoute");
-const { clientRoute } = require("./routes/clientRoute");
 const authMiddleware = require("./middleware/authMiddleware");
-const app = express();
+const db = require("./db/db");
+const userRoute = require("./routes/userRoutes")
 
+
+const app = express();
 app.use(express.json());
 
+app.use("/api/v1/", userRoute)
+// app.use("/materials", authMiddleware, materialsRoute)
 
-app.get("/", (req, res) => {
-    res.send("main route")
-})
-
-app.use("/dashboard", authMiddleware, dashboardRoute)
-app.use("/materials", authMiddleware, materialsRoute)
+app.use((err, req, res, next) => {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+});
 
 
-
-app.listen(3000);
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+    console.log(`Listening on port ${PORT}`)
+});

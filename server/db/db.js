@@ -1,8 +1,10 @@
+const mysql = require("mysql2");
+
 const db = mysql.createConnection({
-    host: "localhost",
-    user: "root",         // your MySQL username
-    password: "",         // your MySQL password
-    database: "testdb"    // your database name
+    host: process.env.DB_HOST,
+    user:  process.env.DB_USER,         // your MySQL username
+    password:  process.env.password,         // your MySQL password
+    database:  process.env.DB_NAME    // your database name
 });
 
 db.connect((err) => {
@@ -12,3 +14,5 @@ db.connect((err) => {
         console.log("✅ Connected to MySQL");
     }
 });
+
+module.exports = db; 

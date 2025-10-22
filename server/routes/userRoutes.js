@@ -1,12 +1,11 @@
-const express = require("express");
 const { Router } = require("express");
-const mysql = require("mysql2");
 const bcrypt = require("bcrypt");
-const bodyparser = require("body-parser");
 const jwt = require("jsonwebtoken")
 const router = Router();
+const db = require("../db/db")
 
-const JWT_SECRET = "FSDNSAN"
+const JWT_SECRET = process.env.JWT_SECRET;
+
 // SIGNUP
 router.post("/signup", async (req, res) => {
     const { username, password } = req.body;
@@ -67,7 +66,7 @@ router.post("/signin", async (req, res) => {
                 return res.status(401).json({ message: "Incorrect Credentials" });
             }
             const token = jwt.sign(
-                { id: user.id },
+                { id: user.id, username: user.username },
                 JWT_SECRET,
                 { expiresIn: "5h" }
             );
