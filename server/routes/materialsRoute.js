@@ -35,3 +35,23 @@ router.post("/material", authMiddleware, async (req, res) => {
 
     }
 });
+
+router.delete("material/:id/", authMiddleware, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [result] = await db.query("DELETE FROM materials WHERE id = ?", [id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Material not found" })
+        }
+        res.status(200).json({ message: "Material deleted successfully" });
+
+    }
+    catch (err) {
+        console.error("Error deleting material:", err);
+        return res.status(500).json({
+            message: "Error while deleting Material"
+        })
+    }
+})
+
+module.exports = router;
