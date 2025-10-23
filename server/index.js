@@ -2,13 +2,16 @@ const express = require("express");
 const authMiddleware = require("./middleware/authMiddleware");
 const db = require("./db/db");
 const userRoute = require("./routes/userRoutes")
+const materialRoute = require("./routes/materialsRoute")
+const quotationRoute = require("./routes/quotationRoute")
 
 
 const app = express();
 app.use(express.json());
 
 app.use("/api/v1/", userRoute)
-// app.use("/materials", authMiddleware, materialsRoute)
+app.use("/api/v1/", materialRoute)
+app.use("/api/v1/", quotationRoute)
 
 app.use((err, req, res, next) => {
     console.error(err);
