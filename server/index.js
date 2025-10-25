@@ -4,10 +4,11 @@ const db = require("./db/db");
 const userRoute = require("./routes/userRoutes")
 const materialRoute = require("./routes/materialsRoute")
 const quotationRoute = require("./routes/quotationRoute")
-
+const cors   = require("cors")
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.use("/api/v1/", userRoute)
 app.use("/api/v1/", materialRoute)
