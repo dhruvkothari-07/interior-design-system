@@ -8,15 +8,14 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 // SIGNUP
 router.post("/signup", async (req, res) => {
-    const { username, password } = req.body;
 
+    const { username, password } = req.body;
     if (!username || !password) {
         return res.status(400).json({ message: "All fields are required" });
     }
-
     try {
         const checkUser = "SELECT * FROM users WHERE username = ?";
-        db.query(checkUser, [username], async (err, results) => {
+        await db.query(checkUser, [username], async (err, results) => {
             if (err) {
                 return res.status(500).json({ message: "Database error", error: err });
             }
@@ -28,18 +27,13 @@ router.post("/signup", async (req, res) => {
             const hashpass = await bcrypt.hash(password, 10);
             const createUser = "INSERT INTO users (username,password) VALUES(?,?)";
 
-            db.query(createUser, [username, hashpass], (err, result) => {
+            await db.query(createUser, [username, hashpass], (err, result) => {
                 if (err) {
                     return res.status(500).json({ message: "Error inserting user", error: err });
                 }
-                const token = jwt.sign(
-                    { id: user.id, username: user.username },
-                    JWT_SECRET,
-                    { expiresIn: "5h" }
-                );
+
                 return res.status(200).json({
                     message: "Signup successful!",
-                    token: token,
                 });
 
             });

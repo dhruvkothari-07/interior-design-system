@@ -7,9 +7,7 @@ const Signup = () => {
         username: "",
         password: "",
     });
-
     const navigate = useNavigate();
-
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -18,21 +16,25 @@ const Signup = () => {
             [name]: value,
         }));
     }
-
     async function handleSubmit(e) {
         e.preventDefault();
+        console.log("Submitting signup data:", signupData);
+
         try {
             const res = await axios.post(
                 "http://localhost:5000/api/v1/signup",
                 signupData
             );
-            console.log("Token", res.data.token)
-            navigate("/login");
 
+            console.log("Signup response:", res.data);
+            alert("Signup successful!");
+            navigate("/login");
         } catch (err) {
-            console.log("Error while signup", err)
+            console.error("Error while signup:", err);
+            alert("Signup failed!");
         }
     }
+
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">

@@ -4,7 +4,7 @@ const db = require("../db/db");
 
 const router = Router();
 
-router.get("/material", authMiddleware, async (req, res) => {
+router.get("/materials", authMiddleware, async (req, res) => {
     try {
         const [results] = await db.query("SELECT * FROM materials");
         res.status(200).json(results);
@@ -15,7 +15,7 @@ router.get("/material", authMiddleware, async (req, res) => {
 });
 
 
-router.post("/material", authMiddleware, async (req, res) => {
+router.post("/materials", authMiddleware, async (req, res) => {
     const { name, quantity, unit } = req.body;
     if (!name || !quantity || !unit) {
         return res.status(400).json({ message: "All fields are required" })
@@ -36,7 +36,7 @@ router.post("/material", authMiddleware, async (req, res) => {
     }
 });
 
-router.delete("material/:id", authMiddleware, async (req, res) => {
+router.delete("materials/:id", authMiddleware, async (req, res) => {
     const { id } = req.params;
     try {
         const [result] = await db.query("DELETE FROM materials WHERE id = ?", [id]);
@@ -52,7 +52,7 @@ router.delete("material/:id", authMiddleware, async (req, res) => {
         })
     }
 })
-router.put("/material/:id", authMiddleware, async (req, res) => {
+router.put("/materials/:id", authMiddleware, async (req, res) => {
     const { id } = req.params;
     const { name, quantity, unit } = req.body
     if (!name || !quantity || !unit) {
