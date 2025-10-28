@@ -22,10 +22,10 @@ router.post("/signup", async (req, res) => {
             return res.status(409).json({ message: "User already exists" });
         }
 
-        const hashpass = await bcrypt.hash(password, 5);
+        const hashpass = await bcrypt.hash(password,10);
         const createUser = "INSERT INTO users (username,password) VALUES(?,?)";
 
-      
+
         await db.query(createUser, [username, hashpass]);
 
         return res.status(200).json({
@@ -71,6 +71,7 @@ router.post("/signin", async (req, res) => {
         });
     } catch (err) {
         console.error("Signin Error:", err);
+        return res.status(500).json({ message: "Error while signin", error: err.message });
     }
 });
 

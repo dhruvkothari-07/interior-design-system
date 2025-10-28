@@ -28,7 +28,7 @@ const Signup = () => {
 
             console.log("Signup response:", res.data);
             alert("Signup successful!");
-            navigate("/dashboard");
+            navigate("/login");
         } catch (err) {
             console.error("Error while signup:", err);
             alert("Signup failed!");
