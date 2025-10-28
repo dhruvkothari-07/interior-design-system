@@ -28,7 +28,7 @@ const Dashboard = () => {
                             <a href="#" className="block py-2 px-4 rounded hover:bg-gray-700">Quotations</a>
                         </li>
                         <li className="mb-4">
-                            <a href="#" className="block py-2 px-4 rounded hover:bg-gray-700">Materials</a>
+                            <a href="/materials" className="block py-2 px-4 rounded hover:bg-gray-700">Materials</a>
                         </li>
                         {/* Add more navigation links here */}
                         <li className="absolute bottom-5">

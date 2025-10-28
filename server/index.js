@@ -4,7 +4,7 @@ const db = require("./db/db");
 const userRoute = require("./routes/userRoutes")
 const materialRoute = require("./routes/materialsRoute")
 const quotationRoute = require("./routes/quotationRoute")
-const cors   = require("cors")
+const cors = require("cors")
 
 const app = express();
 app.use(cors());
@@ -20,7 +20,7 @@ app.use((err, req, res, next) => {
 });
 
 
-const PORT = process.env.PORT 
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`)
 });
