@@ -20,7 +20,7 @@ app.use((err, req, res, next) => {
 });
 
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT ;
 app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`)
 });
