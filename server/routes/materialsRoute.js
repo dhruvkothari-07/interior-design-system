@@ -36,7 +36,7 @@ router.post("/materials", authMiddleware, async (req, res) => {
     }
 });
 
-router.delete("materials/:id", authMiddleware, async (req, res) => {
+router.delete("/materials/:id", authMiddleware, async (req, res) => {
     const { id } = req.params;
     try {
         const [result] = await db.query("DELETE FROM materials WHERE id = ?", [id]);

@@ -14,8 +14,7 @@ router.post("/signup", async (req, res) => {
         return res.status(400).json({ message: "All fields are required" });
     }
     try {
-        const checkUser = "SELECT * FROM users WHERE username = ?";
-        await db.query(checkUser, [username], async (err, results) => {
+        const checkUser = await db.query("SELECT * FROM users WHERE username = ?", [username], async (err, results) => {
             if (err) {
                 return res.status(500).json({ message: "Database error", error: err });
             }
@@ -24,19 +23,18 @@ router.post("/signup", async (req, res) => {
                 return res.status(409).json({ message: "User already exists" });
             }
 
-            const hashpass = await bcrypt.hash(password, 10);
-            const createUser = "INSERT INTO users (username,password) VALUES(?,?)";
+            const hashpass = await bcrypt.hash(password, 5);
+            const createUser =
+                await db.query("INSERT INTO users (username,password) VALUES(?,?)", [username, hashpass], (err, result) => {
+                    if (err) {
+                        return res.status(500).json({ message: "Error inserting user", error: err });
+                    }
 
-            await db.query(createUser, [username, hashpass], (err, result) => {
-                if (err) {
-                    return res.status(500).json({ message: "Error inserting user", error: err });
-                }
+                    return res.status(200).json({
+                        message: "Signup successful!",
+                    });
 
-                return res.status(200).json({
-                    message: "Signup successful!",
                 });
-
-            });
         });
     } catch (err) {
         return res.status(500).json({ message: "Error while signup", error: err });

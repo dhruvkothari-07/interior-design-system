@@ -22,13 +22,13 @@ const Signup = () => {
 
         try {
             const res = await axios.post(
-                "http://localhost:5000/api/v1/signup",
+                "http://localhost:3001/api/v1/signup",
                 signupData
             );
 
             console.log("Signup response:", res.data);
             alert("Signup successful!");
-            navigate("/login");
+            navigate("/dashboard");
         } catch (err) {
             console.error("Error while signup:", err);
             alert("Signup failed!");
