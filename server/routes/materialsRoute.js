@@ -16,12 +16,12 @@ router.get("/materials", authMiddleware, async (req, res) => {
 
 
 router.post("/materials", authMiddleware, async (req, res) => {
-    const { name, quantity, unit } = req.body;
-    if (!name || !quantity || !unit) {
+    const { name, price, unit } = req.body;
+    if (!name || !price || !unit) {
         return res.status(400).json({ message: "All fields are required" })
     }
     try {
-        const [createMaterial] = await db.query("INSERT INTO materials (name,quantity,unit) VALUES (?,?,?)", [name, quantity, unit]);
+        const [createMaterial] = await db.query("INSERT INTO materials (name,price,unit) VALUES (?,?,?)", [name, price, unit]);
         res.status(201).json({
             message: "Material added successfully",
             data: createMaterial.insertId
@@ -36,7 +36,7 @@ router.post("/materials", authMiddleware, async (req, res) => {
     }
 });
 
-router.delete("/materials/:id", authMiddleware, async (req, res) => {
+router.delete("/materials/:id/", authMiddleware, async (req, res) => {
     const { id } = req.params;
     try {
         const [result] = await db.query("DELETE FROM materials WHERE id = ?", [id]);
@@ -54,13 +54,13 @@ router.delete("/materials/:id", authMiddleware, async (req, res) => {
 })
 router.put("/materials/:id", authMiddleware, async (req, res) => {
     const { id } = req.params;
-    const { name, quantity, unit } = req.body
-    if (!name || !quantity || !unit) {
+    const { name, price, unit } = req.body
+    if (!name || !price || !unit) {
         return res.status(400).json({ message: "All fields are required" });
 
     }
     try {
-        const [update] = await db.query("UPDATE  materials SET name = ? ,quantity = ? , unit =? WHERE id =?", [name, quantity, unit, id]);
+        const [update] = await db.query("UPDATE  materials SET name = ? ,price = ? , unit =? WHERE id =?", [name, price, unit, id]);
         if (update.affectedRows === 0) {
             return res.status(404).json({ message: "Material not found" });
         }
