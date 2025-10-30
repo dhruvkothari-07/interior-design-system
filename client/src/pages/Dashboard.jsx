@@ -20,26 +20,25 @@ const Dashboard = () => {
             <aside className="w-64 bg-gray-800 text-white p-5 hidden md:block">
                 <h1 className="text-2xl font-bold mb-8">Management</h1>
                 <nav>
-                    <ul>
-                        <li className="mb-4">
-                            <a href="#" className="block py-2 px-4 rounded bg-gray-700">Dashboard</a>
+                    <ul className="space-y-3">
+                        <li>
+                            <a href="/dashboard" className="block py-2 px-4 rounded bg-gray-700 font-semibold">Dashboard</a>
                         </li>
-                        <li className="mb-4">
-                            <a href="#" className="block py-2 px-4 rounded hover:bg-gray-700">Quotations</a>
+                        <li>
+                            <a href="/quotations" className="block py-2 px-4 rounded hover:bg-gray-700 transition">Quotations</a>
                         </li>
-                        <li className="mb-4">
-                            <a href="/materials" className="block py-2 px-4 rounded hover:bg-gray-700">Materials</a>
-                        </li>
-                        {/* Add more navigation links here */}
-                        <li className="absolute bottom-5">
-                            <a href="/signin"
-                                onClick={() => localStorage.removeItem('token')} // Basic logout
-                                className="block py-2 px-4 rounded hover:bg-red-700 bg-red-600">
-                                Logout
-                            </a>
+                        <li>
+                            <a href="/materials" className="block py-2 px-4 rounded hover:bg-gray-700 transition">Materials</a>
                         </li>
                     </ul>
                 </nav>
+                <div className="absolute bottom-5 w-56">
+                    <a href="/signin"
+                        onClick={() => localStorage.removeItem('token')} // Basic logout
+                        className="block py-2 px-4 rounded hover:bg-red-700 bg-red-600 text-center transition">
+                        Logout
+                    </a>
+                </div>
             </aside>
 
             {/* Main Content */}

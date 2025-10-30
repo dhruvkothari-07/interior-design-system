@@ -4,15 +4,20 @@ import Signin from "./pages/Signin";
 import Dashboard from "./pages/Dashboard";
 import Signup from "./pages/Signup";
 import Materials from "./pages/Materials";
+import Quotations from "./pages/Quotations";
+import QuotationDetail from "./pages/QuotationDetail"; // Import the new component
 
 const App = () => {
     return (
         <Router>
             <Routes>
+                <Route path="/" element={<Signin />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/signin" element={<Signin />} />
                 <Route path="/materials" element={<Materials />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                 <Route path="/quotations" element={<Quotations />} /> 
+                <Route path="/quotations/:id" element={<QuotationDetail />} /> {/* Add the new route */}
             </Routes>
         </Router>
     );

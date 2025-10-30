@@ -19,11 +19,19 @@ const Signin = () => {
 
     async function handleSubmit(e) {
         e.preventDefault();
-        const res = await axios.post("http://localhost:3001/api/v1/signin", SigninData)
-        localStorage.setItem("token", res.data.token)
-        navigate("/dashboard")
-        console.log("User token:", res.data.token);
-
+        try {
+            const res = await axios.post(
+                "http://localhost:3001/api/v1/signin",
+                SigninData
+            );
+            localStorage.setItem("token", res.data.token);
+            console.log("User token:", res.data.token);
+            alert("Signin successful!");
+            navigate("/dashboard");
+        } catch (err) {
+            console.error("Error during signin:", err);
+            alert("Signin failed. Please check your credentials or try again.");
+        }
     }
 
     return (
