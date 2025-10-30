@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -26,6 +26,15 @@ const QuotationDetail = () => {
         material_id: '',
         quantity: ''
     });
+
+    const getStatusBadge = (status) => {
+        switch (status?.toLowerCase()) {
+            case 'approved': return 'bg-green-100 text-green-800';
+            case 'pending': return 'bg-yellow-100 text-yellow-800';
+            case 'rejected': return 'bg-red-100 text-red-800';
+            default: return 'bg-gray-100 text-gray-800'; // Draft
+        }
+    };
 
     useEffect(() => {
         const fetchQuotationDetails = async () => {
@@ -192,6 +201,20 @@ const QuotationDetail = () => {
         }
     };
 
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+        }).format(amount);
+    };
+    
+    const currentSubTotal = useMemo(() => {
+        return rooms.reduce((total, room) => {
+            const roomTotal = (room.materials || []).reduce((roomSum, material) => roomSum + (Number(material.price) * Number(material.quantity)), 0);
+            return total + roomTotal
+        }, 0);
+    }, [rooms]);
+
     const roomSuggestions = ["Living Room", "Master Bedroom", "Bedroom", "Kitchen", "Bathroom", "Dining Room", "Office"];
 
 
@@ -218,19 +241,6 @@ const QuotationDetail = () => {
             </div>
         );
     }
-
-    const getStatusBadge = (status) => {
-        switch (status?.toLowerCase()) {
-            case 'approved':
-                return 'bg-green-100 text-green-800';
-            case 'pending':
-                return 'bg-yellow-100 text-yellow-800';
-            case 'rejected':
-                return 'bg-red-100 text-red-800';
-            default: // Draft
-                return 'bg-gray-100 text-gray-800';
-        }
-    };
 
     return (
         <div className="flex h-screen bg-gray-100 text-gray-800">
@@ -271,7 +281,14 @@ const QuotationDetail = () => {
                             <p className="text-gray-600"><strong>Status:</strong> <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadge(quotation.status)}`}>{quotation.status}</span></p>
                             <p className="text-gray-600"><strong>Created At:</strong> {new Date(quotation.createdAt).toLocaleString()}</p>
                             <p className="text-gray-600"><strong>Last Updated:</strong> {new Date(quotation.updatedAt).toLocaleString()}</p>
-                            <p className="text-gray-600"><strong>Total Amount:</strong> {quotation.total_amount ? `₹${Number(quotation.total_amount).toLocaleString('en-IN')}` : 'N/A'}</p>
+                            <p className="text-gray-600 font-bold text-lg mt-2"><strong>Current Subtotal:</strong> {formatCurrency(currentSubTotal)}</p>
+                            <p className="text-gray-600"><strong>Saved Amount:</strong> {quotation.total_amount ? formatCurrency(quotation.total_amount) : 'N/A'}</p>
+                            <button
+                                onClick={() => navigate(`/quotations/${id}/summary`)}
+                                className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-700 transition"
+                            >
+                                View Summary
+                            </button>
                         </div>
                         <div>
                             <h4 className="text-lg font-medium mb-2">Client Information</h4>
@@ -283,7 +300,9 @@ const QuotationDetail = () => {
                     </div>
 
                     <div className="mt-8 border-t pt-4">
-                        <h3 className="text-xl font-semibold mb-4">Rooms & Materials</h3>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-2xl font-semibold">Rooms & Materials</h3>
+                        </div>
                         <div className="flex justify-end mb-4">
                             <button
                                 onClick={() => setIsAddRoomModalOpen(true)}
@@ -294,45 +313,60 @@ const QuotationDetail = () => {
                         </div>
                         <div className="space-y-4">
                             {rooms.length > 0 ? (
-                                rooms.map(room => (
-                                    <div key={room.id} className="bg-gray-50 p-4 rounded-lg border">
-                                        <div className="flex justify-between items-center">
-                                            <div>
-                                                <h4 className="font-semibold text-lg">{room.name}</h4>
-                                                <p className="text-sm text-gray-600">
-                                                    Dimensions: {room.length} x {room.width} x {room.height}
-                                                </p>
+                                rooms.map(room => {
+                                    const roomTotal = (room.materials || []).reduce((sum, material) => sum + (Number(material.price) * Number(material.quantity)), 0);
+                                    return (
+                                        <div key={room.id} className="bg-gray-50 p-4 rounded-lg border">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h4 className="font-semibold text-lg">{room.name}</h4>
+                                                    <p className="text-sm text-gray-600">
+                                                        Dimensions: {room.length} x {room.width} x {room.height}
+                                                    </p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="font-semibold text-lg">{formatCurrency(roomTotal)}</p>
+                                                    <div className="mt-1">
+                                                        <button className="text-sm text-blue-600 hover:underline">Edit</button>
+                                                        <button onClick={() => handleDeleteRoom(room.id, room.name)} className="text-sm text-red-600 hover:underline ml-4">Delete</button>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <button className="text-sm text-blue-600 hover:underline">Edit</button>
-                                                <button onClick={() => handleDeleteRoom(room.id, room.name)} className="text-sm text-red-600 hover:underline ml-4">Delete</button>
-                                            </div>
-                                        </div>
-                                        {room.notes && <p className="text-sm text-gray-500 mt-1 italic">Notes: {room.notes}</p>}
+                                            {room.notes && <p className="text-sm text-gray-500 mt-1 italic">Notes: {room.notes}</p>}
 
-                                        <div className="mt-4 border-t pt-3">
-                                            <div className="flex justify-between items-center mb-2">
-                                                <h5 className="text-sm font-semibold text-gray-700">Materials</h5>
-                                                <button onClick={() => handleAddMaterialClick(room.id)} className="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition">+ Add Material</button>
+                                            <div className="mt-4 border-t pt-3">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <h5 className="text-sm font-semibold text-gray-700">Materials</h5>
+                                                    <button onClick={() => handleAddMaterialClick(room.id)} className="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition">+ Add Material</button>
+                                                </div>
+                                                <ul className="text-sm text-gray-600 space-y-1">
+                                                    {room.materials && room.materials.length > 0 ? room.materials.map(material => {
+                                                        const lineItemTotal = Number(material.price) * Number(material.quantity);
+                                                        return (
+                                                            <li key={material.id} className="flex justify-between items-center hover:bg-gray-100 p-1 rounded">
+                                                                <div>
+                                                                    <span>{material.name} - {material.quantity} {material.unit} @ {formatCurrency(material.price)}/{material.unit}</span>
+                                                                </div>
+                                                                <div className="flex items-center">
+                                                                    <span className="w-24 text-right mr-4">{formatCurrency(lineItemTotal)}</span>
+                                                                    <button onClick={() => handleDeleteMaterialFromRoom(material.id, room.id, material.name)} className="text-xs text-red-500 hover:text-red-700">
+                                                                        &times;
+                                                                    </button>
+                                                                </div>
+                                                            </li>
+                                                        )
+                                                    }) : <li className="list-none italic text-gray-400">No materials added.</li>}
+                                                </ul>
                                             </div>
-                                            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                                                {room.materials && room.materials.length > 0 ? room.materials.map(material => (
-                                                    <li key={material.id} className="flex justify-between items-center">
-                                                        <span>{material.name} - {material.quantity} {material.unit}</span>
-                                                        <button onClick={() => handleDeleteMaterialFromRoom(material.id, room.id, material.name)} className="text-xs text-red-500 hover:text-red-700 ml-2">
-                                                            &times;
-                                                        </button>
-                                                    </li>
-                                                )) : <li className="list-none italic text-gray-400">No materials added.</li>}
-                                            </ul>
                                         </div>
-                                    </div>
-                                ))
+                                    )
+                                })
                             ) : (
                                 <p className="text-gray-500 italic text-center py-4">No rooms have been added to this quotation yet.</p>
                             )}
                         </div>
                     </div>
+
                 </section>
 
                 {/* Add Room Modal */}

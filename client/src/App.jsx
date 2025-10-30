@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import Signup from "./pages/Signup";
 import Materials from "./pages/Materials";
 import Quotations from "./pages/Quotations";
+import QuotationSummary from "./pages/QuotationSummary"; // Import the new component
 import QuotationDetail from "./pages/QuotationDetail"; // Import the new component
 
 const App = () => {
@@ -17,6 +18,7 @@ const App = () => {
                 <Route path="/materials" element={<Materials />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                  <Route path="/quotations" element={<Quotations />} /> 
+                <Route path="/quotations/:id/summary" element={<QuotationSummary />} /> {/* Add the new summary route */}
                 <Route path="/quotations/:id" element={<QuotationDetail />} /> {/* Add the new route */}
             </Routes>
         </Router>

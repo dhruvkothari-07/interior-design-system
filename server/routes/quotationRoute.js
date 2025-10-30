@@ -113,6 +113,27 @@ router.put("/quotations/:id", authMiddleware, async (req, res) => {
     }
 });
 
+// New, focused endpoint to update just the total amount
+router.put("/quotations/:id/total", authMiddleware, async (req, res) => {
+    const { id } = req.params;
+    const { total_amount } = req.body;
+
+    if (total_amount === undefined || total_amount === null) {
+        return res.status(400).json({ message: "total_amount is required" });
+    }
+
+    try {
+        const [result] = await db.query("UPDATE quotations SET total_amount = ? WHERE id = ?", [total_amount, id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Quotation not found" });
+        }
+        res.status(200).json({ message: "Total amount updated successfully" });
+    } catch (err) {
+        console.error("Error updating quotation total:", err);
+        return res.status(500).json({ message: "Server error while updating total" });
+    }
+});
+
 
 router.delete("/quotations/:id", authMiddleware, async (req, res) => {
     const { id } = req.params;
