@@ -13,6 +13,10 @@ const Quotations = () => {
         client_phone: '',
         client_address: ''
     });
+    const [clients, setClients] = useState([]); // State to store existing clients
+    const [useExistingClient, setUseExistingClient] = useState(false); // Toggle for new/existing client
+    const [selectedClientId, setSelectedClientId] = useState(''); // State for selected existing client
+
     const navigate = useNavigate();
 
 
@@ -33,9 +37,23 @@ const Quotations = () => {
         }
     };
 
+    const fetchClients = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+            const res = await axios.get("http://localhost:3001/api/v1/clients", {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setClients(res.data);
+        } catch (err) {
+            console.error("Error fetching clients:", err);
+        }
+    };
+
     useEffect(() => {
         fetchQuotations();
     }, []);
+
 
     const getStatusBadge = (status) => {
         switch (status?.toLowerCase()) {
@@ -55,15 +73,36 @@ const Quotations = () => {
         setNewQuotation(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleAddModalOpen = () => {
+        setIsAddModalOpen(true);
+        fetchClients(); // Fetch clients when modal opens
+    };
+
+    const handleAddModalClose = () => {
+        setIsAddModalOpen(false);
+        setUseExistingClient(false); // Reset toggle
+        setSelectedClientId(''); // Reset selected client
+        setNewQuotation({ title: '', client_name: '', client_email: '', client_phone: '', client_address: '' }); // Reset new client form
+    };
+
     const handleAddQuotation = async (e) => {
         e.preventDefault();
         try {
             const token = localStorage.getItem("token");
             if (!token) return;
 
-            const res = await axios.post("http://localhost:3001/api/v1/quotations", newQuotation, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const postData = {
+                title: newQuotation.title,
+                ...(useExistingClient && selectedClientId ? { client_id: selectedClientId } : {
+                    client_name: newQuotation.client_name,
+                    client_email: newQuotation.client_email,
+                    client_phone: newQuotation.client_phone,
+                    client_address: newQuotation.client_address,
+                })
+            };
+
+            const res = await axios.post("http://localhost:3001/api/v1/quotations", postData, {
+                headers: { Authorization: `Bearer ${token}` } });
 
             // Add new quotation to the top of the list and close modal
             setQuotations([res.data, ...quotations]);
@@ -125,7 +164,7 @@ const Quotations = () => {
                 <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
                     <h2 className="text-3xl font-semibold text-gray-800">Quotations</h2>
                     <button
-                        onClick={() => setIsAddModalOpen(true)}
+                        onClick={handleAddModalOpen}
                         className="bg-indigo-600 text-white px-5 py-2 rounded-lg shadow hover:bg-indigo-700 transition duration-150 ease-in-out"
                     >
                         + New Quotation
@@ -176,34 +215,77 @@ const Quotations = () => {
                 {isAddModalOpen && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                         <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
-                            <h3 className="text-2xl font-semibold mb-6">New Quotation</h3>
+                            <h3 className="text-2xl font-semibold mb-4">New Quotation</h3>
                             <form onSubmit={handleAddQuotation}>
                                 <div className="space-y-4">
                                     <div>
                                         <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
                                         <input type="text" name="title" id="title" value={newQuotation.title} onChange={handleInputChange} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
                                     </div>
-                                    <div>
-                                        <label htmlFor="client_name" className="block text-sm font-medium text-gray-700">Client Name</label>
-                                        <input type="text" name="client_name" id="client_name" value={newQuotation.client_name} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+
+                                    {/* Client Selection Toggle */}
+                                    <div className="flex items-center justify-between mt-4">
+                                        <span className="text-sm font-medium text-gray-700">Client:</span>
+                                        <div className="flex space-x-4">
+                                            <label className="inline-flex items-center">
+                                                <input
+                                                    type="radio"
+                                                    className="form-radio"
+                                                    name="clientOption"
+                                                    value="new"
+                                                    checked={!useExistingClient}
+                                                    onChange={() => { setUseExistingClient(false); setSelectedClientId(''); }}
+                                                />
+                                                <span className="ml-2 text-sm text-gray-700">New Client</span>
+                                            </label>
+                                            <label className="inline-flex items-center">
+                                                <input
+                                                    type="radio"
+                                                    className="form-radio"
+                                                    name="clientOption"
+                                                    value="existing"
+                                                    checked={useExistingClient}
+                                                    onChange={() => setUseExistingClient(true)}
+                                                />
+                                                <span className="ml-2 text-sm text-gray-700">Existing Client</span>
+                                            </label>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label htmlFor="client_email" className="block text-sm font-medium text-gray-700">Client Email</label>
-                                        <input type="email" name="client_email" id="client_email" value={newQuotation.client_email} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
-                                    </div>
-                                    <div>
-                                        <label htmlFor="client_phone" className="block text-sm font-medium text-gray-700">Client Phone</label>
-                                        <input type="tel" name="client_phone" id="client_phone" value={newQuotation.client_phone} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
-                                    </div>
-                                    <div>
-                                        <label htmlFor="client_address" className="block text-sm font-medium text-gray-700">Client Address</label>
-                                        <textarea name="client_address" id="client_address" value={newQuotation.client_address} onChange={handleInputChange} rows="3" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
-                                    </div>
+
+                                    {/* Conditional Client Fields */}
+                                    {useExistingClient ? (
+                                        <div>
+                                            <label htmlFor="client_id" className="block text-sm font-medium text-gray-700">Select Client</label>
+                                            <select
+                                                name="client_id"
+                                                id="client_id"
+                                                value={selectedClientId}
+                                                onChange={(e) => setSelectedClientId(e.target.value)}
+                                                required
+                                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                            >
+                                                <option value="" disabled>Select an existing client</option>
+                                                {clients.map(client => (
+                                                    <option key={client.id} value={client.id}>{client.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div>
+                                                <label htmlFor="client_name" className="block text-sm font-medium text-gray-700">Client Name</label>
+                                                <input type="text" name="client_name" id="client_name" value={newQuotation.client_name} onChange={handleInputChange} required={!useExistingClient} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+                                            </div>
+                                            <div><label htmlFor="client_email" className="block text-sm font-medium text-gray-700">Client Email</label><input type="email" name="client_email" id="client_email" value={newQuotation.client_email} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" /></div>
+                                            <div><label htmlFor="client_phone" className="block text-sm font-medium text-gray-700">Client Phone</label><input type="tel" name="client_phone" id="client_phone" value={newQuotation.client_phone} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" /></div>
+                                            <div><label htmlFor="client_address" className="block text-sm font-medium text-gray-700">Client Address</label><textarea name="client_address" id="client_address" value={newQuotation.client_address} onChange={handleInputChange} rows="3" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" /></div>
+                                        </>
+                                    )}
                                 </div>
                                 <div className="mt-8 flex justify-end space-x-4">
                                     <button
                                         type="button"
-                                        onClick={() => setIsAddModalOpen(false)}
+                                        onClick={handleAddModalClose}
                                         className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
                                     >
                                         Cancel

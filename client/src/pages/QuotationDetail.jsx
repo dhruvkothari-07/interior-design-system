@@ -27,6 +27,10 @@ const QuotationDetail = () => {
         quantity: ''
     });
 
+    // State for editing a room
+    const [isEditRoomModalOpen, setIsEditRoomModalOpen] = useState(false);
+    const [editingRoom, setEditingRoom] = useState(null);
+
     const getStatusBadge = (status) => {
         switch (status?.toLowerCase()) {
             case 'approved': return 'bg-green-100 text-green-800';
@@ -162,6 +166,42 @@ const QuotationDetail = () => {
             alert("Failed to add material to room.");
         }
     };
+
+    const handleEditRoomClick = (room) => {
+        setEditingRoom(room);
+        setIsEditRoomModalOpen(true);
+    };
+
+    const handleEditingRoomInputChange = (e) => {
+        const { name, value } = e.target;
+        setEditingRoom(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleUpdateRoom = async (e) => {
+        e.preventDefault();
+        if (!editingRoom) return;
+
+        try {
+            const token = localStorage.getItem("token");
+            const res = await axios.put(`http://localhost:3001/api/v1/rooms/${editingRoom.id}`, editingRoom, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            // Update the room in the state
+            setRooms(currentRooms => currentRooms.map(room =>
+                room.id === editingRoom.id ? { ...room, ...res.data } : room
+            ));
+
+            // Close modal and reset state
+            setIsEditRoomModalOpen(false);
+            setEditingRoom(null);
+
+        } catch (err) {
+            console.error("Error updating room:", err);
+            alert("Failed to update room.");
+        }
+    };
+
 
     const handleDeleteRoom = async (roomId, roomName) => {
         if (!window.confirm(`Are you sure you want to delete the room "${roomName}"? This will also remove all materials inside it.`)) {
@@ -327,7 +367,7 @@ const QuotationDetail = () => {
                                                 <div className="text-right">
                                                     <p className="font-semibold text-lg">{formatCurrency(roomTotal)}</p>
                                                     <div className="mt-1">
-                                                        <button className="text-sm text-blue-600 hover:underline">Edit</button>
+                                                        <button onClick={() => handleEditRoomClick(room)} className="text-sm text-blue-600 hover:underline">Edit</button>
                                                         <button onClick={() => handleDeleteRoom(room.id, room.name)} className="text-sm text-red-600 hover:underline ml-4">Delete</button>
                                                     </div>
                                                 </div>
@@ -403,6 +443,46 @@ const QuotationDetail = () => {
                                 <div className="mt-8 flex justify-end space-x-4">
                                     <button type="button" onClick={() => setIsAddRoomModalOpen(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition">Cancel</button>
                                     <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">Add Room</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* Edit Room Modal */}
+                {isEditRoomModalOpen && editingRoom && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                        <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg">
+                            <h3 className="text-2xl font-semibold mb-6">Edit Room</h3>
+                            <form onSubmit={handleUpdateRoom}>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="md:col-span-2">
+                                        <label htmlFor="name" className="block text-sm font-medium text-gray-700">Room Name</label>
+                                        <input list="room-suggestions" type="text" name="name" id="name" value={editingRoom.name} onChange={handleEditingRoomInputChange} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+                                        <datalist id="room-suggestions">
+                                            {roomSuggestions.map(suggestion => <option key={suggestion} value={suggestion} />)}
+                                        </datalist>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="length" className="block text-sm font-medium text-gray-700">Length</label>
+                                        <input type="number" name="length" id="length" value={editingRoom.length} onChange={handleEditingRoomInputChange} step="0.01" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="width" className="block text-sm font-medium text-gray-700">Width</label>
+                                        <input type="number" name="width" id="width" value={editingRoom.width} onChange={handleEditingRoomInputChange} step="0.01" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <label htmlFor="height" className="block text-sm font-medium text-gray-700">Height</label>
+                                        <input type="number" name="height" id="height" value={editingRoom.height} onChange={handleEditingRoomInputChange} step="0.01" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <label htmlFor="notes" className="block text-sm font-medium text-gray-700">Notes (Optional)</label>
+                                        <textarea name="notes" id="notes" value={editingRoom.notes} onChange={handleEditingRoomInputChange} rows="3" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+                                    </div>
+                                </div>
+                                <div className="mt-8 flex justify-end space-x-4">
+                                    <button type="button" onClick={() => setIsEditRoomModalOpen(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition">Cancel</button>
+                                    <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">Save Changes</button>
                                 </div>
                             </form>
                         </div>

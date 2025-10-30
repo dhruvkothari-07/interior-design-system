@@ -42,6 +42,33 @@ router.post("/quotations/:quotationId/rooms", authMiddleware, async (req, res) =
     }
 });
 
+// PUT (update) a room
+router.put("/rooms/:id", authMiddleware, async (req, res) => {
+    const { id } = req.params;
+    const { name, length, width, height, notes } = req.body;
+
+    if (!name) {
+        return res.status(400).json({ message: "Room name is required" });
+    }
+
+    try {
+        const [result] = await db.query(
+            "UPDATE rooms SET name = ?, length = ?, width = ?, height = ?, notes = ? WHERE id = ?",
+            [name, length || 0, width || 0, height || 0, notes || null, id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Room not found." });
+        }
+
+        const [[updatedRoom]] = await db.query("SELECT * FROM rooms WHERE id = ?", [id]);
+        res.status(200).json(updatedRoom);
+    } catch (err) {
+        console.error("Error updating room:", err);
+        res.status(500).json({ message: "Server error while updating room" });
+    }
+});
+
 // DELETE a room
 router.delete("/rooms/:id", authMiddleware, async (req, res) => {
     const { id } = req.params;

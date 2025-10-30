@@ -44,25 +44,49 @@ router.get("/quotations/:id", authMiddleware, async (req, res) => {
     }
 });
 
+router.get("/clients", authMiddleware, async (req, res) => {
+    try {
+        const [clients] = await db.query(
+            "SELECT id, name FROM clients ORDER BY name ASC"
+        );
+        res.status(200).json(clients);
+    } catch (err) {
+        console.error("Error fetching clients:", err);
+        return res.status(500).json({ message: "Server Error while getting clients" });
+    }
+});
+
+
+
 router.post("/quotations", authMiddleware, async (req, res) => {
     // Receive title and all client details from the frontend
-    const { title, client_name, client_email, client_phone, client_address } = req.body;
+    const { title, client_id, client_name, client_email, client_phone, client_address } = req.body;
 
-    if (!title || !client_name) {
-        return res.status(400).json({ message: "Title and Client Name are required" });
+    if (!title) {
+        return res.status(400).json({ message: "Quotation Title is required" });
+    }
+    if (!client_id && !client_name) {
+        return res.status(400).json({ message: "Either Client ID or Client Name is required" });
     }
     try {
-        // Step 1: Create the new client
-        const [clientResult] = await db.query(
-            "INSERT INTO clients (name, email, phone, address) VALUES (?, ?, ?, ?)",
-            [client_name, client_email || null, client_phone || null, client_address || null]
-        );
-        const newClientId = clientResult.insertId;
+        let finalClientId = client_id;
 
-        // Step 2: Create the new quotation and link it to the new client
+        // If client_id is not provided, create a new client
+        if (!finalClientId) {
+            const [clientResult] = await db.query(
+                "INSERT INTO clients (name, email, phone, address) VALUES (?, ?, ?, ?)",
+                [client_name, client_email || null, client_phone || null, client_address || null]
+            );
+            finalClientId = clientResult.insertId;
+        } else {
+            // Ensure the provided client_id actually exists
+            const [existingClient] = await db.query("SELECT id FROM clients WHERE id = ?", [finalClientId]);
+            if (existingClient.length === 0) return res.status(404).json({ message: "Selected client not found" });
+        }
+
         const [quotationResult] = await db.query(
             "INSERT INTO quotations (title, client_id) VALUES (?, ?)",
-            [title, newClientId]
+            [title, finalClientId]
         );
 
         // Fetch and return the newly created quotation object for a better UX

@@ -28,6 +28,9 @@ const Dashboard = () => {
                             <a href="/quotations" className="block py-2 px-4 rounded hover:bg-gray-700 transition">Quotations</a>
                         </li>
                         <li>
+                            <a href="/clients" className="block py-2 px-4 rounded hover:bg-gray-700 transition">Clients</a>
+                        </li>
+                        <li>
                             <a href="/materials" className="block py-2 px-4 rounded hover:bg-gray-700 transition">Materials</a>
                         </li>
                     </ul>
