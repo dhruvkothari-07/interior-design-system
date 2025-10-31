@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const Signin = () => {
     const [SigninData, setSigninData] = useState({
@@ -21,7 +21,7 @@ const Signin = () => {
         e.preventDefault();
         try {
             const res = await axios.post(
-                "http://localhost:3001/api/v1/signin",
+                `${import.meta.env.VITE_API_BASE_URL}/signin`,
                 SigninData
             );
             localStorage.setItem("token", res.data.token);
@@ -66,6 +66,12 @@ const Signin = () => {
                 >
                     Signin
                 </button>
+                <p className="text-center text-gray-600 mt-6">
+                    Don't have an account?{" "}
+                    <Link to="/signup" className="font-semibold text-blue-600 hover:underline">
+                        Sign up
+                    </Link>
+                </p>
             </form>
         </div>
     );

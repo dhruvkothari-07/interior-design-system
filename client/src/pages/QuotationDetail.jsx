@@ -50,25 +50,31 @@ const QuotationDetail = () => {
                     navigate('/signin'); // Redirect to signin if no token
                     return;
                 }
-
+    
                 const res = await axios.get(`http://localhost:3001/api/v1/quotations/${id}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setQuotation(res.data);
-
+    
                 const roomsRes = await axios.get(`http://localhost:3001/api/v1/quotations/${id}/rooms`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                setRooms(roomsRes.data);
-
+                const fetchedRooms = roomsRes.data;
+    
+                // Fetch materials for each room and combine the data
+                const roomsWithMaterials = await Promise.all(fetchedRooms.map(async (room) => {
+                    const materialsRes = await axios.get(`http://localhost:3001/api/v1/rooms/${room.id}/materials`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    return { ...room, materials: materialsRes.data };
+                }));
+                setRooms(roomsWithMaterials);
+    
                 // Fetch all available materials for the "Add Material" modal
                 const allMaterialsRes = await axios.get(`http://localhost:3001/api/v1/materials`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setAllMaterials(allMaterialsRes.data);
-
-                // We will fetch materials for each room later
-
             } catch (err) {
                 console.error("Error fetching quotation details:", err);
                 setError("Failed to load quotation details.");
@@ -79,25 +85,7 @@ const QuotationDetail = () => {
 
         fetchQuotationDetails();
     }, [id, navigate]); // Re-fetch if ID changes or navigate function changes
-
-    // New useEffect to fetch materials for each room once rooms are loaded
-    useEffect(() => {
-        if (rooms.length > 0) {
-            const fetchMaterialsForRooms = async () => {
-                const token = localStorage.getItem("token");
-                const roomsWithMaterials = await Promise.all(rooms.map(async (room) => {
-                    const res = await axios.get(`http://localhost:3001/api/v1/rooms/${room.id}/materials`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    return { ...room, materials: res.data };
-                }));
-                setRooms(roomsWithMaterials);
-            };
-            fetchMaterialsForRooms();
-        }
-    }, [rooms.length]); // Depends on the initial fetch of rooms
-
-
+    
     const handleRoomInputChange = (e) => {
         const { name, value } = e.target;
         setNewRoom(prev => ({ ...prev, [name]: value }));
