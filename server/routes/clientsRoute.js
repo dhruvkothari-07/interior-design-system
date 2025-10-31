@@ -6,8 +6,17 @@ const router = Router();
 
 // GET all clients (full details)
 router.get("/clients-full", authMiddleware, async (req, res) => {
+    const { search = '' } = req.query;
     try {
-        const [clients] = await db.query("SELECT * FROM clients ORDER BY name ASC");
+        let query = "SELECT * FROM clients";
+        const params = [];
+
+        if (search) {
+            query += " WHERE name LIKE ?";
+            params.push(`%${search}%`);
+        }
+        query += " ORDER BY name ASC";
+        const [clients] = await db.query(query, params);
         res.status(200).json(clients);
     } catch (err) {
         console.error("Error fetching clients:", err);

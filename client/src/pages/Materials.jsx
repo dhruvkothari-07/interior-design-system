@@ -17,8 +17,9 @@ const Materials = () => {
     // State for Edit Modal
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingMaterial, setEditingMaterial] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
-    const fetchMaterials = async () => {
+    const fetchMaterials = async (search = '') => {
         try {
             const token = localStorage.getItem("token");
             if (!token) {
@@ -26,6 +27,7 @@ const Materials = () => {
             }
             const res = await axios.get("http://localhost:3001/api/v1/materials", {
                 headers: { Authorization: `Bearer ${token}` },
+                params: { search }
             });
             setMaterials(res.data);
         } catch (err) {
@@ -35,7 +37,14 @@ const Materials = () => {
 
 
     useEffect(() => {
-        fetchMaterials();
+        const debounceFetch = setTimeout(() => {
+            fetchMaterials(searchTerm);
+        }, 300); // 300ms debounce
+        return () => clearTimeout(debounceFetch);
+    }, [searchTerm]);
+
+    useEffect(() => {
+        fetchMaterials(''); // Initial fetch
     }, []);
 
     const handleDeleteMaterial = async (materialId, materialName) => {
@@ -145,6 +154,16 @@ const Materials = () => {
                     >
                         + Add Material
                     </button>
+                </header>
+
+                <header className="mb-4">
+                    <input
+                        type="text"
+                        placeholder="Search by material name..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full sm:w-1/3 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    />
                 </header>
 
 

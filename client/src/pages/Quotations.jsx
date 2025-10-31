@@ -17,11 +17,12 @@ const Quotations = () => {
     const [clients, setClients] = useState([]); // State to store existing clients
     const [useExistingClient, setUseExistingClient] = useState(false); // Toggle for new/existing client
     const [selectedClientId, setSelectedClientId] = useState(''); // State for selected existing client
+    const [searchTerm, setSearchTerm] = useState('');
 
     const navigate = useNavigate();
 
 
-    const fetchQuotations = async () => {
+    const fetchQuotations = async (search = '') => {
         try {
             setIsLoading(true); // Start loading
             const token = localStorage.getItem("token");
@@ -29,6 +30,7 @@ const Quotations = () => {
 
             const res = await axios.get("http://localhost:3001/api/v1/quotations", {
                 headers: { Authorization: `Bearer ${token}` },
+                params: { search }
             });
             setQuotations(res.data);
         } catch (err) {
@@ -52,7 +54,15 @@ const Quotations = () => {
     };
 
     useEffect(() => {
-        fetchQuotations();
+        const debounceFetch = setTimeout(() => {
+            fetchQuotations(searchTerm);
+        }, 300); // 300ms debounce
+
+        return () => clearTimeout(debounceFetch);
+    }, [searchTerm]);
+
+    useEffect(() => {
+        fetchQuotations(''); // Initial fetch
     }, []);
 
 
@@ -164,6 +174,16 @@ const Quotations = () => {
                     >
                         + New Quotation
                     </button>
+                </header>
+
+                <header className="mb-4">
+                    <input
+                        type="text"
+                        placeholder="Search by title or client..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full sm:w-1/3 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    />
                 </header>
 
                 <section className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">

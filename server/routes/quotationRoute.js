@@ -5,16 +5,25 @@ const router = Router();
 
 
 router.get("/quotations", authMiddleware, async (req, res) => {
+    const { search = '' } = req.query;
     try {
-        // JOIN with the clients table to get the client's name
-        const [quotations] = await db.query(
-            `SELECT 
+        let query = `
+            SELECT 
                 q.id, q.title, q.status, q.total_amount, q.createdAt,
                 c.id as client_id, c.name as client_name 
              FROM quotations q 
              LEFT JOIN clients c ON q.client_id = c.id
-             ORDER BY q.createdAt DESC`
-        );
+        `;
+        const params = [];
+
+        if (search) {
+            query += ` WHERE q.title LIKE ? OR c.name LIKE ?`;
+            params.push(`%${search}%`, `%${search}%`);
+        }
+
+        query += ` ORDER BY q.createdAt DESC`;
+
+        const [quotations] = await db.query(query, params);
         res.status(200).json(quotations);
     } catch (err) {
         console.error("Error fetching quotations:", err);

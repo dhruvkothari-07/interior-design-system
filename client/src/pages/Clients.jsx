@@ -18,14 +18,16 @@ const Clients = () => {
     // State for Edit Modal
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingClient, setEditingClient] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
-    const fetchClients = async () => {
+    const fetchClients = async (search = '') => {
         try {
             setIsLoading(true);
             const token = localStorage.getItem("token");
             if (!token) return;
             const res = await axios.get("http://localhost:3001/api/v1/clients-full", {
                 headers: { Authorization: `Bearer ${token}` },
+                params: { search }
             });
             setClients(res.data);
         } catch (err) {
@@ -36,7 +38,14 @@ const Clients = () => {
     };
 
     useEffect(() => {
-        fetchClients();
+        const debounceFetch = setTimeout(() => {
+            fetchClients(searchTerm);
+        }, 300); // 300ms debounce
+        return () => clearTimeout(debounceFetch);
+    }, [searchTerm]);
+
+    useEffect(() => {
+        fetchClients(''); // Initial fetch
     }, []);
 
     const handleInputChange = (e) => {
@@ -131,6 +140,16 @@ const Clients = () => {
                 <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
                     <h2 className="text-3xl font-semibold text-gray-800">Clients</h2>
                     <button onClick={() => setIsAddModalOpen(true)} className="bg-indigo-600 text-white px-5 py-2 rounded-lg shadow hover:bg-indigo-700 transition duration-150 ease-in-out">+ New Client</button>
+                </header>
+
+                <header className="mb-4">
+                    <input
+                        type="text"
+                        placeholder="Search by client name..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full sm:w-1/3 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    />
                 </header>
 
                 <section className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">

@@ -7,20 +7,36 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+build/
+app/build/
+
+# Environment files
+.env
 *.local
 
-# Editor directories and files
-.vscode/*
+# Android / Capacitor
+android/
+.gradle/
+*.iml
+*.keystore
+capacitor.config.json
+
+# IDE / Editor folders
+.vscode/
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-node_modules
-.env
+
+# Misc
+LICENSE

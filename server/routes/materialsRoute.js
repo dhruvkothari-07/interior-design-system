@@ -5,8 +5,16 @@ const db = require("../db/db");
 const router = Router();
 
 router.get("/materials", authMiddleware, async (req, res) => {
+    const { search = '' } = req.query;
     try {
-        const [results] = await db.query("SELECT * FROM materials");
+        let query = "SELECT * FROM materials";
+        const params = [];
+
+        if (search) {
+            query += " WHERE name LIKE ?";
+            params.push(`%${search}%`);
+        }
+        const [results] = await db.query(query, params);
         res.status(200).json(results);
     } catch (err) {
         console.error("Error fetching materials:", err);

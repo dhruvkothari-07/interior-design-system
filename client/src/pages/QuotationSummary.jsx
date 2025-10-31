@@ -1,7 +1,9 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
 import { useParams, useNavigate } from 'react-router-dom';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const QuotationSummary = () => {
     const { id } = useParams(); // Get the quotation ID from the URL
@@ -14,6 +16,9 @@ const QuotationSummary = () => {
     // State for summary calculations
     const [taxPercentage, setTaxPercentage] = useState(18.00); // Default tax at 18%
     const [discountAmount, setDiscountAmount] = useState(0);
+
+    // Ref for the printable summary area
+    const printRef = useRef();
 
     useEffect(() => {
         const fetchQuotationData = async () => {
@@ -100,6 +105,27 @@ const QuotationSummary = () => {
         }
     };
 
+    const handleDownloadPdf = async () => {
+        const element = printRef.current;
+        if (!element) return;
+
+        const canvas = await html2canvas(element, {
+            scale: 2, // Increase scale for better quality
+        });
+        const data = canvas.toDataURL('image/png');
+
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+
+        pdf.addImage(data, 'PNG', 0, 0, imgWidth * ratio, imgHeight * ratio);
+        pdf.save(`quotation-${quotation.title.replace(/ /g, '_')}-${id}.pdf`);
+    };
+
     if (isLoading) {
         return (
             <div className="flex h-screen bg-gray-100 text-gray-800 justify-center items-center">
@@ -141,7 +167,7 @@ const QuotationSummary = () => {
                     </button>
                 </header>
 
-                <section className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                <section ref={printRef} className="bg-white p-8 rounded-lg shadow-md border border-gray-200">
                     <h3 className="text-xl font-semibold mb-4">Quotation Breakdown</h3>
                     <div className="space-y-6">
                         {rooms.length > 0 ? (
@@ -219,6 +245,12 @@ const QuotationSummary = () => {
                                 className="mt-4 w-full bg-green-600 text-white py-2 rounded-md shadow hover:bg-green-700 transition"
                             >
                                 Save Final Total
+                            </button>
+                            <button
+                                onClick={handleDownloadPdf}
+                                className="mt-4 w-full bg-blue-600 text-white py-2 rounded-md shadow hover:bg-blue-700 transition"
+                            >
+                                Download PDF
                             </button>
                         </div>
                     </div>
