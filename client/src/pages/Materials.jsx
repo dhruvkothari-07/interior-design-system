@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from "axios";
+import Sidebar from './Sidebar';
 
 const Materials = () => {
     const [materials, setMaterials] = useState([]);
@@ -131,31 +132,7 @@ const Materials = () => {
     return (
         <div className="flex h-screen bg-gray-100 text-gray-800">
             {/* Sidebar (Consistent Theme) */}
-            <aside className="w-64 bg-gray-800 text-white p-5 hidden md:flex flex-col justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold mb-8 text-center">Management</h1>
-                    <nav>
-                        <ul className="space-y-3">
-                            <li>
-                                <a href="/dashboard" className="block py-2 px-4 rounded hover:bg-gray-700 transition">Dashboard</a>                             </li>                             <li>                                 <a href="/quotations" className="block py-2 px-4 rounded hover:bg-gray-700 transition">Quotations</a>
-                            </li>
-                            <li>
-                                {/* Highlight active page */}
-                                <a href="/materials" className="block py-2 px-4 rounded bg-gray-700 font-semibold">Materials</a>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-                <div>
-                    <a
-                        href="/signin"
-                        onClick={() => localStorage.removeItem('token')}
-                        className="block py-2 px-4 rounded hover:bg-red-700 bg-red-600 text-center transition"
-                    >
-                        Logout
-                    </a>
-                </div>
-            </aside>
+            <Sidebar />
 
             {/* Main Content */}
             <main className="flex-1 p-8 overflow-y-auto">

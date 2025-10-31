@@ -148,7 +148,6 @@ const Quotations = () => {
         }
     };
 
-
     return (
         <div className="flex h-screen bg-gray-100 text-gray-800">
             {/* Sidebar */}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
+import Sidebar from './Sidebar';
 import { useParams, useNavigate } from 'react-router-dom';
 
 const QuotationDetail = () => {
@@ -241,6 +242,22 @@ const QuotationDetail = () => {
         }
     };
 
+    const handleStatusChange = async (newStatus) => {
+        if (!window.confirm(`Are you sure you want to change the status to "${newStatus}"?`)) {
+            return;
+        }
+        try {
+            const token = localStorage.getItem("token");
+            await axios.put(`http://localhost:3001/api/v1/quotations/${id}/status`,
+                { status: newStatus },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setQuotation(prev => ({ ...prev, status: newStatus }));
+        } catch (err) {
+            console.error("Error updating status:", err);
+            alert("Failed to update status.");
+        }
+    };
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-IN', {
             style: 'currency',
@@ -285,21 +302,7 @@ const QuotationDetail = () => {
     return (
         <div className="flex h-screen bg-gray-100 text-gray-800">
             {/* Sidebar (can be a shared component later) */}
-            <aside className="w-64 bg-gray-800 text-white p-5 hidden md:flex flex-col justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold mb-8 text-center">Management</h1>
-                    <nav>
-                        <ul className="space-y-3">
-                            <li><a href="/dashboard" className="block py-2 px-4 rounded hover:bg-gray-700 transition">Dashboard</a></li>
-                            <li><a href="/quotations" className="block py-2 px-4 rounded bg-gray-700 font-semibold">Quotations</a></li>
-                            <li><a href="/materials" className="block py-2 px-4 rounded hover:bg-gray-700 transition">Materials</a></li>
-                        </ul>
-                    </nav>
-                </div>
-                <div>
-                    <a href="/signin" onClick={() => localStorage.removeItem('token')} className="block py-2 px-4 rounded hover:bg-red-700 bg-red-600 text-center transition">Logout</a>
-                </div>
-            </aside>
+            <Sidebar />
 
             {/* Main Content */}
             <main className="flex-1 p-8 overflow-y-auto">
@@ -318,7 +321,20 @@ const QuotationDetail = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <p className="text-gray-600"><strong>Title:</strong> {quotation.title}</p>
-                            <p className="text-gray-600"><strong>Status:</strong> <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadge(quotation.status)}`}>{quotation.status}</span></p>
+                            <div className="flex items-center space-x-2 text-gray-600">
+                                <strong>Status:</strong>
+                                <select
+                                    value={quotation.status}
+                                    onChange={(e) => handleStatusChange(e.target.value)}
+                                    className={`px-2 py-1 text-xs leading-5 font-semibold rounded-full border-transparent focus:border-gray-300 focus:ring-0 ${getStatusBadge(quotation.status)}`}
+                                >
+                                    <option value="Draft">Draft</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Approved">Approved</option>
+                                    <option value="Rejected">Rejected</option>
+                                </select>
+                            </div>
+
                             <p className="text-gray-600"><strong>Created At:</strong> {new Date(quotation.createdAt).toLocaleString()}</p>
                             <p className="text-gray-600"><strong>Last Updated:</strong> {new Date(quotation.updatedAt).toLocaleString()}</p>
                             <p className="text-gray-600 font-bold text-lg mt-2"><strong>Current Subtotal:</strong> {formatCurrency(currentSubTotal)}</p>

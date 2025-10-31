@@ -7,6 +7,7 @@ const quotationRoute = require("./routes/quotationRoute")
 const quotationRoomsRoute = require("./routes/quotationRoomsRoute");
 const roomMaterialsRoute = require("./routes/roomMaterialsRoute");
 const clientsRoute = require("./routes/clientsRoute");
+const dashboardRoute = require("./routes/dashboardRoute");
 const cors = require("cors")
 
 const app = express();
@@ -19,6 +20,7 @@ app.use("/api/v1/", quotationRoute)
 app.use("/api/v1", quotationRoomsRoute)
 app.use("/api/v1", roomMaterialsRoute)
 app.use("/api/v1", clientsRoute)
+app.use("/api/v1", dashboardRoute)
 
 app.use((err, req, res, next) => {
     console.error(err);

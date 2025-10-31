@@ -158,6 +158,32 @@ router.put("/quotations/:id/total", authMiddleware, async (req, res) => {
     }
 });
 
+// New, focused endpoint to update just the status
+router.put("/quotations/:id/status", authMiddleware, async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+        return res.status(400).json({ message: "Status is required" });
+    }
+
+    const allowedStatuses = ['Draft', 'Pending', 'Approved', 'Rejected'];
+    if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({ message: "Invalid status value" });
+    }
+
+    try {
+        const [result] = await db.query("UPDATE quotations SET status = ? WHERE id = ?", [status, id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Quotation not found" });
+        }
+        res.status(200).json({ message: "Status updated successfully", newStatus: status });
+    } catch (err) {
+        console.error("Error updating quotation status:", err);
+        return res.status(500).json({ message: "Server error while updating status" });
+    }
+});
+
 
 router.delete("/quotations/:id", authMiddleware, async (req, res) => {
     const { id } = req.params;
