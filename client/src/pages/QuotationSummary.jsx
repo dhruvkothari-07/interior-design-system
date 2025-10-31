@@ -168,7 +168,34 @@ const QuotationSummary = () => {
                 </header>
 
                 <section ref={printRef} className="bg-white p-8 rounded-lg shadow-md border border-gray-200">
-                    <h3 className="text-xl font-semibold mb-4">Quotation Breakdown</h3>
+                    {/* New Header for PDF */}
+                    <div className="mb-8 border-b pb-4">
+                        <div className="flex justify-between items-start"> 
+                            {/* Company Info & Logo */}
+                            <div className="w-1/2">
+                                <img src="/logo.jpg" alt="Company Logo" className="h-20 mb-4" />
+                                <h2 className="text-lg font-bold text-gray-800">Company Name</h2>
+                                <p className="text-sm text-gray-600">123 Business Rd, Suite 100</p>
+                                <p className="text-sm text-gray-600">City, State, 12345</p>
+                                <p className="text-sm text-gray-600">contact@yourcompany.com</p>
+                            </div>
+
+                            {/* Client Info */}
+                            <div className="w-1/2 text-right">
+                                <h3 className="text-xl font-semibold text-gray-800">Quotation For</h3>
+                                <p className="text-lg font-medium text-gray-700"> {quotation.client_name || 'N/A'}</p>
+                                <p className="text-sm text-gray-600">{quotation.client_email || ''}</p>
+                                <p className="text-sm text-gray-600">{quotation.client_phone || ''}</p>
+                                <p className="text-sm text-gray-600">{quotation.client_address || ''}</p>
+                                <div className="mt-4">
+                                    <p className="text-sm text-gray-500"><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
+                                    <p className="text-sm text-gray-500"><strong>Quotation ID:</strong> QT-{quotation.id}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 className="text-xl font-semibold mb-4">Items & Services</h3>
                     <div className="space-y-6">
                         {rooms.length > 0 ? (
                             rooms.map(room => {
