@@ -9,11 +9,13 @@ const roomMaterialsRoute = require("./routes/roomMaterialsRoute");
 const clientsRoute = require("./routes/clientsRoute");
 const dashboardRoute = require("./routes/dashboardRoute");
 const cors = require("cors")
+const projectRoutes = require('./routes/projectRoute');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Register all API routes
 app.use("/api/v1/", userRoute)
 app.use("/api/v1/", materialRoute)
 app.use("/api/v1/", quotationRoute)
@@ -21,6 +23,7 @@ app.use("/api/v1", quotationRoomsRoute)
 app.use("/api/v1", roomMaterialsRoute)
 app.use("/api/v1", clientsRoute)
 app.use("/api/v1", dashboardRoute)
+app.use('/api/v1', projectRoutes); // Add the project routes here with the others
 
 app.use((err, req, res, next) => {
     console.error(err);

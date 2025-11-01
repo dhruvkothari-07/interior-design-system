@@ -46,6 +46,35 @@ router.post("/rooms/:roomId/materials", authMiddleware, async (req, res) => {
     }
 });
 
+// PUT (update) a material in a room
+router.put("/room-materials/:id", authMiddleware, async (req, res) => {
+    const { id } = req.params; // This is the ID from the room_materials table
+    const { quantity } = req.body;
+
+    if (quantity === undefined) {
+        return res.status(400).json({ message: "Quantity is required" });
+    }
+    if (Number(quantity) <= 0) {
+        return res.status(400).json({ message: "Quantity must be a positive number" });
+    }
+
+    try {
+        const [result] = await db.query(
+            "UPDATE room_materials SET quantity = ? WHERE id = ?",
+            [quantity, id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Material entry not found." });
+        }
+        const [[updatedRoomMaterial]] = await db.query("SELECT rm.id, rm.quantity, rm.notes, m.id as material_id, m.name, m.price, m.unit FROM room_materials rm JOIN materials m ON rm.material_id = m.id WHERE rm.id = ?", [id]);
+        res.status(200).json(updatedRoomMaterial);
+    } catch (err) {
+        console.error("Error updating room material:", err);
+        res.status(500).json({ message: "Server error while updating room material." });
+    }
+});
+
 // DELETE a material from a room
 router.delete("/room-materials/:id", authMiddleware, async (req, res) => {
     const { id } = req.params; // This is the ID from the room_materials table

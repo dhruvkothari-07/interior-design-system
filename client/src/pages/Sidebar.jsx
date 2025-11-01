@@ -14,6 +14,7 @@ const Sidebar = () => {
                         <li><NavLink to="/dashboard" className={navLinkClasses}>Dashboard</NavLink></li>
                         <li><NavLink to="/quotations" className={navLinkClasses}>Quotations</NavLink></li>
                         <li><NavLink to="/clients" className={navLinkClasses}>Clients</NavLink></li>
+                        <li><NavLink to="/projects" className={navLinkClasses}>Projects</NavLink></li>
                         <li><NavLink to="/materials" className={navLinkClasses}>Materials</NavLink></li>
                     </ul>
                 </nav>

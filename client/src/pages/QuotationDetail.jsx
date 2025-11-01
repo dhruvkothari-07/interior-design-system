@@ -32,6 +32,13 @@ const QuotationDetail = () => {
     const [isEditRoomModalOpen, setIsEditRoomModalOpen] = useState(false);
     const [editingRoom, setEditingRoom] = useState(null);
 
+    // State for editing a material in a room
+    const [isEditMaterialModalOpen, setIsEditMaterialModalOpen] = useState(false);
+    const [editingRoomMaterial, setEditingRoomMaterial] = useState(null);
+
+    // State for project
+    const [project, setProject] = useState(null);
+
     const getStatusBadge = (status) => {
         switch (status?.toLowerCase()) {
             case 'approved': return 'bg-green-100 text-green-800';
@@ -75,6 +82,20 @@ const QuotationDetail = () => {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setAllMaterials(allMaterialsRes.data);
+
+                // Gracefully check if a project exists for this quotation
+                try {
+                    const projectRes = await axios.get(`http://localhost:3001/api/v1/projects/by-quotation/${id}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    setProject(projectRes.data);
+                } catch (projectError) {
+                    if (projectError.response && projectError.response.status === 404) {
+                        setProject(null); // This is expected, no project exists yet.
+                    } else {
+                        throw projectError; // Re-throw other errors to be caught by the main catch block
+                    }
+                }
             } catch (err) {
                 console.error("Error fetching quotation details:", err);
                 setError("Failed to load quotation details.");
@@ -84,7 +105,11 @@ const QuotationDetail = () => {
         };
 
         fetchQuotationDetails();
-    }, [id, navigate]); // Re-fetch if ID changes or navigate function changes
+    }, [id, navigate]);
+
+    useEffect(() => {
+        // This is a placeholder for a potential bug fix if the project check fails on first load.
+    }, [quotation]);
     
     const handleRoomInputChange = (e) => {
         const { name, value } = e.target;
@@ -191,6 +216,43 @@ const QuotationDetail = () => {
         }
     };
 
+    const handleEditMaterialClick = (material, roomId) => {
+        setEditingRoomMaterial({ ...material, roomId }); // Store roomId for update logic
+        setIsEditMaterialModalOpen(true);
+    };
+
+    const handleEditingMaterialInputChange = (e) => {
+        const { name, value } = e.target;
+        setEditingRoomMaterial(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleUpdateRoomMaterial = async (e) => {
+        e.preventDefault();
+        if (!editingRoomMaterial) return;
+
+        try {
+            const token = localStorage.getItem("token");
+            const { id, quantity, roomId } = editingRoomMaterial;
+
+            const res = await axios.put(`http://localhost:3001/api/v1/room-materials/${id}`,
+                { quantity },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            // Update the material in the state
+            setRooms(currentRooms => currentRooms.map(room =>
+                room.id === roomId
+                    ? { ...room, materials: room.materials.map(mat => mat.id === id ? res.data : mat) }
+                    : room
+            ));
+
+            setIsEditMaterialModalOpen(false);
+            setEditingRoomMaterial(null);
+        } catch (err) {
+            console.error("Error updating room material:", err);
+            alert("Failed to update material.");
+        }
+    };
 
     const handleDeleteRoom = async (roomId, roomName) => {
         if (!window.confirm(`Are you sure you want to delete the room "${roomName}"? This will also remove all materials inside it.`)) {
@@ -244,6 +306,26 @@ const QuotationDetail = () => {
         } catch (err) {
             console.error("Error updating status:", err);
             alert("Failed to update status.");
+        }
+    };
+
+    const handleCreateProject = async () => {
+        if (!window.confirm("Are you sure you want to create a new project from this quotation?")) {
+            return;
+        }
+        try {
+            const token = localStorage.getItem("token");
+            const res = await axios.post(`http://localhost:3001/api/v1/projects`,
+                { quotation_id: id },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setProject(res.data);
+            alert(`Project "${res.data.name}" created successfully!`);
+            // In the future, we will navigate to the project page:
+            // navigate(`/projects/${res.data.id}`);
+        } catch (err) {
+            console.error("Error creating project:", err);
+            alert(err.response?.data?.message || "Failed to create project.");
         }
     };
     const formatCurrency = (amount) => {
@@ -333,6 +415,21 @@ const QuotationDetail = () => {
                             >
                                 View Summary
                             </button>
+
+                            {/* Conditional "Create Project" Button */}
+                            {quotation.status === 'Approved' && (
+                                <div className="mt-4">
+                                    {project ? (
+                                        <button onClick={() => alert(`Navigating to project ${project.id}`)} className="bg-gray-400 text-white px-4 py-2 rounded-md shadow cursor-not-allowed" disabled>
+                                            Project Already Exists
+                                        </button>
+                                    ) : (
+                                        <button onClick={handleCreateProject} className="bg-purple-600 text-white px-4 py-2 rounded-md shadow hover:bg-purple-700 transition">
+                                            Create Project
+                                        </button>
+                                    )}
+                                </div>
+                            )}
                         </div>
                         <div>
                             <h4 className="text-lg font-medium mb-2">Client Information</h4>
@@ -393,7 +490,10 @@ const QuotationDetail = () => {
                                                                 </div>
                                                                 <div className="flex items-center">
                                                                     <span className="w-24 text-right mr-4">{formatCurrency(lineItemTotal)}</span>
-                                                                    <button onClick={() => handleDeleteMaterialFromRoom(material.id, room.id, material.name)} className="text-xs text-red-500 hover:text-red-700">
+                                                                    <button onClick={() => handleEditMaterialClick(material, room.id)} className="text-xs text-blue-600 hover:text-blue-800 mr-2">
+                                                                        Edit
+                                                                    </button>
+                                                                    <button onClick={() => handleDeleteMaterialFromRoom(material.id, room.id, material.name)} className="text-xs text-red-500 hover:text-red-700 font-bold">
                                                                         &times;
                                                                     </button>
                                                                 </div>
@@ -529,6 +629,32 @@ const QuotationDetail = () => {
                         </div>
                     </div>
                 )}
+
+                {/* Edit Material in Room Modal */}
+                {isEditMaterialModalOpen && editingRoomMaterial && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                        <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
+                            <h3 className="text-2xl font-semibold mb-6">Edit Material Quantity</h3>
+                            <form onSubmit={handleUpdateRoomMaterial}>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Material</label>
+                                        <p className="mt-1 text-lg font-semibold">{editingRoomMaterial.name}</p>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">Quantity</label>
+                                        <input type="number" name="quantity" id="quantity" value={editingRoomMaterial.quantity} onChange={handleEditingMaterialInputChange} required step="0.01" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+                                    </div>
+                                </div>
+                                <div className="mt-8 flex justify-end space-x-4">
+                                    <button type="button" onClick={() => setIsEditMaterialModalOpen(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition">Cancel</button>
+                                    <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
             </main>
         </div>
     );
