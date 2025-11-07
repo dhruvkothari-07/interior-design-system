@@ -4,18 +4,43 @@ const db = require("../db/db");
 
 const router = Router();
 
-// GET all rooms for a specific quotation
+// GET all rooms for a specific quotation, including their calculated totals
 router.get("/quotations/:quotationId/rooms", authMiddleware, async (req, res) => {
     const { quotationId } = req.params;
     try {
         const [rooms] = await db.query(
-            "SELECT * FROM rooms WHERE quotation_id = ? ORDER BY createdAt DESC",
+            `SELECT 
+                qr.id, qr.quotation_id, qr.name, qr.length, qr.width, qr.height, qr.notes,
+                COALESCE(SUM(rm.quantity * m.price), 0) AS room_total
+             FROM rooms qr
+             LEFT JOIN room_materials rm ON qr.id = rm.room_id
+             LEFT JOIN materials m ON rm.material_id = m.id
+             WHERE qr.quotation_id = ?
+             GROUP BY qr.id
+             ORDER BY qr.id ASC`,
             [quotationId]
         );
         res.status(200).json(rooms);
     } catch (err) {
         console.error("Error fetching quotation rooms:", err);
-        res.status(500).json({ message: "Server error while fetching rooms" });
+        res.status(500).json({ message: "Server error while fetching quotation rooms." });
+    }
+});
+
+// GET a single room by its ID
+router.get("/rooms/:id", authMiddleware, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [[room]] = await db.query("SELECT * FROM rooms WHERE id = ?", [id]);
+
+        if (!room) {
+            return res.status(404).json({ message: "Room not found." });
+        }
+
+        res.status(200).json(room);
+    } catch (err) {
+        console.error("Error fetching single room:", err);
+        res.status(500).json({ message: "Server error while fetching room." });
     }
 });
 

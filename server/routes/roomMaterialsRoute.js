@@ -4,6 +4,46 @@ const db = require("../db/db");
 
 const router = Router();
 
+// Helper function to update room and quotation totals
+async function updateRoomAndQuotationTotals(roomId) {
+    // 1. Recalculate room_total
+    const [[roomTotalResult]] = await db.query(
+        `SELECT COALESCE(SUM(rm.quantity * m.price), 0) AS calculated_room_total
+         FROM room_materials rm
+         JOIN materials m ON rm.material_id = m.id
+         WHERE rm.room_id = ?`,
+        [roomId]
+    );
+    const newRoomTotal = roomTotalResult.calculated_room_total;
+
+    // 2. Update room_total in rooms table
+    await db.query(
+        `UPDATE rooms SET room_total = ? WHERE id = ?`,
+        [newRoomTotal, roomId]
+    );
+
+    // 3. Get parent quotation_id
+    const [[room]] = await db.query(`SELECT quotation_id FROM rooms WHERE id = ?`, [roomId]);
+    if (!room) return; // Room not found, cannot update quotation
+
+    const quotationId = room.quotation_id;
+
+    // 4. Recalculate quotation total_amount
+    const [[quotationTotalResult]] = await db.query(
+        `SELECT COALESCE(SUM(room_total), 0) AS calculated_quotation_total
+         FROM rooms
+         WHERE quotation_id = ?`,
+        [quotationId]
+    );
+    const newQuotationTotal = quotationTotalResult.calculated_quotation_total;
+
+    // 5. Update total_amount in quotations table
+    await db.query(
+        `UPDATE quotations SET total_amount = ? WHERE id = ?`,
+        [newQuotationTotal, quotationId]
+    );
+}
+
 // GET all materials for a specific room
 router.get("/rooms/:roomId/materials", authMiddleware, async (req, res) => {
     const { roomId } = req.params;
@@ -40,6 +80,9 @@ router.post("/rooms/:roomId/materials", authMiddleware, async (req, res) => {
         );
         const [[newRoomMaterial]] = await db.query("SELECT rm.id, rm.quantity, rm.notes, m.id as material_id, m.name, m.price, m.unit FROM room_materials rm JOIN materials m ON rm.material_id = m.id WHERE rm.id = ?", [result.insertId]);
         res.status(201).json(newRoomMaterial);
+
+        // Recalculate and update totals after adding material
+        await updateRoomAndQuotationTotals(roomId);
     } catch (err) {
         console.error("Error creating room material:", err);
         res.status(500).json({ message: "Server error while creating room material" });
@@ -69,6 +112,9 @@ router.put("/room-materials/:id", authMiddleware, async (req, res) => {
         }
         const [[updatedRoomMaterial]] = await db.query("SELECT rm.id, rm.quantity, rm.notes, m.id as material_id, m.name, m.price, m.unit FROM room_materials rm JOIN materials m ON rm.material_id = m.id WHERE rm.id = ?", [id]);
         res.status(200).json(updatedRoomMaterial);
+
+        // Recalculate and update totals after updating material
+        await updateRoomAndQuotationTotals(updatedRoomMaterial.room_id); // Assuming room_id is part of updatedRoomMaterial
     } catch (err) {
         console.error("Error updating room material:", err);
         res.status(500).json({ message: "Server error while updating room material." });
@@ -86,6 +132,10 @@ router.delete("/room-materials/:id", authMiddleware, async (req, res) => {
         }
 
         res.status(200).json({ message: "Material removed from room successfully." });
+
+        // Recalculate and update totals after deleting material
+        const [[deletedMaterialInfo]] = await db.query("SELECT room_id FROM room_materials WHERE id = ?", [id]); // Get room_id before deletion
+        if (deletedMaterialInfo) await updateRoomAndQuotationTotals(deletedMaterialInfo.room_id);
     } catch (err) {
         console.error("Error deleting room material:", err);
         res.status(500).json({ message: "Server error while deleting room material." });
