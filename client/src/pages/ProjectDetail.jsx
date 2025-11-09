@@ -111,14 +111,14 @@ const ProjectDetail = () => {
     const variance = project.budget - totalExpenses;
 
     return (
-        <div className="flex h-screen bg-gray-100 text-gray-800">
+        <div className="flex h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 text-gray-800">
             <Sidebar />
             <main className="flex-1 p-8 overflow-y-auto">
                 <header className="mb-8 border-b pb-4">
                     <div className="flex justify-between items-start">
                         <div>
-                            <h2 className="text-3xl font-semibold">{project.name}</h2>
-                            <p className="text-gray-600">Client: {project.client_name}</p>
+                            <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">{project.name}</h1>
+                            <p className="text-sm text-gray-500 mt-1">Client: {project.client_name}</p>
                         </div>
                         <div className="flex items-center gap-4">
                             <button
@@ -132,7 +132,12 @@ const ProjectDetail = () => {
                                 id="project-status"
                                 value={project.status}
                                 onChange={handleProjectStatusChange}
-                                className={`px-3 py-1 text-sm font-semibold rounded-full border-transparent focus:border-gray-300 focus:ring-0 ${project.status === 'Completed' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}
+                                className={`px-3 py-1 rounded-full text-xs font-medium border-transparent focus:border-gray-300 focus:ring-0 ${
+                                    {
+                                        'Completed': 'bg-green-100 text-green-700', 
+                                        'On Hold': 'bg-red-100 text-red-700', 
+                                        'Not Started': 'bg-gray-100 text-gray-600', 
+                                        'In Progress': 'bg-yellow-100 text-yellow-700'}[project.status] || 'bg-gray-100 text-gray-600'}`}
                             >
                                 <option value="Not Started">Not Started</option>
                                 <option value="In Progress">In Progress</option>
@@ -145,15 +150,15 @@ const ProjectDetail = () => {
 
                 {/* Financial Summary */}
                 <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-white p-6 rounded-lg shadow-md text-center">
+                    <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-center">
                         <h3 className="text-gray-500 text-sm font-medium mb-2">Budget</h3>
                         <p className="text-3xl font-semibold text-green-600">{formatCurrency(project.budget)}</p>
                     </div>
-                    <div className="bg-white p-6 rounded-lg shadow-md text-center">
+                    <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-center">
                         <h3 className="text-gray-500 text-sm font-medium mb-2">Actuals (Expenses)</h3>
                         <p className="text-3xl font-semibold text-red-600">{formatCurrency(totalExpenses)}</p>
                     </div>
-                    <div className="bg-white p-6 rounded-lg shadow-md text-center">
+                    <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-center">
                         <h3 className="text-gray-500 text-sm font-medium mb-2">Variance</h3>
                         <p className={`text-3xl font-semibold ${variance >= 0 ? 'text-blue-600' : 'text-yellow-500'}`}>
                             {formatCurrency(variance)}
@@ -164,7 +169,7 @@ const ProjectDetail = () => {
                 {/* Main Content Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Tasks Section */}
-                    <section className="bg-white p-6 rounded-lg shadow-md">
+                    <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <h3 className="text-xl font-semibold mb-4">Tasks</h3>
                         <form onSubmit={handleAddTask} className="flex gap-2 mb-4">
                             <input type="text" value={newTask} onChange={e => setNewTask(e.target.value)} placeholder="Add a new task..." className="flex-grow px-3 py-2 border rounded-md" />
@@ -185,7 +190,7 @@ const ProjectDetail = () => {
                     </section>
 
                     {/* Expenses Section */}
-                    <section className="bg-white p-6 rounded-lg shadow-md">
+                    <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <h3 className="text-xl font-semibold mb-4">Expenses</h3>
                         <form onSubmit={handleAddExpense} className="grid grid-cols-2 gap-4 mb-4">
                             <input type="text" value={newExpense.description} onChange={e => setNewExpense(p => ({ ...p, description: e.target.value }))} placeholder="Description" required className="col-span-2 px-3 py-2 border rounded-md" />
@@ -212,7 +217,7 @@ const ProjectDetail = () => {
                     </section>
 
                     {/* Notes Section */}
-                    <section className="bg-white p-6 rounded-lg shadow-md lg:col-span-2">
+                    <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow lg:col-span-2">
                         <h3 className="text-xl font-semibold mb-4">Project Notes</h3>
                         <form onSubmit={handleAddNote} className="flex flex-col gap-2 mb-4">
                             <textarea value={newNote} onChange={e => setNewNote(e.target.value)} placeholder="Add a new note..." rows="3" className="w-full px-3 py-2 border rounded-md"></textarea>

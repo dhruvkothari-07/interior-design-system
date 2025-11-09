@@ -167,7 +167,7 @@ const Quotations = () => {
             {/* Main Content */}
             <main className="flex-1 p-8 overflow-y-auto">
                 <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
-                    <h2 className="text-3xl font-semibold text-gray-800">Quotations</h2>
+                    <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Quotations</h1>
                     <button
                         onClick={handleAddModalOpen}
                         className="bg-indigo-600 text-white px-5 py-2 rounded-lg shadow hover:bg-indigo-700 transition duration-150 ease-in-out"
@@ -186,7 +186,7 @@ const Quotations = () => {
                     />
                 </header>
 
-                <section className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+                <section className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         {isLoading ? (
                             <p className="text-center text-gray-500 py-8">Loading quotations...</p>
@@ -208,7 +208,7 @@ const Quotations = () => {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.client_name || 'N/A'}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right">{item.total_amount ? `₹${Number(item.total_amount).toLocaleString('en-IN')}` : 'N/A'}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadge(item.status)}`}>
+                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(item.status)}`}>
                                                     {item.status}
                                                 </span>
                                             </td>

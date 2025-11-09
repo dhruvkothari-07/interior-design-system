@@ -6,16 +6,26 @@ const router = Router();
 
 // GET all projects (for a future list page)
 router.get("/projects", authMiddleware, async (req, res) => {
+    const { search = '' } = req.query;
     try {
-        const [projects] = await db.query(`
+        let query = `
             SELECT 
                 p.id, p.name, p.status, p.start_date, p.end_date, p.createdAt,
                 q.total_amount as budget, 
                 c.name as client_name 
             FROM projects p 
             JOIN quotations q ON p.quotation_id = q.id 
-            JOIN clients c ON q.client_id = c.id 
-            ORDER BY p.createdAt DESC`);
+            JOIN clients c ON q.client_id = c.id`;
+        
+        const params = [];
+        if (search) {
+            query += ` WHERE p.name LIKE ? OR c.name LIKE ?`;
+            params.push(`%${search}%`, `%${search}%`);
+        }
+
+        query += ` ORDER BY p.createdAt DESC`;
+
+        const [projects] = await db.query(query, params);
         res.status(200).json(projects);
     } catch (err) {
         console.error("Error fetching projects:", err);

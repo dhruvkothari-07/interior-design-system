@@ -49,35 +49,35 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="flex h-screen bg-gray-100">
+        <div className="flex h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 text-gray-800">
             {/* Sidebar */}
             <Sidebar />
 
             {/* Main Content */}
             <main className="flex-1 p-8 overflow-y-auto">
                 <header className="mb-8">
-                    <h2 className="text-3xl font-semibold text-gray-800">Dashboard</h2>
-                    <p className="text-gray-600">Welcome back!</p>
+                    <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Dashboard</h1>
+                    <p className="text-sm text-gray-500 mt-1">Welcome back! Here's a summary of your business.</p>
                 </header>
 
                 {/* Stats Section */}
                 <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-white p-6 rounded-lg shadow-md">
+                    <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <h3 className="text-gray-500 text-sm font-medium mb-2">Total Quotations</h3>
                         <p className="text-3xl font-semibold text-gray-900">{isLoading ? '...' : stats.totalQuotations}</p>
                     </div>
-                    <div className="bg-white p-6 rounded-lg shadow-md">
+                    <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <h3 className="text-gray-500 text-sm font-medium mb-2">Pending Quotations</h3>
                         <p className="text-3xl font-semibold text-gray-900">{isLoading ? '...' : stats.pendingApprovals}</p>
                     </div>
-                    <div className="bg-white p-6 rounded-lg shadow-md">
+                    <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <h3 className="text-gray-500 text-sm font-medium mb-2">Total Revenue (Approved)</h3>
                         <p className="text-3xl font-semibold text-gray-900">{isLoading ? '...' : formatCurrency(stats.approvedRevenue)}</p>
                     </div>
                 </section>
 
                 {/* Recent Quotations Table */}
-                <section className="bg-white p-6 rounded-lg shadow-md">
+                <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                     <h3 className="text-xl font-semibold text-gray-800 mb-4">Recent Quotations</h3>
                     <div className="overflow-x-auto">
                         {isLoading ? (
@@ -97,13 +97,13 @@ const Dashboard = () => {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">QT-{quote.id}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{quote.title}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                                                     {
-                                                        Approved: 'bg-green-100 text-green-800',
-                                                        Pending: 'bg-yellow-100 text-yellow-800',
-                                                        Rejected: 'bg-red-100 text-red-800',
-                                                        Draft: 'bg-gray-100 text-gray-800'
-                                                    }[quote.status] || 'bg-gray-100 text-gray-800'
+                                                        Approved: 'bg-green-100 text-green-700',
+                                                        Pending: 'bg-yellow-100 text-yellow-700',
+                                                        Rejected: 'bg-red-100 text-red-700',
+                                                        Draft: 'bg-gray-100 text-gray-600'
+                                                    }[quote.status] || 'bg-gray-100 text-gray-600'
                                                 }`}>{quote.status}</span>
                                             </td>
                                         </tr>

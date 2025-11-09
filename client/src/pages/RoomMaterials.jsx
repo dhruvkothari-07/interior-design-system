@@ -125,15 +125,15 @@ const RoomMaterials = () => {
     if (!room || !quotation) return <div className="flex h-screen bg-gray-100 justify-center items-center"><p>Room or Quotation not found.</p></div>;
 
     return (
-        <div className="flex h-screen bg-gray-100 text-gray-800">
+        <div className="flex h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 text-gray-800">
             <Sidebar />
             <main className="flex-1 p-8 overflow-y-auto">
                 <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
                     <div>
-                        <h2 className="text-3xl font-semibold text-gray-800">Quotation: {quotation.title}</h2>
-                        <p className="text-xl text-gray-600">Room: {room.name}</p>
-                        <p className="text-sm text-gray-500">Dimensions: {room.length} x {room.width} x {room.height}</p>
-                        {room.notes && <p className="text-sm text-gray-500">Notes: {room.notes}</p>}
+                        <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Room: {room.name}</h1>
+                        <p className="text-sm text-gray-500 mt-1">For Quotation: {quotation.title}</p>
+                        <p className="text-sm text-gray-500 mt-1">Dimensions: {room.length} x {room.width} x {room.height}</p>
+                        {room.notes && <p className="text-sm text-gray-500 mt-1">Notes: {room.notes}</p>}
                     </div>
                     <button
                         onClick={() => navigate(`/quotations/${quotationId}`)}
@@ -143,7 +143,7 @@ const RoomMaterials = () => {
                     </button>
                 </header>
 
-                <section className="bg-white p-6 rounded-lg shadow-md border border-gray-200 mb-8">
+                <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 mb-8">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-xl font-semibold">Materials in this Room</h3>
                         <button // This button now opens the new modal

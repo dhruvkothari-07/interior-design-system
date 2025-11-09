@@ -3,78 +3,83 @@ import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 
 const Signin = () => {
-    const [SigninData, setSigninData] = useState({
-        username: "",
-        password: "",
-    });
-    const navigate = useNavigate();
+  const [SigninData, setSigninData] = useState({
+    username: "",
+    password: "",
+  });
+  const navigate = useNavigate();
 
-        function handleChange(e) {
-            const { name, value } = e.target;
-            setSigninData((prev) => ({
-                ...prev,
-                [name]: value,
-            }));
-        }
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setSigninData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
 
-    async function handleSubmit(e) {
-        e.preventDefault();
-        try {
-            const res = await axios.post(
-                `${import.meta.env.VITE_API_BASE_URL}/signin`,
-                SigninData
-            );
-            localStorage.setItem("token", res.data.token);
-            console.log("User token:", res.data.token);
-            alert("Signin successful!");
-            navigate("/dashboard");
-        } catch (err) {
-            console.error("Error during signin:", err);
-            alert("Signin failed. Please check your credentials or try again.");
-        }
+  async function handleSubmit(e) {
+    e.preventDefault();
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/signin`,
+        SigninData
+      );
+      localStorage.setItem("token", res.data.token);
+      alert("Signin successful!");
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Error during signin:", err);
+      alert("Signin failed. Please check your credentials or try again.");
     }
+  }
 
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-            <form
-                onSubmit={handleSubmit}
-                className="bg-white p-6 rounded-2xl shadow-md w-80"
-            >
-                <h2 className="text-xl font-semibold mb-4 text-center">Signin</h2>
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 via-white to-gray-50">
+      {/* Blur Glow */}
+      <div className="absolute w-96 h-96 bg-indigo-200 opacity-30 blur-3xl rounded-full pointer-events-none"></div>
 
-                <input
-                    type="text"
-                    name="username"
-                    placeholder="Username"
-                    value={SigninData.username}
-                    onChange={handleChange}
-                    className="w-full mb-3 p-2 border rounded"
-                />
+      <form
+        onSubmit={handleSubmit}
+        className="relative z-10 bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg w-80 border border-white/40"
+      >
+        <h2 className="text-2xl font-semibold mb-6 text-center text-gray-700">
+          Signin
+        </h2>
 
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    value={SigninData.password}
-                    onChange={handleChange}
-                    className="w-full mb-3 p-2 border rounded"
-                />
+        <input
+          type="text"
+          name="username"
+          placeholder="Username"
+          value={SigninData.username}
+          onChange={handleChange}
+          className="w-full mb-4 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+        />
 
-                <button
-                    type="submit"
-                    className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-                >
-                    Signin
-                </button>
-                <p className="text-center text-gray-600 mt-6">
-                    Don't have an account?{" "}
-                    <Link to="/signup" className="font-semibold text-blue-600 hover:underline">
-                        Sign up
-                    </Link>
-                </p>
-            </form>
-        </div>
-    );
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={SigninData.password}
+          onChange={handleChange}
+          className="w-full mb-4 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+        />
+
+        <button
+          type="submit"
+          className="w-full bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 transition active:scale-[0.98]"
+        >
+          Signin
+        </button>
+
+        <p className="text-center text-gray-600 mt-6 text-sm">
+          Don't have an account?{" "}
+          <Link to="/signup" className="font-semibold text-indigo-600 hover:underline">
+            Sign up
+          </Link>
+        </p>
+      </form>
+    </div>
+  );
 };
 
 export default Signin;

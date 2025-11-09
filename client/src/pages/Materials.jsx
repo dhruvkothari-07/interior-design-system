@@ -139,14 +139,14 @@ const Materials = () => {
 
 
     return (
-        <div className="flex h-screen bg-gray-100 text-gray-800">
+        <div className="flex h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 text-gray-800">
             {/* Sidebar (Consistent Theme) */}
             <Sidebar />
 
             {/* Main Content */}
             <main className="flex-1 p-8 overflow-y-auto">
                 <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
-                    <h2 className="text-3xl font-semibold text-gray-800">Materials List</h2>
+                    <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Materials</h1>
                     {/* Add Material Button - Consider linking to a separate add page/modal */}
                     <button
                         onClick={() => setIsAddModalOpen(true)}
@@ -168,7 +168,7 @@ const Materials = () => {
 
 
 
-                <section className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+                <section className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden">
                     {/* Added overflow-hidden for rounded corners on table */}
                     <div className="overflow-x-auto">
                         {materials.length > 0 ? (

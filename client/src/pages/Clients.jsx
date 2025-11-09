@@ -133,14 +133,14 @@ const Clients = () => {
     );
 
     return (
-        <div className="flex h-screen bg-gray-100 text-gray-800">
+        <div className="flex h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 text-gray-800">
             {/* Sidebar */}
             <Sidebar />
 
             {/* Main Content */}
             <main className="flex-1 p-8 overflow-y-auto">
                 <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
-                    <h2 className="text-3xl font-semibold text-gray-800">Clients</h2>
+                    <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Clients</h1>
                     <button onClick={() => setIsAddModalOpen(true)} className="bg-indigo-600 text-white px-5 py-2 rounded-lg shadow hover:bg-indigo-700 transition duration-150 ease-in-out">+ New Client</button>
                 </header>
 
@@ -154,7 +154,7 @@ const Clients = () => {
                     />
                 </header>
 
-                <section className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+                <section className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         {isLoading ? (
                             <p className="text-center text-gray-500 py-8">Loading clients...</p>

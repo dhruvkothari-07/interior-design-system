@@ -149,16 +149,14 @@ const QuotationSummary = () => {
     }
 
     return (
-        <div className="flex h-screen bg-gray-100 text-gray-800">
+        <div className="flex h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 text-gray-800">
             {/* Sidebar (can be a shared component later) */}
             <Sidebar />
 
             {/* Main Content */}
             <main className="flex-1 p-8 overflow-y-auto">
                 <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
-                    <div>
-                        <h2 className="text-3xl font-semibold text-gray-800">Summary for: {quotation.title}</h2>
-                    </div>
+                    <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Summary for: {quotation.title}</h1>
                     <div className="flex items-center space-x-4">
                         <button
                             onClick={handleSaveFinalTotal}
@@ -178,7 +176,7 @@ const QuotationSummary = () => {
                     </div>
                 </header>
 
-                <section ref={printRef} className="bg-white p-8 rounded-lg shadow-md border border-gray-200">
+                <section ref={printRef} className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
                     {/* New Header for PDF */}
                     <div className="mb-8 border-b pb-4">
                         <div className="flex justify-between items-start"> 
@@ -212,7 +210,7 @@ const QuotationSummary = () => {
                             rooms.map(room => {
                                 const roomTotal = (room.materials || []).reduce((sum, material) => sum + (Number(material.price) * Number(material.quantity)), 0);
                                 return (
-                                    <div key={room.id} className="bg-gray-50 p-4 rounded-lg border">
+                                    <div key={room.id} className="bg-gray-50 p-4 rounded-xl border">
                                         <h4 className="font-semibold text-lg flex justify-between items-center">
                                             <span>{room.name}</span>
                                             <span>{formatCurrency(roomTotal)}</span>

@@ -30,10 +30,10 @@ const QuotationDetail = () => {
 
     const getStatusBadge = (status) => {
         switch (status?.toLowerCase()) {
-            case 'approved': return 'bg-green-100 text-green-800';
-            case 'pending': return 'bg-yellow-100 text-yellow-800';
-            case 'rejected': return 'bg-red-100 text-red-800';
-            default: return 'bg-gray-100 text-gray-800'; // Draft
+            case 'approved': return 'bg-green-100 text-green-700';
+            case 'pending': return 'bg-yellow-100 text-yellow-700';
+            case 'rejected': return 'bg-red-100 text-red-700';
+            default: return 'bg-gray-100 text-gray-600'; // Draft
         }
     };
 
@@ -253,14 +253,14 @@ const QuotationDetail = () => {
     }
 
     return (
-        <div className="flex h-screen bg-gray-100 text-gray-800">
+        <div className="flex h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 text-gray-800">
             {/* Sidebar (can be a shared component later) */}
             <Sidebar />
 
             {/* Main Content */}
             <main className="flex-1 p-8 overflow-y-auto">
                 <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
-                    <h2 className="text-3xl font-semibold text-gray-800">Quotation: {quotation.title}</h2>
+                    <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Quotation: {quotation.title}</h1>
                     <button
                         onClick={() => navigate(`/quotations`)} // Example: Go back to list
                         className="bg-gray-600 text-white px-5 py-2 rounded-lg shadow hover:bg-gray-700 transition duration-150 ease-in-out"
@@ -269,7 +269,7 @@ const QuotationDetail = () => {
                     </button>
                 </header>
 
-                <section className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200">
                     <h3 className="text-xl font-semibold mb-4">Quotation Details</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -279,7 +279,7 @@ const QuotationDetail = () => {
                                 <select
                                     value={quotation.status}
                                     onChange={(e) => handleStatusChange(e.target.value)}
-                                    className={`px-2 py-1 text-xs leading-5 font-semibold rounded-full border-transparent focus:border-gray-300 focus:ring-0 ${getStatusBadge(quotation.status)}`}
+                                    className={`px-3 py-1 rounded-full text-xs font-medium border-transparent focus:border-gray-300 focus:ring-0 ${getStatusBadge(quotation.status)}`}
                                 >
                                     <option value="Draft">Draft</option>
                                     <option value="Pending">Pending</option>
@@ -338,8 +338,8 @@ const QuotationDetail = () => {
                         <div className="space-y-4">
                             {rooms.length > 0 ? (
                                 rooms.map(room => {
-                                    return (
-                                        <div key={room.id} className="bg-gray-50 p-4 rounded-lg border mb-4">
+                                    return ( 
+                                        <div key={room.id} className="bg-gray-50 p-4 rounded-xl border mb-4">
                                             <div className="flex justify-between items-start">
                                                 <div>
                                                     <h4 className="font-semibold text-lg">{room.name}</h4>

@@ -36,10 +36,10 @@ const ClientDetail = () => {
 
     const getStatusBadge = (status) => {
         const s = status?.toLowerCase();
-        if (s === 'approved' || s === 'completed') return 'bg-green-100 text-green-800';
-        if (s === 'pending' || s === 'in progress') return 'bg-yellow-100 text-yellow-800';
-        if (s === 'rejected' || s === 'on hold') return 'bg-red-100 text-red-800';
-        return 'bg-gray-100 text-gray-800';
+        if (s === 'approved' || s === 'completed') return 'bg-green-100 text-green-700';
+        if (s === 'pending' || s === 'in progress') return 'bg-yellow-100 text-yellow-700';
+        if (s === 'rejected' || s === 'on hold') return 'bg-red-100 text-red-700';
+        return 'bg-gray-100 text-gray-600';
     };
 
     if (isLoading) return <div className="flex h-screen bg-gray-100 justify-center items-center"><p>Loading client details...</p></div>;
@@ -47,18 +47,18 @@ const ClientDetail = () => {
     if (!clientData) return <div className="flex h-screen bg-gray-100 justify-center items-center"><p>Client not found.</p></div>;
 
     return (
-        <div className="flex h-screen bg-gray-100 text-gray-800">
+        <div className="flex h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 text-gray-800">
             <Sidebar />
             <main className="flex-1 p-8 overflow-y-auto">
                 <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
-                    <h2 className="text-3xl font-semibold text-gray-800">Client Hub: {clientData.name}</h2>
+                    <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Client Hub: {clientData.name}</h1>
                     <button onClick={() => navigate('/clients')} className="bg-gray-600 text-white px-5 py-2 rounded-lg shadow hover:bg-gray-700 transition">
                         Back to Clients List
                     </button>
                 </header>
 
                 {/* Client Contact Info */}
-                <section className="bg-white p-6 rounded-lg shadow-md border border-gray-200 mb-8">
+                <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 mb-8">
                     <h3 className="text-xl font-semibold mb-4">Contact Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <p><strong>Email:</strong> {clientData.email || 'N/A'}</p>
@@ -69,7 +69,7 @@ const ClientDetail = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Quotations Section */}
-                    <section className="bg-white p-6 rounded-lg shadow-md">
+                    <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <h3 className="text-xl font-semibold mb-4">Quotations</h3>
                         <div className="overflow-x-auto max-h-96">
                             {clientData.quotations && clientData.quotations.length > 0 ? (
@@ -85,7 +85,7 @@ const ClientDetail = () => {
                                         {clientData.quotations.map(q => (
                                             <tr key={q.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/quotations/${q.id}`)}>
                                                 <td className="px-4 py-3 font-medium text-indigo-600">{q.title}</td>
-                                                <td className="px-4 py-3"><span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadge(q.status)}`}>{q.status}</span></td>
+                                                <td className="px-4 py-3"><span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(q.status)}`}>{q.status}</span></td>
                                                 <td className="px-4 py-3 text-right">{q.total_amount ? formatCurrency(q.total_amount) : 'N/A'}</td>
                                             </tr>
                                         ))}
@@ -98,7 +98,7 @@ const ClientDetail = () => {
                     </section>
 
                     {/* Projects Section */}
-                    <section className="bg-white p-6 rounded-lg shadow-md">
+                    <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <h3 className="text-xl font-semibold mb-4">Projects</h3>
                         <div className="overflow-x-auto max-h-96">
                             {clientData.projects && clientData.projects.length > 0 ? (
@@ -114,7 +114,7 @@ const ClientDetail = () => {
                                         {clientData.projects.map(p => (
                                             <tr key={p.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/projects/${p.id}`)}>
                                                 <td className="px-4 py-3 font-medium text-indigo-600">{p.name}</td>
-                                                <td className="px-4 py-3"><span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadge(p.status)}`}>{p.status}</span></td>
+                                                <td className="px-4 py-3"><span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(p.status)}`}>{p.status}</span></td>
                                                 <td className="px-4 py-3 text-right">{p.budget ? formatCurrency(p.budget) : 'N/A'}</td>
                                             </tr>
                                         ))}

@@ -6,36 +6,56 @@ import { useNavigate } from 'react-router-dom';
 const Projects = () => {
     const [projects, setProjects] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchProjects = async () => {
-            try {
-                setIsLoading(true);
-                const token = localStorage.getItem("token");
-                if (!token) { navigate('/signin'); return; }
+    const fetchProjects = async (search = '') => {
+        try {
+            setIsLoading(true);
+            const token = localStorage.getItem("token");
+            if (!token) { navigate('/signin'); return; }
 
-                const res = await axios.get("http://localhost:3001/api/v1/projects", {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                setProjects(res.data);
-            } catch (err) {
-                console.error("Error fetching projects:", err);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchProjects();
-    }, [navigate]);
+            const res = await axios.get("http://localhost:3001/api/v1/projects", {
+                headers: { Authorization: `Bearer ${token}` },
+                params: { search }
+            });
+            setProjects(res.data);
+        } catch (err) {
+            console.error("Error fetching projects:", err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const debounceFetch = setTimeout(() => {
+            fetchProjects(searchTerm);
+        }, 300); // 300ms debounce to prevent API calls on every keystroke
+
+        return () => clearTimeout(debounceFetch);
+    }, [searchTerm, navigate]);
+
+    useEffect(() => {
+        fetchProjects(''); // Initial fetch
+    }, []); // Empty dependency array ensures this runs only once on mount
 
     return (
-        <div className="flex h-screen bg-gray-100 text-gray-800">
+        <div className="flex h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 text-gray-800">
             <Sidebar />
             <main className="flex-1 p-8 overflow-y-auto">
                 <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
-                    <h2 className="text-3xl font-semibold text-gray-800">Projects</h2>
+                    <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Projects</h1>
                 </header>
-                <section className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+                <header className="mb-4">
+                    <input
+                        type="text"
+                        placeholder="Search by project or client name..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full sm:w-1/3 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                </header>
+                <section className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         {isLoading ? (
                             <p className="text-center py-8">Loading projects...</p>
@@ -54,7 +74,11 @@ const Projects = () => {
                                         <tr key={project.id} className="hover:bg-gray-50">
                                             <td className="px-6 py-4 font-medium">{project.name}</td>
                                             <td className="px-6 py-4 text-gray-500">{project.client_name}</td>
-                                            <td className="px-6 py-4"><span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">{project.status}</span></td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                                    {'Completed': 'bg-green-100 text-green-700', 'On Hold': 'bg-red-100 text-red-700', 'Not Started': 'bg-gray-100 text-gray-600', 'In Progress': 'bg-yellow-100 text-yellow-700'}[project.status] || 'bg-gray-100 text-gray-600'
+                                                }`}>{project.status}</span>
+                                            </td>
                                             <td className="px-6 py-4 text-right"><button onClick={() => navigate(`/projects/${project.id}`)} className="text-indigo-600 hover:text-indigo-800">View</button></td>
                                         </tr>
                                     ))}
