@@ -40,7 +40,7 @@ router.get("/projects/by-quotation/:quotationId", authMiddleware, async (req, re
 
 // POST - Create a new project from a quotation
 router.post("/projects", authMiddleware, async (req, res) => {
-    const { quotation_id } = req.body;
+    const { quotation_id, start_date, end_date } = req.body;
 
     if (!quotation_id) {
         return res.status(400).json({ message: "Quotation ID is required." });
@@ -60,8 +60,10 @@ router.post("/projects", authMiddleware, async (req, res) => {
         }
 
         // 3. Create the new project
-        // We no longer insert the budget. It will be read from the quotation.
-        const [result] = await db.query("INSERT INTO projects (quotation_id, name) VALUES (?, ?)", [quotation_id, quotation.title]);
+        const [result] = await db.query(
+            "INSERT INTO projects (quotation_id, name, budget, start_date, end_date) VALUES (?, ?, ?, ?, ?)", 
+            [quotation_id, quotation.title, quotation.total_amount, start_date || null, end_date || null]
+        );
         
         // Fetch the newly created project with its live budget for the response
         const [[newProject]] = await db.query("SELECT p.*, q.total_amount as budget FROM projects p JOIN quotations q ON p.quotation_id = q.id WHERE p.id = ?", [result.insertId]);

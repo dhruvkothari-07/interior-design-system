@@ -24,6 +24,41 @@ router.get("/clients-full", authMiddleware, async (req, res) => {
     }
 });
 
+// GET a single client with all their details (quotations, projects)
+router.get("/clients/:id/details", authMiddleware, async (req, res) => {
+    const { id } = req.params;
+    try {
+        // 1. Fetch client details
+        const [[client]] = await db.query("SELECT * FROM clients WHERE id = ?", [id]);
+        if (!client) {
+            return res.status(404).json({ message: "Client not found." });
+        }
+
+        // 2. Fetch all quotations for this client
+        const [quotations] = await db.query(
+            "SELECT id, title, status, total_amount, createdAt FROM quotations WHERE client_id = ? ORDER BY createdAt DESC",
+            [id]
+        );
+
+        // 3. Fetch all projects for this client (by joining through quotations)
+        const [projects] = await db.query(
+            `SELECT p.id, p.name, p.status, p.start_date, p.end_date, p.budget 
+             FROM projects p
+             JOIN quotations q ON p.quotation_id = q.id
+             WHERE q.client_id = ? 
+             ORDER BY p.createdAt DESC`,
+            [id]
+        );
+
+        // 4. Combine and send the response
+        res.status(200).json({ ...client, quotations, projects });
+
+    } catch (err) {
+        console.error("Error fetching client details:", err);
+        res.status(500).json({ message: "Server error while fetching client details." });
+    }
+});
+
 // POST a new client
 router.post("/clients", authMiddleware, async (req, res) => {
     const { name, email, phone, address } = req.body;

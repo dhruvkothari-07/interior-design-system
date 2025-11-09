@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import axios from "axios";
 import Sidebar from './Sidebar';
+import { useNavigate } from 'react-router-dom'; 
 
 const Clients = () => {
     const [clients, setClients] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const navigate = useNavigate();
 
     // State for Add Modal
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -160,16 +162,22 @@ const Clients = () => {
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Phone</th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                                            Name
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Phone</th>
                                         <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-100">
                                     {clients.map((client) => (
                                         <tr key={client.id} className="hover:bg-gray-50 transition duration-150 ease-in-out">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{client.name}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <button onClick={() => navigate(`/clients/${client.id}`)} className="text-sm font-medium text-indigo-600 hover:text-indigo-800 text-left">
+                                                    {client.name}
+                                                </button>
+                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.email || 'N/A'}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.phone || 'N/A'}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">

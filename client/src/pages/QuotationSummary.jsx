@@ -36,12 +36,18 @@ const QuotationSummary = () => {
                 });
                 setQuotation(resQuotation.data);
 
-                // Fetch rooms for the quotation (they now include room_total from backend)
+                // Step 1: Fetch rooms for the quotation
                 const resRooms = await axios.get(`http://localhost:3001/api/v1/quotations/${id}/rooms`, { 
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                setRooms(resRooms.data); // Set rooms directly, as they contain room_total
+                const fetchedRooms = resRooms.data;
 
+                // Step 2: Fetch materials for each room and combine the data
+                const roomsWithMaterials = await Promise.all(fetchedRooms.map(async (room) => {
+                    const resMaterials = await axios.get(`http://localhost:3001/api/v1/rooms/${room.id}/materials`, { headers: { Authorization: `Bearer ${token}` } });
+                    return { ...room, materials: resMaterials.data };
+                }));
+                setRooms(roomsWithMaterials);
             } catch (err) {
                 console.error("Error fetching quotation summary:", err);
                 setError("Failed to load quotation summary.");
@@ -61,7 +67,13 @@ const QuotationSummary = () => {
     };
 
     const subTotal = useMemo(() => {
-        return rooms.reduce((total, room) => total + Number(room.room_total || 0), 0);
+        // Recalculate from materials to ensure consistency with what's displayed
+        return rooms.reduce((total, room) => {
+            const roomTotal = (room.materials || []).reduce((roomSum, material) => {
+                return roomSum + (Number(material.price) * Number(material.quantity));
+            }, 0);
+            return total + roomTotal;
+        }, 0);
     }, [rooms]);
 
     const taxAmount = useMemo(() => {
@@ -197,21 +209,29 @@ const QuotationSummary = () => {
                     <h3 className="text-xl font-semibold mb-4">Items & Services</h3>
                     <div className="space-y-6">
                         {rooms.length > 0 ? (
-                            rooms.map(room => (
-                                <div key={room.id} className="bg-gray-50 p-4 rounded-lg border">
-                                    <h4 className="font-semibold text-lg flex justify-between items-center">
-                                        <span>{room.name}</span>
-                                        <span>{formatCurrency(room.room_total || 0)}</span>
-                                    </h4>
-                                    {room.notes && <p className="text-sm text-gray-500 italic">Notes: {room.notes}</p>}
-                                    {/* Material details are no longer fetched here, so this list will be empty */}
-                                    <ul className="text-sm text-gray-600 space-y-1 mt-2">
-                                        <li className="list-none italic text-gray-400 pl-4">
-                                            Material breakdown available on Quotation Details page.
-                                        </li>
-                                    </ul>
-                                </div>
-                            ))
+                            rooms.map(room => {
+                                const roomTotal = (room.materials || []).reduce((sum, material) => sum + (Number(material.price) * Number(material.quantity)), 0);
+                                return (
+                                    <div key={room.id} className="bg-gray-50 p-4 rounded-lg border">
+                                        <h4 className="font-semibold text-lg flex justify-between items-center">
+                                            <span>{room.name}</span>
+                                            <span>{formatCurrency(roomTotal)}</span>
+                                        </h4>
+                                        {room.notes && <p className="text-sm text-gray-500 italic">Notes: {room.notes}</p>}
+                                        <ul className="text-sm text-gray-600 space-y-1 mt-2">
+                                            {room.materials && room.materials.length > 0 ? room.materials.map(material => {
+                                                const lineItemTotal = Number(material.price) * Number(material.quantity);
+                                                return (
+                                                    <li key={material.id} className="flex justify-between items-center pl-4">
+                                                        <span>{material.name} - {material.quantity} {material.unit} @ {formatCurrency(material.price)}/{material.unit}</span>
+                                                        <span>{formatCurrency(lineItemTotal)}</span>
+                                                    </li>
+                                                );
+                                            }) : <li className="list-none italic text-gray-400 pl-4">No materials added.</li>}
+                                        </ul>
+                                    </div>
+                                );
+                            })
                         ) : (
                             <p className="text-gray-500 italic text-center py-4">No rooms have been added to this quotation yet.</p>
                         )}

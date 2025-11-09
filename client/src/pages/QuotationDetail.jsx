@@ -20,6 +20,13 @@ const QuotationDetail = () => {
 
     // State for project
     const [project, setProject] = useState(null);
+    const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
+    const [newProjectDetails, setNewProjectDetails] = useState({
+        start_date: '',
+        end_date: ''
+    });
+
+
 
     const getStatusBadge = (status) => {
         switch (status?.toLowerCase()) {
@@ -177,20 +184,26 @@ const QuotationDetail = () => {
         }
     };
 
-    const handleCreateProject = async () => {
-        if (!window.confirm("Are you sure you want to create a new project from this quotation?")) {
-            return;
-        }
+    const handleCreateProject = async (e) => {
+        e.preventDefault();
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.post(`http://localhost:3001/api/v1/projects`,
-                { quotation_id: id },
+            const postData = {
+                quotation_id: id,
+                start_date: newProjectDetails.start_date,
+                end_date: newProjectDetails.end_date,
+            };
+
+            const res = await axios.post(`http://localhost:3001/api/v1/projects`, postData,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            setProject(res.data);
-            alert(`Project "${res.data.name}" created successfully!`);
-            // In the future, we will navigate to the project page:
-            // navigate(`/projects/${res.data.id}`);
+
+            // Close modal and reset state
+            setIsCreateProjectModalOpen(false);
+            setNewProjectDetails({ start_date: '', end_date: '' });
+
+            // Redirect to the new project's detail page
+            navigate(`/projects/${res.data.id}`);
         } catch (err) {
             console.error("Error creating project:", err);
             alert(err.response?.data?.message || "Failed to create project.");
@@ -203,6 +216,11 @@ const QuotationDetail = () => {
         }).format(amount);
     };
     
+    const handleNewProjectInputChange = (e) => {
+        const { name, value } = e.target;
+        setNewProjectDetails(prev => ({ ...prev, [name]: value }));
+    };
+
     const currentSubTotal = useMemo(() => {
         return rooms.reduce((total, room) => total + Number(room.room_total || 0), 0);
     }, [rooms]);
@@ -287,9 +305,9 @@ const QuotationDetail = () => {
                                     {project ? (
                                         <button onClick={() => alert(`Navigating to project ${project.id}`)} className="bg-gray-400 text-white px-4 py-2 rounded-md shadow cursor-not-allowed" disabled>
                                             Project Already Exists
-                                        </button>
+                                        </button> 
                                     ) : (
-                                        <button onClick={handleCreateProject} className="bg-purple-600 text-white px-4 py-2 rounded-md shadow hover:bg-purple-700 transition">
+                                        <button onClick={() => setIsCreateProjectModalOpen(true)} className="bg-purple-600 text-white px-4 py-2 rounded-md shadow hover:bg-purple-700 transition">
                                             Create Project
                                         </button>
                                     )}
@@ -432,6 +450,38 @@ const QuotationDetail = () => {
                     </div>
                 )}
 
+                {/* Create Project Modal */}
+                {isCreateProjectModalOpen && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                        <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg">
+                            <h3 className="text-2xl font-semibold mb-6">Create New Project</h3>
+                            <form onSubmit={handleCreateProject}>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Project Name</label>
+                                        <p className="mt-1 text-lg font-semibold text-gray-800">{quotation.title}</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Budget (from Quotation)</label>
+                                        <p className="mt-1 text-lg font-semibold text-gray-800">{formatCurrency(quotation.total_amount || currentSubTotal)}</p>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="start_date" className="block text-sm font-medium text-gray-700">Start Date</label>
+                                        <input type="date" name="start_date" id="start_date" value={newProjectDetails.start_date} onChange={handleNewProjectInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="end_date" className="block text-sm font-medium text-gray-700">Target End Date</label>
+                                        <input type="date" name="end_date" id="end_date" value={newProjectDetails.end_date} onChange={handleNewProjectInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" />
+                                    </div>
+                                </div>
+                                <div className="mt-8 flex justify-end space-x-4">
+                                    <button type="button" onClick={() => setIsCreateProjectModalOpen(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition">Cancel</button>
+                                    <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">Confirm and Create Project</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );

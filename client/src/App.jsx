@@ -13,6 +13,7 @@ import QuotationDetail from "./pages/QuotationDetail"; // Import the new compone
 import Projects from './pages/Projects'; // You will create this file next
 import ProjectDetail from './pages/ProjectDetail'; // You will create this file now
 import RoomMaterials from './pages/RoomMaterials'; // Import the new component
+import ClientDetail from './pages/ClientDetail'; // Import the new Client Hub page
 
 
 
@@ -27,6 +28,7 @@ const App = () => {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/clients" element={<Clients />} /> {/* Add the new clients route */}
                  <Route path="/quotations" element={<Quotations />} /> 
+                <Route path="/clients/:id" element={<ClientDetail />} /> {/* Add the new route for client details */}
                 <Route path="/quotations/:id/summary" element={<QuotationSummary />} /> {/* Add the new summary route */}
                 <Route path="/quotations/:id" element={<QuotationDetail />} /> {/* Add the new route */}
                 <Route path="/quotations/:quotationId/rooms/:roomId/materials" element={<RoomMaterials />} /> {/* New route for managing room materials */}
