@@ -11,9 +11,13 @@ const dashboardRoute = require("./routes/dashboardRoute");
 const cors = require("cors")
 const projectRoutes = require('./routes/projectRoute');
 
+
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Serve uploaded files statically
+app.use('/uploads', express.static('uploads'));
 
 // Register all API routes
 app.use("/api/v1/", userRoute)
@@ -25,13 +29,14 @@ app.use("/api/v1", clientsRoute)
 app.use("/api/v1", dashboardRoute)
 app.use('/api/v1', projectRoutes); // Add the project routes here with the others
 
+
 app.use((err, req, res, next) => {
     console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
 });
 
 
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`)
 });

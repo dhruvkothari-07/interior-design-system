@@ -1,7 +1,26 @@
 const { Router } = require("express");
 const authMiddleware = require("../middleware/authMiddleware");
 const db = require("../db/db");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
+// --- Ensure upload directory exists ---
+const uploadDir = 'uploads';
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// --- Multer Configuration for File Uploads ---
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    }
+});
+const upload = multer({ storage: storage });
 const router = Router();
 
 // GET all projects (for a future list page)
@@ -105,8 +124,10 @@ router.get("/projects/:id", authMiddleware, async (req, res) => {
         const [tasks] = await db.query("SELECT * FROM tasks WHERE project_id = ? ORDER BY createdAt DESC", [id]);
         const [expenses] = await db.query("SELECT * FROM expenses WHERE project_id = ? ORDER BY expense_date DESC", [id]);
         const [notes] = await db.query("SELECT * FROM project_notes WHERE project_id = ? ORDER BY createdAt DESC", [id]);
+        const [files] = await db.query("SELECT * FROM project_files WHERE project_id = ? ORDER BY uploaded_at DESC", [id]);
 
-        res.status(200).json({ ...project, tasks, expenses, notes });
+
+        res.status(200).json({ ...project, tasks, expenses, notes, files });
     } catch (err) {
         console.error("Error fetching project details:", err);
         res.status(500).json({ message: "Server error while fetching project details." });
@@ -161,6 +182,54 @@ router.post("/projects/:id/notes", authMiddleware, async (req, res) => {
     } catch (err) {
         console.error("Error adding note:", err);
         res.status(500).json({ message: "Server error while adding note." });
+    }
+});
+
+// --- FILE MANAGEMENT ROUTES ---
+
+// POST - Upload a file to a project
+router.post("/projects/:id/files", authMiddleware, upload.single('file'), async (req, res) => {
+    const { id: project_id } = req.params;
+    const { file } = req;
+
+    if (!file) {
+        return res.status(400).json({ message: "No file uploaded." });
+    }
+
+    try {
+        const { originalname: file_name, path: file_path, mimetype: file_type } = file;
+        const [result] = await db.query(
+            "INSERT INTO project_files (project_id, file_name, file_path, file_type) VALUES (?, ?, ?, ?)",
+            [project_id, file_name, file_path, file_type]
+        );
+        const [[newFile]] = await db.query("SELECT * FROM project_files WHERE id = ?", [result.insertId]);
+        res.status(201).json(newFile);
+    } catch (err) {
+        console.error("Error adding file:", err);
+        res.status(500).json({ message: "Server error while adding file." });
+    }
+});
+
+// DELETE - Delete a file
+router.delete("/files/:fileId", authMiddleware, async (req, res) => {
+    const { fileId } = req.params;
+    try {
+        // First, get the file path from the database
+        const [[fileToDelete]] = await db.query("SELECT file_path FROM project_files WHERE id = ?", [fileId]);
+        if (!fileToDelete) {
+            return res.status(404).json({ message: "File not found." });
+        }
+
+        // Second, delete the file from the filesystem
+        fs.unlink(fileToDelete.file_path, async (err) => {
+            if (err) console.error("Error deleting file from filesystem:", err); // Log error but proceed
+            // Third, delete the record from the database
+            await db.query("DELETE FROM project_files WHERE id = ?", [fileId]);
+            res.status(200).json({ message: "File deleted successfully." });
+        });
+    } catch (err) {
+        console.error("Error deleting file record:", err);
+        res.status(500).json({ message: "Server error while deleting file." });
     }
 });
 

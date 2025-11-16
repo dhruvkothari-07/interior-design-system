@@ -10,6 +10,7 @@ const QuotationSummary = () => {
     const navigate = useNavigate();
     const [quotation, setQuotation] = useState(null);
     const [rooms, setRooms] = useState([]);
+    const [settings, setSettings] = useState({}); // State for company settings
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -29,6 +30,12 @@ const QuotationSummary = () => {
                     navigate('/signin');
                     return;
                 }
+
+                // Fetch application settings
+                const resSettings = await axios.get(`http://localhost:3001/api/v1/settings`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setSettings(resSettings.data);
 
                 // Fetch quotation details
                 const resQuotation = await axios.get(`http://localhost:3001/api/v1/quotations/${id}`, {
@@ -182,11 +189,11 @@ const QuotationSummary = () => {
                         <div className="flex justify-between items-start"> 
                             {/* Company Info & Logo */}
                             <div className="w-1/2">
-                                <img src="/logo.jpg" alt="Company Logo" className="h-20 mb-4" />
-                                <h2 className="text-lg font-bold text-gray-800">Company Name</h2>
-                                <p className="text-sm text-gray-600">123 Business Rd, Suite 100</p>
-                                <p className="text-sm text-gray-600">City, State, 12345</p>
-                                <p className="text-sm text-gray-600">contact@yourcompany.com</p>
+                                {settings.logo_url && <img src={settings.logo_url} alt="Company Logo" className="h-20 mb-4 object-contain" />}
+                                <h2 className="text-lg font-bold text-gray-800">{settings.company_name || 'Your Company'}</h2>
+                                {settings.company_address && <p className="text-sm text-gray-600 whitespace-pre-line">{settings.company_address}</p>}
+                                {settings.company_email && <p className="text-sm text-gray-600">{settings.company_email}</p>}
+                                {settings.company_phone && <p className="text-sm text-gray-600">{settings.company_phone}</p>}
                             </div>
 
                             {/* Client Info */}
@@ -254,12 +261,11 @@ const QuotationSummary = () => {
                         {/* Terms & Conditions - now at the bottom, full width */}
                         <div className="mt-12 text-sm text-gray-600">
                             <h3 className="text-lg font-semibold text-gray-800 mb-3">Terms & Conditions</h3>
-                            <ul className="list-disc list-inside space-y-2">
-                                <li>Payment is due within 30 days of the invoice date.</li>
-                                <li>All materials are subject to availability and may be substituted with equivalent quality items.</li>
-                                <li>Any changes to the scope of work will be subject to a revised quotation.</li>
-                                <li>This quotation is valid for 15 days.</li>
-                            </ul>
+                            {settings.terms_and_conditions ? (
+                                <p className="whitespace-pre-line">{settings.terms_and_conditions}</p>
+                            ) : (
+                                <p className="italic">No terms and conditions have been set.</p>
+                            )}
                         </div>
                     </div>
                 </section>
