@@ -137,11 +137,14 @@ router.get("/projects/:id", authMiddleware, async (req, res) => {
 // POST a new task to a project
 router.post("/projects/:id/tasks", authMiddleware, async (req, res) => {
     const { id: project_id } = req.params;
-    const { description } = req.body;
+    const { description, details, due_date, priority, trade_category } = req.body;
     if (!description) return res.status(400).json({ message: "Task description is required." });
 
     try {
-        const [result] = await db.query("INSERT INTO tasks (project_id, description) VALUES (?, ?)", [project_id, description]);
+        const [result] = await db.query(
+            "INSERT INTO tasks (project_id, description, details, due_date, priority, trade_category) VALUES (?, ?, ?, ?, ?, ?)", 
+            [project_id, description, details || null, due_date || null, priority || 'Medium', trade_category || 'General']
+        );
         const [[newTask]] = await db.query("SELECT * FROM tasks WHERE id = ?", [result.insertId]);
         res.status(201).json(newTask);
     } catch (err) {
@@ -151,15 +154,17 @@ router.post("/projects/:id/tasks", authMiddleware, async (req, res) => {
 });
 
 // POST a new expense to a project
-router.post("/projects/:id/expenses", authMiddleware, async (req, res) => {
+router.post("/projects/:id/expenses", authMiddleware, upload.single('receipt'), async (req, res) => {
     const { id: project_id } = req.params;
     const { description, amount, category, expense_date } = req.body;
+    const receipt_path = req.file ? req.file.path : null;
+
     if (!description || !amount || !expense_date) return res.status(400).json({ message: "Description, amount, and date are required." });
 
     try {
         const [result] = await db.query(
-            "INSERT INTO expenses (project_id, description, amount, category, expense_date) VALUES (?, ?, ?, ?, ?)",
-            [project_id, description, amount, category || null, expense_date]
+            "INSERT INTO expenses (project_id, description, amount, category, expense_date, receipt_path) VALUES (?, ?, ?, ?, ?, ?)",
+            [project_id, description, amount, category || null, expense_date, receipt_path]
         );
         const [[newExpense]] = await db.query("SELECT * FROM expenses WHERE id = ?", [result.insertId]);
         res.status(201).json(newExpense);
