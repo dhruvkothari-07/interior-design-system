@@ -10,13 +10,23 @@ const QuotationSummary = () => {
     const navigate = useNavigate();
     const [quotation, setQuotation] = useState(null);
     const [rooms, setRooms] = useState([]);
-    const [settings, setSettings] = useState({}); // State for company settings
+    // Default settings (Hardcoded fallback)
+    const [settings] = useState({
+        company_name: 'My Interior Design Co.',
+        company_address: '123 Design Street, Creative City',
+        company_email: 'contact@designco.com',
+        company_phone: '+91 98765 43210',
+        logo_url: '/logo.jpg', 
+        terms_and_conditions: '1. This quotation includes only the work and materials specifically mentioned above. Any additional or modified work will be charged separately.\n2. Prices are valid for a limited period and may change due to variation in material costs or project requirements.\n3. Payments must be made as per agreed milestones. Delay in payment may result in temporary suspension of work.\n4. The client shall ensure site readiness, including access, electricity, water, and necessary permissions before commencement of work.\n5. Once materials, designs, shades, or finishes are finalized and ordered, they cannot be cancelled or returned. Any changes will be charged additionally.\n6. The service provider shall not be responsible for delays or damages caused due to site conditions, third-party work, natural events, or circumstances beyond control.'
+    }); 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
     // State for summary calculations
     const [taxPercentage, setTaxPercentage] = useState(18.00); // Default tax at 18%
-    const [discountAmount, setDiscountAmount] = useState(0);
+    const [laborCost, setLaborCost] = useState(0);
+    const [designFeeType, setDesignFeeType] = useState('percentage'); // 'flat' or 'percentage'
+    const [designFeeValue, setDesignFeeValue] = useState(0);
 
     // Ref for the printable summary area
     const printRef = useRef();
@@ -31,17 +41,16 @@ const QuotationSummary = () => {
                     return;
                 }
 
-                // Fetch application settings
-                const resSettings = await axios.get(`http://localhost:3001/api/v1/settings`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                setSettings(resSettings.data);
-
                 // Fetch quotation details
                 const resQuotation = await axios.get(`http://localhost:3001/api/v1/quotations/${id}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setQuotation(resQuotation.data);
+                
+                // Initialize calculation fields from DB if they exist
+                setLaborCost(Number(resQuotation.data.labor_cost) || 0);
+                setDesignFeeType(resQuotation.data.design_fee_type || 'percentage');
+                setDesignFeeValue(Number(resQuotation.data.design_fee_value) || 0);
 
                 // Step 1: Fetch rooms for the quotation
                 const resRooms = await axios.get(`http://localhost:3001/api/v1/quotations/${id}/rooms`, { 
@@ -73,7 +82,7 @@ const QuotationSummary = () => {
         }).format(amount);
     };
 
-    const subTotal = useMemo(() => {
+    const materialsTotal = useMemo(() => {
         // Recalculate from materials to ensure consistency with what's displayed
         return rooms.reduce((total, room) => {
             const roomTotal = (room.materials || []).reduce((roomSum, material) => {
@@ -83,22 +92,41 @@ const QuotationSummary = () => {
         }, 0);
     }, [rooms]);
 
+    const calculatedDesignFee = useMemo(() => {
+        const val = parseFloat(designFeeValue) || 0;
+        if (designFeeType === 'flat') {
+            return val;
+        } else {
+            // Percentage of (Materials + Labor)
+            const base = materialsTotal + (parseFloat(laborCost) || 0);
+            return (base * val) / 100;
+        }
+    }, [materialsTotal, laborCost, designFeeType, designFeeValue]);
+
+    const taxableAmount = useMemo(() => {
+        return materialsTotal + (parseFloat(laborCost) || 0) + calculatedDesignFee;
+    }, [materialsTotal, laborCost, calculatedDesignFee]);
+
     const taxAmount = useMemo(() => {
         const tax = parseFloat(taxPercentage);
         if (isNaN(tax)) return 0;
-        return (subTotal * tax) / 100;
-    }, [subTotal, taxPercentage]);
+        return (taxableAmount * tax) / 100;
+    }, [taxableAmount, taxPercentage]);
 
     const finalTotal = useMemo(() => {
-        const discount = parseFloat(discountAmount);
-        return subTotal + taxAmount - (isNaN(discount) ? 0 : discount);
-    }, [subTotal, taxAmount, discountAmount]);
+        return taxableAmount + taxAmount;
+    }, [taxableAmount, taxAmount]);
 
     const handleSaveFinalTotal = async () => {
         try {
             const token = localStorage.getItem("token");
             await axios.put(`http://localhost:3001/api/v1/quotations/${id}/total`,
-                { total_amount: finalTotal },
+                { 
+                    total_amount: finalTotal,
+                    labor_cost: laborCost,
+                    design_fee_type: designFeeType,
+                    design_fee_value: designFeeValue
+                },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             alert("Final quotation total has been saved!");
@@ -248,10 +276,40 @@ const QuotationSummary = () => {
                         <div className="max-w-sm ml-auto"> {/* Aligns the card to the right */} 
                             <div className="bg-white p-6 rounded-lg"> 
                                 <div className="space-y-3">
-                                    <div className="flex justify-between"><span className="text-gray-600">Subtotal</span><span className="font-medium">{formatCurrency(subTotal)}</span></div>
+                                    <div className="flex justify-between"><span className="text-gray-600">Total Materials</span><span className="font-medium">{formatCurrency(materialsTotal)}</span></div>
+                                    
+                                    {/* Labor Cost Input */}
+                                    <div className="flex justify-between items-center">
+                                        <label htmlFor="labor" className="text-gray-600">Labor Estimate</label>
+                                        <input type="number" id="labor" value={laborCost} onChange={(e) => setLaborCost(e.target.value)} className="w-32 px-2 py-1 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-right" />
+                                    </div>
+
+                                    {/* Design Fee Input */}
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex justify-between items-center">
+                                            <label className="text-gray-600">Design Fee</label>
+                                            <div className="flex gap-1">
+                                                <select 
+                                                    value={designFeeType} 
+                                                    onChange={(e) => setDesignFeeType(e.target.value)}
+                                                    className="text-xs border rounded bg-gray-50 focus:outline-none"
+                                                >
+                                                    <option value="percentage">%</option>
+                                                    <option value="flat">Flat</option>
+                                                </select>
+                                                <input type="number" value={designFeeValue} onChange={(e) => setDesignFeeValue(e.target.value)} className="w-20 px-2 py-1 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-right" />
+                                            </div>
+                                        </div>
+                                        <div className="text-right text-sm text-gray-500">
+                                            {formatCurrency(calculatedDesignFee)}
+                                        </div>
+                                    </div>
+
+                                    <div className="border-t my-2"></div>
+                                    <div className="flex justify-between"><span className="text-gray-800 font-medium">Subtotal (Taxable)</span><span className="font-medium">{formatCurrency(taxableAmount)}</span></div>
+
                                     <div className="flex justify-between items-center"><label htmlFor="tax" className="text-gray-600">Tax (%)</label><input type="number" id="tax" value={taxPercentage} onChange={(e) => setTaxPercentage(e.target.value)} className="w-24 px-2 py-1 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-right" step="0.01" /></div>
                                     <div className="flex justify-between"><span className="text-gray-600">Tax Amount</span><span className="font-medium">{formatCurrency(taxAmount)}</span></div>
-                                    <div className="flex justify-between items-center"><label htmlFor="discount" className="text-gray-600">Discount</label><input type="number" id="discount" value={discountAmount} onChange={(e) => setDiscountAmount(e.target.value)} className="w-32 px-2 py-1 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-right" step="0.01" /></div>
                                     <div className="border-t my-2"></div>
                                     <div className="flex justify-between text-xl font-bold"><span className="text-gray-800">Grand Total</span><span>{formatCurrency(finalTotal)}</span></div>
                                 </div>

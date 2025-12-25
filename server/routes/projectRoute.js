@@ -59,7 +59,8 @@ router.get("/projects/by-quotation/:quotationId", authMiddleware, async (req, re
         if (projects.length > 0) {
             res.status(200).json(projects[0]);
         } else {
-            res.status(404).json({ message: "No project found for this quotation." });
+            // Return null instead of 404 to avoid console errors when checking existence
+            res.status(200).json(null);
         }
     } catch (err) {
         console.error("Error checking for project:", err);

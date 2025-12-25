@@ -36,7 +36,7 @@ router.get("/quotations/:id", authMiddleware, async (req, res) => {
     try {
         const [quotation] = await db.query(
             `SELECT 
-                q.id, q.title, q.status, q.total_amount, q.createdAt, q.updatedAt,
+                q.id, q.title, q.status, q.total_amount, q.labor_cost, q.design_fee_type, q.design_fee_value, q.createdAt, q.updatedAt,
                 c.id as client_id, c.name as client_name, c.email as client_email, c.phone as client_phone, c.address as client_address
              FROM quotations q 
              LEFT JOIN clients c ON q.client_id = c.id
@@ -65,6 +65,20 @@ router.get("/clients", authMiddleware, async (req, res) => {
     }
 });
 
+// GET company settings (for quotation summary)
+router.get("/settings", authMiddleware, async (req, res) => {
+    try {
+        const [settings] = await db.query("SELECT * FROM settings LIMIT 1");
+        // Return the settings or an empty object if not configured yet
+        res.status(200).json(settings.length > 0 ? settings[0] : {});
+    } catch (err) {
+        // If table doesn't exist yet, return empty object to prevent frontend crash
+        if (err.code === 'ER_NO_SUCH_TABLE') return res.status(200).json({});
+        
+        console.error("Error fetching settings:", err);
+        return res.status(500).json({ message: "Server Error while getting settings" });
+    }
+});
 
 
 router.post("/quotations", authMiddleware, async (req, res) => {
@@ -149,14 +163,14 @@ router.put("/quotations/:id", authMiddleware, async (req, res) => {
 // New, focused endpoint to update just the total amount
 router.put("/quotations/:id/total", authMiddleware, async (req, res) => {
     const { id } = req.params;
-    const { total_amount } = req.body;
+    const { total_amount, labor_cost, design_fee_type, design_fee_value } = req.body;
 
     if (total_amount === undefined || total_amount === null) {
         return res.status(400).json({ message: "total_amount is required" });
     }
 
     try {
-        const [result] = await db.query("UPDATE quotations SET total_amount = ? WHERE id = ?", [total_amount, id]);
+        const [result] = await db.query("UPDATE quotations SET total_amount = ?, labor_cost = ?, design_fee_type = ?, design_fee_value = ? WHERE id = ?", [total_amount, labor_cost || 0, design_fee_type || 'percentage', design_fee_value || 0, id]);
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: "Quotation not found" });
         }

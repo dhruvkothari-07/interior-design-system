@@ -789,6 +789,30 @@ const ProjectDetail = () => {
     }).length;
   }, [project?.tasks]);
 
+  const tradeStats = useMemo(() => {
+    const tasks = project?.tasks || [];
+    const stats = {};
+
+    tasks.forEach((task) => {
+      const trade = task.trade_category || "General";
+      if (!stats[trade]) {
+        stats[trade] = { total: 0, completed: 0 };
+      }
+      stats[trade].total += 1;
+      if (task.status === "Done") {
+        stats[trade].completed += 1;
+      }
+    });
+
+    return Object.entries(stats)
+      .map(([trade, data]) => ({
+        trade,
+        ...data,
+        percent: data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0,
+      }))
+      .sort((a, b) => b.total - a.total); // Sort by volume of tasks
+  }, [project?.tasks]);
+
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("en-IN", {
       style: "currency",
@@ -1120,9 +1144,32 @@ const ProjectDetail = () => {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-96">
-                <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                   <h3 className="text-lg font-serif text-slate-800 mb-4">Recent Activity</h3>
-                   <div className="text-slate-400 text-sm italic">Activity feed integration coming soon...</div>
+                <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-100 overflow-y-auto">
+                   <h3 className="text-lg font-serif text-slate-800 mb-4">Progress by Trade</h3>
+                   <div className="space-y-5">
+                     {tradeStats.length > 0 ? (
+                       tradeStats.map((stat) => (
+                         <div key={stat.trade}>
+                           <div className="flex justify-between items-end mb-1">
+                             <span className="text-sm font-medium text-slate-700">{stat.trade}</span>
+                             <span className="text-xs text-slate-500 font-medium">
+                               {stat.percent}% ({stat.completed}/{stat.total})
+                             </span>
+                           </div>
+                           <div className="w-full bg-slate-100 rounded-full h-2">
+                             <div 
+                               className={`h-2 rounded-full transition-all duration-500 ${stat.percent === 100 ? 'bg-emerald-500' : 'bg-slate-800'}`} 
+                               style={{ width: `${stat.percent}%` }} 
+                             />
+                           </div>
+                         </div>
+                       ))
+                     ) : (
+                       <div className="text-center py-8 text-slate-400 text-sm italic">
+                         No tasks tracked yet. Add tasks with trade categories to see progress here.
+                       </div>
+                     )}
+                   </div>
                 </div>
                 <NotesFeed notes={project.notes} newNote={newNote} setNewNote={setNewNote} onAddNote={handleAddNote} />
               </div>
