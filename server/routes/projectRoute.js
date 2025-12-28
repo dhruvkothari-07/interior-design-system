@@ -91,8 +91,8 @@ router.post("/projects", authMiddleware, async (req, res) => {
 
         // 3. Create the new project
         const [result] = await db.query(
-            "INSERT INTO projects (quotation_id, name, budget, start_date, end_date) VALUES (?, ?, ?, ?, ?)", 
-            [quotation_id, quotation.title, quotation.total_amount, start_date || null, end_date || null]
+            "INSERT INTO projects (quotation_id, name, budget, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, ?)", 
+            [quotation_id, quotation.title, quotation.total_amount, start_date || null, end_date || null, 'Design/Concept']
         );
         
         // Fetch the newly created project with its live budget for the response
@@ -167,6 +167,16 @@ router.post("/projects/:id/expenses", authMiddleware, upload.single('receipt'), 
             "INSERT INTO expenses (project_id, description, amount, category, expense_date, receipt_path) VALUES (?, ?, ?, ?, ?, ?)",
             [project_id, description, amount, category || null, expense_date, receipt_path]
         );
+
+        // --- AUTOMATION: Stage 2 - Procurement ---
+        // Trigger: First expense with category "Material Purchase" or "FFE"
+        if (category === 'Material Purchase' || category === 'FFE') {
+            const [[project]] = await db.query("SELECT status FROM projects WHERE id = ?", [project_id]);
+            if (project && project.status === 'Design/Concept') {
+                await db.query("UPDATE projects SET status = 'Procurement' WHERE id = ?", [project_id]);
+            }
+        }
+
         const [[newExpense]] = await db.query("SELECT * FROM expenses WHERE id = ?", [result.insertId]);
         res.status(201).json(newExpense);
     } catch (err) {
@@ -247,7 +257,29 @@ router.put("/tasks/:id", authMiddleware, async (req, res) => {
 
     try {
         await db.query("UPDATE tasks SET status = ? WHERE id = ?", [status, id]);
-        res.status(200).json({ message: "Task status updated." });
+
+        // --- AUTOMATION: Stage 3 & 4 ---
+        const [[task]] = await db.query("SELECT project_id FROM tasks WHERE id = ?", [id]);
+        if (task) {
+            const projectId = task.project_id;
+            
+            // Stage 3: Execution (Trigger: Task moved to 'In Progress')
+            if (status === 'In Progress') {
+                const [[project]] = await db.query("SELECT status FROM projects WHERE id = ?", [projectId]);
+                // Move to Execution if currently in Design or Procurement
+                if (project && (project.status === 'Design/Concept' || project.status === 'Procurement')) {
+                    await db.query("UPDATE projects SET status = 'Execution' WHERE id = ?", [projectId]);
+                }
+            }
+
+            // Stage 4: Check for Completion (Trigger: All tasks Done)
+            const [[stats]] = await db.query("SELECT COUNT(*) as total, SUM(CASE WHEN status = 'Done' THEN 1 ELSE 0 END) as completed FROM tasks WHERE project_id = ?", [projectId]);
+            const allTasksCompleted = stats.total > 0 && Number(stats.total) === Number(stats.completed);
+            
+            return res.status(200).json({ message: "Task status updated.", allTasksCompleted });
+        }
+        
+        res.status(200).json({ message: "Task status updated.", allTasksCompleted: false });
     } catch (err) {
         console.error("Error updating task:", err);
         res.status(500).json({ message: "Server error while updating task." });
@@ -259,7 +291,7 @@ router.put("/projects/:id/status", authMiddleware, async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const allowedStatuses = ['Not Started', 'In Progress', 'On Hold', 'Completed'];
+    const allowedStatuses = ['Not Started', 'In Progress', 'On Hold', 'Completed', 'Design/Concept', 'Procurement', 'Execution'];
     if (!status || !allowedStatuses.includes(status)) {
         return res.status(400).json({ message: "A valid status is required." });
     }

@@ -60,14 +60,16 @@ const StatCard = ({ label, value, subLabel, progress, className = "" }) => (
 );
 
 const PhaseStepper = ({ currentStatus }) => {
-  const phases = ["Concept", "Design", "Procurement", "Execution", "Handover"];
+  const phases = ["Design", "Procurement", "Execution", "Completed"];
   
   // Map backend status to a visual phase index
   const statusMap = {
     "Not Started": 0,
-    "On Hold": 1,
-    "In Progress": 3, // Assuming execution is the main active state
-    "Completed": 4
+    "Design/Concept": 0,
+    "Procurement": 1,
+    "Execution": 2,
+    "In Progress": 2, // Legacy/Fallback
+    "Completed": 3
   };
   
   const activeIndex = statusMap[currentStatus] ?? 0;
@@ -789,6 +791,27 @@ const ProjectDetail = () => {
     }).length;
   }, [project?.tasks]);
 
+  const allTasksCompleted = useMemo(() => {
+    const tasks = project?.tasks || [];
+    return tasks.length > 0 && tasks.every((t) => t.status === "Done");
+  }, [project?.tasks]);
+
+  const handleMarkProjectCompleted = async () => {
+    if (!window.confirm("Are you sure you want to mark this project as Completed?")) return;
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `http://localhost:3001/api/v1/projects/${id}/status`,
+        { status: "Completed" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setProject((prev) => ({ ...prev, status: "Completed" }));
+    } catch (err) {
+      console.error("Error updating project status:", err);
+      alert(err.response?.data?.message || "Failed to update project status.");
+    }
+  };
+
   const tradeStats = useMemo(() => {
     const tasks = project?.tasks || [];
     const stats = {};
@@ -992,7 +1015,7 @@ const ProjectDetail = () => {
       alert("Project status updated successfully!");
     } catch (err) {
       console.error("Error updating project status:", err);
-      alert("Failed to update project status.");
+      alert(err.response?.data?.message || "Failed to update project status.");
     }
   };
 
@@ -1049,6 +1072,9 @@ const ProjectDetail = () => {
                   className="bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 [&>option]:text-slate-800"
                 >
                   <option value="Not Started">Not Started</option>
+                  <option value="Design/Concept">Design/Concept</option>
+                  <option value="Procurement">Procurement</option>
+                  <option value="Execution">Execution</option>
                   <option value="In Progress">In Progress</option>
                   <option value="On Hold">On Hold</option>
                   <option value="Completed">Completed</option>
@@ -1088,6 +1114,27 @@ const ProjectDetail = () => {
 
         {/* TAB CONTENT */}
         <div className="p-8 min-h-[calc(100vh-300px)]">
+          
+          {/* Completion Banner */}
+          {allTasksCompleted && project.status !== "Completed" && (
+            <div className="bg-emerald-50 border-l-4 border-emerald-500 p-4 mb-8 rounded-r-lg shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-emerald-100 rounded-full text-emerald-600">
+                  <CheckSquare className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-serif text-lg text-emerald-900 font-medium">All tasks are complete!</h4>
+                  <p className="text-sm text-emerald-700">Would you like to mark this project as officially "Completed"?</p>
+                </div>
+              </div>
+              <button 
+                onClick={handleMarkProjectCompleted}
+                className="bg-emerald-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors shadow-sm whitespace-nowrap"
+              >
+                Mark as Completed
+              </button>
+            </div>
+          )}
           
           {activeTab === "overview" && (
             <div className="space-y-8">
