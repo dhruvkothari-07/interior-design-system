@@ -76,15 +76,7 @@ const Projects = () => {
                                             <td className="px-6 py-4 text-gray-500">{project.client_name}</td>
                                             <td className="px-6 py-4">
                                                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                    {
-                                                        'Completed': 'bg-green-100 text-green-700', 
-                                                        'On Hold': 'bg-red-100 text-red-700', 
-                                                        'Not Started': 'bg-gray-100 text-gray-600', 
-                                                        'In Progress': 'bg-yellow-100 text-yellow-700',
-                                                        'Design/Concept': 'bg-indigo-100 text-indigo-700',
-                                                        'Procurement': 'bg-purple-100 text-purple-700',
-                                                        'Execution': 'bg-blue-100 text-blue-700'
-                                                    }[project.status] || 'bg-gray-100 text-gray-600'
+                                                    {'Completed': 'bg-green-100 text-green-700', 'On Hold': 'bg-red-100 text-red-700', 'Not Started': 'bg-gray-100 text-gray-600', 'In Progress': 'bg-yellow-100 text-yellow-700'}[project.status] || 'bg-gray-100 text-gray-600'
                                                 }`}>{project.status}</span>
                                             </td>
                                             <td className="px-6 py-4 text-right"><button onClick={() => navigate(`/projects/${project.id}`)} className="text-indigo-600 hover:text-indigo-800">View</button></td>
