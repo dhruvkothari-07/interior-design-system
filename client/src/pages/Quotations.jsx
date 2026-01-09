@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from "axios";
 import Sidebar from './Sidebar';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config';
 
 const Quotations = () => {
     const [quotations, setQuotations] = useState([]);
@@ -28,7 +29,7 @@ const Quotations = () => {
             const token = localStorage.getItem("token");
             if (!token) return;
 
-            const res = await axios.get("http://localhost:3001/api/v1/quotations", {
+            const res = await axios.get(`${API_URL}/quotations`, {
                 headers: { Authorization: `Bearer ${token}` },
                 params: { search }
             });
@@ -44,7 +45,7 @@ const Quotations = () => {
         try {
             const token = localStorage.getItem("token");
             if (!token) return;
-            const res = await axios.get("http://localhost:3001/api/v1/clients", {
+            const res = await axios.get(`${API_URL}/clients`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setClients(res.data);
@@ -112,7 +113,7 @@ const Quotations = () => {
                 })
             };
 
-            const res = await axios.post("http://localhost:3001/api/v1/quotations", postData, {
+            const res = await axios.post(`${API_URL}/quotations`, postData, {
                 headers: { Authorization: `Bearer ${token}` } });
 
             // Add new quotation to the top of the list and close modal
@@ -147,7 +148,7 @@ const Quotations = () => {
             const token = localStorage.getItem("token");
             if (!token) return;
 
-            await axios.delete(`http://localhost:3001/api/v1/quotations/${quotationId}`, {
+            await axios.delete(`${API_URL}/quotations/${quotationId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

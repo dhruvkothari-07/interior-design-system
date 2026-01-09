@@ -12,6 +12,7 @@ import {
     Clock,
     ArrowRight
 } from 'lucide-react';
+import { API_URL } from '../config';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -29,7 +30,7 @@ const Dashboard = () => {
                 const token = localStorage.getItem("token");
                 if (!token) return;
 
-                const res = await axios.get("http://localhost:3001/api/v1/dashboard/stats", {
+                const res = await axios.get(`${API_URL}/dashboard/stats`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
 

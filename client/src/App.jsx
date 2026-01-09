@@ -8,7 +8,6 @@ import Quotations from "./pages/Quotations";
 import Clients from "./pages/Clients"; // Import the new component
 import QuotationSummary from "./pages/QuotationSummary"; // Import the new component
 import QuotationDetail from "./pages/QuotationDetail"; // Import the new component
-// In your App.jsx or wherever you manage your routes
 
 import Projects from './pages/Projects'; // You will create this file next
 import ProjectDetail from './pages/ProjectDetail'; // You will create this file now

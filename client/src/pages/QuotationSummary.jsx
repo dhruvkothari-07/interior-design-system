@@ -4,6 +4,7 @@ import Sidebar from './Sidebar';
 import { useParams, useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { API_URL } from '../config';
 
 const QuotationSummary = () => {
     const { id } = useParams(); // Get the quotation ID from the URL
@@ -42,7 +43,7 @@ const QuotationSummary = () => {
                 }
 
                 // Fetch quotation details
-                const resQuotation = await axios.get(`http://localhost:3001/api/v1/quotations/${id}`, {
+                const resQuotation = await axios.get(`${API_URL}/quotations/${id}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setQuotation(resQuotation.data);
@@ -53,14 +54,14 @@ const QuotationSummary = () => {
                 setDesignFeeValue(Number(resQuotation.data.design_fee_value) || 0);
 
                 // Step 1: Fetch rooms for the quotation
-                const resRooms = await axios.get(`http://localhost:3001/api/v1/quotations/${id}/rooms`, { 
+                const resRooms = await axios.get(`${API_URL}/quotations/${id}/rooms`, { 
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const fetchedRooms = resRooms.data;
 
                 // Step 2: Fetch materials for each room and combine the data
                 const roomsWithMaterials = await Promise.all(fetchedRooms.map(async (room) => {
-                    const resMaterials = await axios.get(`http://localhost:3001/api/v1/rooms/${room.id}/materials`, { headers: { Authorization: `Bearer ${token}` } });
+                    const resMaterials = await axios.get(`${API_URL}/rooms/${room.id}/materials`, { headers: { Authorization: `Bearer ${token}` } });
                     return { ...room, materials: resMaterials.data };
                 }));
                 setRooms(roomsWithMaterials);
@@ -120,7 +121,7 @@ const QuotationSummary = () => {
     const handleSaveFinalTotal = async () => {
         try {
             const token = localStorage.getItem("token");
-            await axios.put(`http://localhost:3001/api/v1/quotations/${id}/total`,
+            await axios.put(`${API_URL}/quotations/${id}/total`,
                 { 
                     total_amount: finalTotal,
                     labor_cost: laborCost,

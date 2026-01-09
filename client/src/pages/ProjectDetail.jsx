@@ -31,6 +31,7 @@ import {
   MoreHorizontal,
   Calendar
 } from "lucide-react";
+import { API_URL, SERVER_URL } from '../config';
 
 // ---- UI Components ---------------------------------------
 
@@ -495,7 +496,7 @@ const ExpensePanel = ({
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                     {expense.receipt_path ? (
                       <a 
-                        href={`http://localhost:3001/${expense.receipt_path.replace(/\\/g, '/')}`} 
+                        href={`${SERVER_URL}/${expense.receipt_path.replace(/\\/g, '/')}`} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 text-emerald-600 hover:underline hover:text-emerald-700"
@@ -639,7 +640,7 @@ const FilesPanel = ({ files = [], onFileUpload, onFileDelete }) => {
             return (
               <div key={file.id} className="flex items-center justify-between p-2 rounded-md hover:bg-gray-50">
                 <a
-                  href={`http://localhost:3001/${file.file_path.replace(/\\/g, '/')}`}
+                  href={`${SERVER_URL}/${file.file_path.replace(/\\/g, '/')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 group min-w-0" // Added min-w-0 for truncation
@@ -723,7 +724,7 @@ const ProjectDetail = () => {
       }
 
       const res = await axios.get(
-        `http://localhost:3001/api/v1/projects/${id}`,
+        `${API_URL}/projects/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -825,7 +826,7 @@ const ProjectDetail = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        `http://localhost:3001/api/v1/projects/${id}/tasks`,
+        `${API_URL}/projects/${id}/tasks`,
         newTaskData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -860,7 +861,7 @@ const ProjectDetail = () => {
       if (newExpense.receipt) formData.append("receipt", newExpense.receipt);
 
       const res = await axios.post(
-        `http://localhost:3001/api/v1/projects/${id}/expenses`,
+        `${API_URL}/projects/${id}/expenses`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -887,7 +888,7 @@ const ProjectDetail = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        `http://localhost:3001/api/v1/projects/${id}/notes`,
+        `${API_URL}/projects/${id}/notes`,
         { note: newNote },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -909,7 +910,7 @@ const ProjectDetail = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        `http://localhost:3001/api/v1/projects/${id}/files`,
+        `${API_URL}/projects/${id}/files`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -929,7 +930,7 @@ const ProjectDetail = () => {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:3001/api/v1/files/${fileId}`, {
+      await axios.delete(`${API_URL}/files/${fileId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setProject((prev) => ({ ...prev, files: prev.files.filter(f => f.id !== fileId) }));
@@ -952,7 +953,7 @@ const ProjectDetail = () => {
         const token = localStorage.getItem("token");
 
         await axios.put(
-            `http://localhost:3001/api/v1/tasks/${taskId}`,
+            `${API_URL}/tasks/${taskId}`,
             { status: nextStatus },
             { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -984,7 +985,7 @@ const ProjectDetail = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:3001/api/v1/projects/${id}/status`,
+        `${API_URL}/projects/${id}/status`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );

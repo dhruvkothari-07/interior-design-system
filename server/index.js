@@ -37,6 +37,14 @@ app.use((err, req, res, next) => {
 
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-    console.log(`Listening on port ${PORT}`)
-});
+
+// Test DB connection before starting the server
+db.query("SELECT 1")
+    .then(() => {
+        console.log("✅ Database connected successfully");
+        app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+    })
+    .catch((err) => {
+        console.error("❌ Failed to connect to database:", err.message);
+        process.exit(1); // Exit process to fail the deployment explicitly
+    });

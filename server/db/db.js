@@ -10,9 +10,4 @@ const db = mysql.createPool({
     ssl: { rejectUnauthorized: false } // Required for secure cloud database connections
 }).promise();
 
-// Test the connection
-db.getConnection()
-    .then(() => console.log("✅ Connected to MySQL database"))
-    .catch((err) => console.log("❌ Database connection failed:", err.message));
-
 module.exports = db;

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
 import { useParams, useNavigate } from 'react-router-dom';
+import { API_URL } from '../config';
 
 const QuotationDetail = () => {
     const { id } = useParams(); // Get the quotation ID from the URL
@@ -47,20 +48,20 @@ const QuotationDetail = () => {
                     return;
                 }
     
-                const res = await axios.get(`http://localhost:3001/api/v1/quotations/${id}`, {
+                const res = await axios.get(`${API_URL}/quotations/${id}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setQuotation(res.data);
     
                 // Rooms now come with their total from the backend
-                const roomsRes = await axios.get(`http://localhost:3001/api/v1/quotations/${id}/rooms`, { 
+                const roomsRes = await axios.get(`${API_URL}/quotations/${id}/rooms`, { 
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setRooms(roomsRes.data);
 
                 // Gracefully check if a project exists for this quotation
                 try {
-                    const projectRes = await axios.get(`http://localhost:3001/api/v1/projects/by-quotation/${id}`, {
+                    const projectRes = await axios.get(`${API_URL}/projects/by-quotation/${id}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     setProject(projectRes.data);
@@ -97,7 +98,7 @@ const QuotationDetail = () => {
             const token = localStorage.getItem("token");
             if (!token) return;
 
-            const res = await axios.post(`http://localhost:3001/api/v1/quotations/${id}/rooms`, newRoom, {
+            const res = await axios.post(`${API_URL}/quotations/${id}/rooms`, newRoom, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -132,7 +133,7 @@ const QuotationDetail = () => {
 
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.put(`http://localhost:3001/api/v1/rooms/${editingRoom.id}`, editingRoom, {
+            const res = await axios.put(`${API_URL}/rooms/${editingRoom.id}`, editingRoom, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -156,7 +157,7 @@ const QuotationDetail = () => {
         }
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`http://localhost:3001/api/v1/rooms/${roomId}`, {
+            await axios.delete(`${API_URL}/rooms/${roomId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             // Remove the room from the state
@@ -173,7 +174,7 @@ const QuotationDetail = () => {
         }
         try {
             const token = localStorage.getItem("token");
-            await axios.put(`http://localhost:3001/api/v1/quotations/${id}/status`,
+            await axios.put(`${API_URL}/quotations/${id}/status`,
                 { status: newStatus },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -194,7 +195,7 @@ const QuotationDetail = () => {
                 end_date: newProjectDetails.end_date,
             };
 
-            const res = await axios.post(`http://localhost:3001/api/v1/projects`, postData,
+            const res = await axios.post(`${API_URL}/projects`, postData,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from "axios";
 import Sidebar from './Sidebar';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config';
 
 const Projects = () => {
     const [projects, setProjects] = useState([]);
@@ -15,7 +16,7 @@ const Projects = () => {
             const token = localStorage.getItem("token");
             if (!token) { navigate('/signin'); return; }
 
-            const res = await axios.get("http://localhost:3001/api/v1/projects", {
+            const res = await axios.get(`${API_URL}/projects`, {
                 headers: { Authorization: `Bearer ${token}` },
                 params: { search }
             });
