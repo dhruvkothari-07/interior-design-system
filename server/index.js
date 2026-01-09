@@ -27,7 +27,7 @@ app.use("/api/v1", quotationRoomsRoute)
 app.use("/api/v1", roomMaterialsRoute)
 app.use("/api/v1", clientsRoute)
 app.use("/api/v1", dashboardRoute)
-app.use('/api/v1', projectRoutes); // Add the project routes here with the others
+app.use('/api/v1', projectRoutes); 
 
 
 app.use((err, req, res, next) => {

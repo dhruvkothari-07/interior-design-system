@@ -44,7 +44,7 @@ const StatCard = ({ label, value, subLabel, progress, className = "" }) => (
     <p className="text-xs uppercase tracking-wider text-slate-500 mb-2 font-medium">
       {label}
     </p>
-    <p className="text-3xl font-serif text-slate-800 mb-2">{value}</p>
+    <p className="text-3xl font-sans font-semibold text-slate-800 mb-2">{value}</p>
     {subLabel && (
       <p className="text-xs text-slate-400">{subLabel}</p>
     )}
@@ -1123,7 +1123,7 @@ const ProjectDetail = () => {
                     <AlertTriangle className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-3xl font-serif text-slate-800">{highPriorityCount}</p>
+                    <p className="text-3xl font-sans font-semibold text-slate-800">{highPriorityCount}</p>
                     <p className="text-xs uppercase tracking-wider text-slate-500 font-medium">High Priority Tasks Remaining</p>
                   </div>
                 </div>
@@ -1137,7 +1137,7 @@ const ProjectDetail = () => {
                     <Clock className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-3xl font-serif text-slate-800">{overdueCount}</p>
+                    <p className="text-3xl font-sans font-semibold text-slate-800">{overdueCount}</p>
                     <p className="text-xs uppercase tracking-wider text-slate-500 font-medium">Tasks Overdue</p>
                   </div>
                 </div>
