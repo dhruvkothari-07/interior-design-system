@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from "axios";
 import Sidebar from './Sidebar';
 import { useNavigate } from 'react-router-dom'; 
+import { API_URL } from '../config';
 
 const Clients = () => {
     const [clients, setClients] = useState([]);
@@ -27,7 +28,7 @@ const Clients = () => {
             setIsLoading(true);
             const token = localStorage.getItem("token");
             if (!token) return;
-            const res = await axios.get("http://localhost:3001/api/v1/clients-full", {
+            const res = await axios.get(`${API_URL}/clients-full`, {
                 headers: { Authorization: `Bearer ${token}` },
                 params: { search }
             });
@@ -65,7 +66,7 @@ const Clients = () => {
         try {
             const token = localStorage.getItem("token");
             if (!token) return;
-            const res = await axios.post("http://localhost:3001/api/v1/clients", newClient, {
+            const res = await axios.post(`${API_URL}/clients`, newClient, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setClients([res.data, ...clients]);
@@ -88,7 +89,7 @@ const Clients = () => {
         try {
             const token = localStorage.getItem("token");
             if (!token) return;
-            const res = await axios.put(`http://localhost:3001/api/v1/clients/${editingClient.id}`, editingClient, {
+            const res = await axios.put(`${API_URL}/clients/${editingClient.id}`, editingClient, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setClients(clients.map(client => client.id === editingClient.id ? res.data : client));
@@ -107,7 +108,7 @@ const Clients = () => {
         try {
             const token = localStorage.getItem("token");
             if (!token) return;
-            await axios.delete(`http://localhost:3001/api/v1/clients/${clientId}`, {
+            await axios.delete(`${API_URL}/clients/${clientId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setClients(clients.filter(client => client.id !== clientId));

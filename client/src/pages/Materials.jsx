@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from "axios";
 import Sidebar from './Sidebar';
+import { API_URL } from '../config';
 
 const Materials = () => {
     const [materials, setMaterials] = useState([]);
@@ -25,7 +26,7 @@ const Materials = () => {
             if (!token) {
                 return;
             }
-            const res = await axios.get("http://localhost:3001/api/v1/materials", {
+            const res = await axios.get(`${API_URL}/materials`, {
                 headers: { Authorization: `Bearer ${token}` },
                 params: { search }
             });
@@ -56,7 +57,7 @@ const Materials = () => {
             if (!token) {
                 return;
             }
-            await axios.delete(`http://localhost:3001/api/v1/materials/${materialId}`, {
+            await axios.delete(`${API_URL}/materials/${materialId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             // Update the state to reflect the deletion
@@ -83,7 +84,7 @@ const Materials = () => {
             const token = localStorage.getItem("token");
             if (!token) return;
 
-            const res = await axios.post("http://localhost:3001/api/v1/materials", newMaterial, {
+            const res = await axios.post(`${API_URL}/materials`, newMaterial, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -118,7 +119,7 @@ const Materials = () => {
             const token = localStorage.getItem("token");
             if (!token) return;
 
-            const res = await axios.put(`http://localhost:3001/api/v1/materials/${editingMaterial.id}`, editingMaterial, {
+            const res = await axios.put(`${API_URL}/materials/${editingMaterial.id}`, editingMaterial, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

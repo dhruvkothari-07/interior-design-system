@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import { API_URL } from '../config';
 
 const Signup = () => {
     const [signupData, setSignupData] = useState({
@@ -22,7 +23,7 @@ const Signup = () => {
 
         try {
             const res = await axios.post(
-                "http://localhost:3001/api/v1/signup",
+                `${API_URL}/signup`,
                 signupData
             );
 

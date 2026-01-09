@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
 import { useParams, useNavigate } from 'react-router-dom';
+import { API_URL } from '../config';
 
 const ClientDetail = () => {
     const { id } = useParams();
@@ -16,7 +17,7 @@ const ClientDetail = () => {
             const token = localStorage.getItem("token");
             if (!token) { navigate('/signin'); return; }
 
-            const res = await axios.get(`http://localhost:3001/api/v1/clients/${id}/details`, {
+            const res = await axios.get(`${API_URL}/clients/${id}/details`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setClientData(res.data);
