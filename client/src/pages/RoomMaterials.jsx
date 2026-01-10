@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
 import { useParams, useNavigate } from 'react-router-dom';
+import { API_URL } from '../config';
 
 const RoomMaterials = () => {
     const { quotationId, roomId } = useParams();
@@ -28,25 +29,25 @@ const RoomMaterials = () => {
             if (!token) { navigate('/signin'); return; }
 
             // Fetch quotation details (for title)
-            const quotationRes = await axios.get(`http://localhost:3001/api/v1/quotations/${quotationId}`, {
+            const quotationRes = await axios.get(`${API_URL}/quotations/${quotationId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setQuotation(quotationRes.data);
             
             // Fetch all rooms for this quotation for the sidebar
-            const allRoomsRes = await axios.get(`http://localhost:3001/api/v1/quotations/${quotationId}/rooms`, {
+            const allRoomsRes = await axios.get(`${API_URL}/quotations/${quotationId}/rooms`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setAllQuotationRooms(allRoomsRes.data);
 
             // Fetch all master materials for the selection grid
-            const allMaterialsRes = await axios.get(`http://localhost:3001/api/v1/materials`, {
+            const allMaterialsRes = await axios.get(`${API_URL}/materials`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setAllMasterMaterials(allMaterialsRes.data);
 
             // Fetch materials for the initially active room
-            const activeRoomMaterialsRes = await axios.get(`http://localhost:3001/api/v1/rooms/${activeRoomId}/materials`, {
+            const activeRoomMaterialsRes = await axios.get(`${API_URL}/rooms/${activeRoomId}/materials`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setActiveRoomMaterials(activeRoomMaterialsRes.data);
@@ -79,7 +80,7 @@ const RoomMaterials = () => {
         // Fetch materials for the newly selected room
         try {
             const token = localStorage.getItem("token");
-            const materialsRes = await axios.get(`http://localhost:3001/api/v1/rooms/${selectedRoomId}/materials`, {
+            const materialsRes = await axios.get(`${API_URL}/rooms/${selectedRoomId}/materials`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setActiveRoomMaterials(materialsRes.data);
@@ -96,7 +97,7 @@ const RoomMaterials = () => {
         }
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.post(`http://localhost:3001/api/v1/rooms/${activeRoomId}/materials`, 
+            const res = await axios.post(`${API_URL}/rooms/${activeRoomId}/materials`, 
                 { material_id: materialId, quantity },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -112,7 +113,7 @@ const RoomMaterials = () => {
         if (!window.confirm(`Are you sure you want to remove "${materialName}" from this room?`)) return;
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`http://localhost:3001/api/v1/room-materials/${roomMaterialId}`, {
+            await axios.delete(`${API_URL}/room-materials/${roomMaterialId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setActiveRoomMaterials(prev => prev.filter(mat => mat.id !== roomMaterialId));

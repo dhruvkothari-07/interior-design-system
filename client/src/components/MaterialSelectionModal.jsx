@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config';
 
 const MaterialSelectionModal = ({ roomId, onMaterialsAdded, onClose }) => {
     const [allMaterials, setAllMaterials] = useState([]);
@@ -13,7 +14,7 @@ const MaterialSelectionModal = ({ roomId, onMaterialsAdded, onClose }) => {
             try {
                 setIsLoading(true);
                 const token = localStorage.getItem("token");
-                const res = await axios.get(`http://localhost:3001/api/v1/materials`, {
+                const res = await axios.get(`${API_URL}/materials`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setAllMaterials(res.data);
@@ -59,7 +60,7 @@ const MaterialSelectionModal = ({ roomId, onMaterialsAdded, onClose }) => {
         try {
             const token = localStorage.getItem("token");
             const addPromises = Object.entries(selectedMaterials).map(([materialId, quantity]) =>
-                axios.post(`http://localhost:3001/api/v1/rooms/${roomId}/materials`,
+                axios.post(`${API_URL}/rooms/${roomId}/materials`,
                     { material_id: materialId, quantity },
                     { headers: { Authorization: `Bearer ${token}` } }
                 )

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import { API_URL } from '../config';
 
 const Signin = () => {
   const [SigninData, setSigninData] = useState({
@@ -21,7 +22,7 @@ const Signin = () => {
     e.preventDefault();
     try {
       const res = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/signin`,
+        `${API_URL}/signin`,
         SigninData
       );
       localStorage.setItem("token", res.data.token);
