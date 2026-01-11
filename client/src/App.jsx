@@ -33,6 +33,9 @@ const App = () => {
                 <Route path="/quotations/:quotationId/rooms/:roomId/materials" element={<RoomMaterials />} /> {/* New route for managing room materials */}
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/projects/:id" element={<ProjectDetail />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
+
 
             </Routes>
         </Router>

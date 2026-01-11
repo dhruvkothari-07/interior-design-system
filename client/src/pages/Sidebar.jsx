@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   FileText,
@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 const Sidebar = () => {
+  const navigate = useNavigate();
   const navLinkClasses = ({ isActive }) =>
     `flex items-center gap-3 py-2 px-4 rounded-md transition-colors ${
       isActive
@@ -69,14 +70,16 @@ const Sidebar = () => {
 
       {/* LOGOUT BUTTON */}
       <div className="w-full">
-        <a
-          href="/signin"
-          onClick={() => localStorage.removeItem("token")}
+        <button
+          onClick={() => {
+            localStorage.removeItem("token");
+            navigate("/signin");
+          }}
           className="flex items-center justify-center gap-2 py-2 px-4 rounded-md bg-red-600 hover:bg-red-700 text-center font-medium transition active:scale-[0.98]"
         >
           <LogOut className="w-5 h-5" />
           Logout
-        </a>
+        </button>
       </div>
     </aside>
   );
