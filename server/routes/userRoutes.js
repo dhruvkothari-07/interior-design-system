@@ -8,28 +8,35 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 //  SIGNUP
 router.post("/signup", async (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) {
+    const { username, email, password } = req.body;
+    if (!username || !email || !password) {
         return res.status(400).json({ message: "All fields are required" });
     }
 
     try {
-        const checkUser = "SELECT * FROM users WHERE username = ?";
+        const checkUser = "SELECT * FROM users WHERE username = ? OR email = ?";
 
-        const [results] = await db.query(checkUser, [username]);
+        const [results] = await db.query(checkUser, [username, email]);
 
         if (results.length > 0) {
             return res.status(409).json({ message: "User already exists" });
         }
 
         const hashpass = await bcrypt.hash(password,10);
-        const createUser = "INSERT INTO users (username,password) VALUES(?,?)";
+        const createUser = "INSERT INTO users (username, email, password) VALUES(?,?,?)";
 
+        const [result] = await db.query(createUser, [username, email, hashpass]);
 
-        await db.query(createUser, [username, hashpass]);
+        // Generate token for auto-login
+        const token = jwt.sign(
+            { id: result.insertId, username: username },
+            JWT_SECRET,
+            { expiresIn: "5h" }
+        );
 
         return res.status(200).json({
             message: "Signup successful!",
+            token: token,
         });
     } catch (err) {
         console.error("Signup Error:", err); // Log the actual error
