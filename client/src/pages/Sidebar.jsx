@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -6,10 +6,13 @@ import {
   Users,
   FolderKanban,
   Package,
-  LogOut
+  LogOut,
+  Menu,
+  X
 } from "lucide-react";
 
 const Sidebar = () => {
+  const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const navLinkClasses = ({ isActive }) =>
     `flex items-center gap-3 py-2 px-4 rounded-md transition-colors ${
@@ -18,8 +21,29 @@ const Sidebar = () => {
         : "text-gray-300 hover:bg-gray-700 hover:text-white"
     }`;
 
+  const closeMenu = () => setIsOpen(false);
+
   return (
-    <aside className="w-64 bg-gray-800 text-white p-5 hidden md:flex flex-col justify-between shadow-lg">
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 text-white rounded-md shadow-lg hover:bg-gray-700 transition-colors"
+        aria-label="Toggle Menu"
+      >
+        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+      </button>
+
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
+          onClick={closeMenu}
+        />
+      )}
+
+      {/* Sidebar Container */}
+      <aside className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-gray-800 text-white p-5 flex flex-col justify-between shadow-lg transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}>
       {/* TOP SECTION */}
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-gray-200 mb-8 text-center">
@@ -30,35 +54,35 @@ const Sidebar = () => {
           <ul className="space-y-3">
 
             <li>
-              <NavLink to="/dashboard" className={navLinkClasses}>
+              <NavLink to="/dashboard" className={navLinkClasses} onClick={closeMenu}>
                 <LayoutDashboard className="w-5 h-5" />
                 Dashboard
               </NavLink>
             </li>
 
             <li>
-              <NavLink to="/quotations" className={navLinkClasses}>
+              <NavLink to="/quotations" className={navLinkClasses} onClick={closeMenu}>
                 <FileText className="w-5 h-5" />
                 Quotations
               </NavLink>
             </li>
 
             <li>
-              <NavLink to="/clients" className={navLinkClasses}>
+              <NavLink to="/clients" className={navLinkClasses} onClick={closeMenu}>
                 <Users className="w-5 h-5" />
                 Clients
               </NavLink>
             </li>
 
             <li>
-              <NavLink to="/projects" className={navLinkClasses}>
+              <NavLink to="/projects" className={navLinkClasses} onClick={closeMenu}>
                 <FolderKanban className="w-5 h-5" />
                 Projects
               </NavLink>
             </li>
 
             <li>
-              <NavLink to="/materials" className={navLinkClasses}>
+              <NavLink to="/materials" className={navLinkClasses} onClick={closeMenu}>
                 <Package className="w-5 h-5" />
                 Materials
               </NavLink>
@@ -74,6 +98,7 @@ const Sidebar = () => {
           onClick={() => {
             localStorage.removeItem("token");
             navigate("/signin");
+            closeMenu();
           }}
           className="flex items-center justify-center gap-2 py-2 px-4 rounded-md bg-red-600 hover:bg-red-700 text-center font-medium transition active:scale-[0.98]"
         >
@@ -82,6 +107,7 @@ const Sidebar = () => {
         </button>
       </div>
     </aside>
+    </>
   );
 };
 
