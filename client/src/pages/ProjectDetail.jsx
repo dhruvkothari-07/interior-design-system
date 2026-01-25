@@ -74,7 +74,7 @@ const PhaseStepper = ({ currentStatus }) => {
   const activeIndex = statusMap[currentStatus] ?? 0;
 
   return (
-    <div className="w-full py-6 px-4 bg-white rounded-xl shadow-sm border border-slate-100 mb-6">
+    <div className="w-full py-6 px-4 bg-white rounded-xl shadow-sm border border-slate-100 mb-6 overflow-x-auto">
       <div className="flex items-center justify-between relative">
         {/* Connecting Line */}
         <div className="absolute left-0 top-4 transform w-full h-0.5 bg-slate-100 -z-10" />
@@ -239,9 +239,9 @@ const TasksPanel = ({
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-6 h-full overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-auto md:h-full md:overflow-hidden">
         {["To Do", "In Progress", "Done"].map((col) => (
-          <div key={col} className="flex flex-col h-full">
+          <div key={col} className="flex flex-col h-auto md:h-full">
             <div className="flex items-center justify-between mb-3 px-1">
               <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 {col}
@@ -250,7 +250,7 @@ const TasksPanel = ({
                 {grouped[col]?.length || 0}
               </span>
             </div>
-            <div className="bg-slate-50/50 rounded-xl p-3 flex-1 overflow-y-auto border border-slate-100">
+            <div className="bg-slate-50/50 rounded-xl p-3 flex-1 md:overflow-y-auto border border-slate-100 min-h-[150px]">
               {grouped[col] && grouped[col].length > 0 ? (
                 grouped[col].map((task) => (
                   <div
@@ -467,7 +467,8 @@ const ExpensePanel = ({
         </form>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+      {/* Desktop Table */}
+      <div className="hidden md:block bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <table className="min-w-full divide-y divide-slate-100">
           <thead className="bg-slate-50">
             <tr>
@@ -519,6 +520,33 @@ const ExpensePanel = ({
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-4">
+        {expenses.length > 0 ? (
+          expenses.map((expense) => (
+            <div key={expense.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <p className="text-sm font-medium text-slate-800">{expense.description}</p>
+                  <p className="text-xs text-slate-500">{new Date(expense.expense_date).toLocaleDateString("en-GB")}</p>
+                </div>
+                <span className="font-semibold text-slate-700">{formatCurrency(expense.amount)}</span>
+              </div>
+              <div className="flex justify-between items-center mt-2">
+                <span className="px-2 py-1 bg-slate-100 rounded-full text-xs text-slate-600">{expense.category || 'General'}</span>
+                {expense.receipt_path && (
+                  <a href={`${SERVER_URL}/${expense.receipt_path.replace(/\\/g, '/')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-emerald-600 hover:underline">
+                    <Eye className="w-3 h-3" /> View Receipt
+                  </a>
+                )}
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-center text-slate-400 italic py-8 text-sm">No expenses recorded yet.</p>
+        )}
       </div>
     </div>
   );
@@ -1021,7 +1049,7 @@ const ProjectDetail = () => {
   return (
     <div className="flex h-screen bg-stone-50 text-slate-800 font-sans">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto pt-16 md:pt-0">
         
         {/* HERO HEADER */}
         <div className="relative h-64 w-full bg-slate-900">
@@ -1031,7 +1059,7 @@ const ProjectDetail = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
           
-          <div className="absolute bottom-0 left-0 w-full p-8 flex justify-between items-end">
+          <div className="absolute bottom-0 left-0 w-full p-4 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div className="text-white">
               <div className="flex items-center gap-3 mb-2">
                 <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-xs font-medium border border-white/10">
@@ -1062,33 +1090,34 @@ const ProjectDetail = () => {
         </div>
 
         {/* TABS NAVIGATION */}
-        <div className="px-8 border-b border-slate-200 bg-white sticky top-0 z-10">
-          <div className="flex gap-8">
+        <div className="px-0 md:px-8 border-b border-slate-200 bg-white sticky top-0 z-10 overflow-x-auto no-scrollbar">
+          <div className="flex justify-between md:justify-start md:gap-8 min-w-full md:min-w-max px-1 md:px-0">
             {[
-              { id: "overview", label: "Overview", icon: LayoutDashboard },
-              { id: "tasks", label: "Task Board", icon: CheckSquare },
-              { id: "design", label: "Design & Materials", icon: Palette },
-              { id: "financials", label: "Financials", icon: DollarSign },
-              { id: "files", label: "Docs & Media", icon: FolderOpen },
+              { id: "overview", label: "Overview", mobileLabel: "Overview", icon: LayoutDashboard },
+              { id: "tasks", label: "Task Board", mobileLabel: "Tasks", icon: CheckSquare },
+              { id: "design", label: "Design & Materials", mobileLabel: "Design", icon: Palette },
+              { id: "financials", label: "Financials", mobileLabel: "Finance", icon: DollarSign },
+              { id: "files", label: "Docs & Media", mobileLabel: "Files", icon: FolderOpen },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 py-4 text-sm font-medium border-b-2 transition-colors ${
+                className={`flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 py-2 md:py-4 text-[10px] md:text-sm font-medium border-b-2 transition-colors flex-1 md:flex-none ${
                   activeTab === tab.id
                     ? "border-emerald-600 text-emerald-700"
                     : "border-transparent text-slate-500 hover:text-slate-700"
                 }`}
               >
-                <tab.icon className="w-4 h-4" />
-                {tab.label}
+                <tab.icon className="w-4 h-4 md:w-4 md:h-4" />
+                <span className="hidden md:inline">{tab.label}</span>
+                <span className="md:hidden">{tab.mobileLabel}</span>
               </button>
             ))}
           </div>
         </div>
 
         {/* TAB CONTENT */}
-        <div className="p-8 min-h-[calc(100vh-300px)]">
+        <div className="p-4 md:p-8 min-h-[calc(100vh-300px)]">
           
           {activeTab === "overview" && (
             <div className="space-y-8">

@@ -37,6 +37,30 @@ router.get("/dashboard/stats", authMiddleware, async (req, res) => {
             "SELECT COUNT(*) as count, SUM(total_amount) as total FROM quotations WHERE status = 'Pending'"
         );
 
+        // --- TIER 2.5: REVENUE TREND (Last 6 Months) ---
+        const [revenueTrendRaw] = await db.query(
+            `SELECT DATE_FORMAT(updatedAt, '%Y-%m') as monthKey, SUM(total_amount) as total
+             FROM quotations
+             WHERE status = 'Approved' AND updatedAt >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+             GROUP BY monthKey
+             ORDER BY monthKey ASC`
+        );
+
+        // Fill in missing months with 0
+        const revenueTrend = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            const monthLabel = d.toLocaleString('default', { month: 'short' });
+            
+            const found = revenueTrendRaw.find(r => r.monthKey === monthKey);
+            revenueTrend.push({
+                month: monthLabel,
+                total: found ? Number(found.total) : 0
+            });
+        }
+
         // --- TIER 3: PROJECTS LIST & HEALTH ---
         const [projects] = await db.query(
             `SELECT 
@@ -61,6 +85,7 @@ router.get("/dashboard/stats", authMiddleware, async (req, res) => {
                 wonMonthCount: revenueMonth.count || 0,
                 wonMonthValue: revenueMonth.total || 0,
             },
+            revenueTrend,
             projects: projects
         });
     } catch (err) {

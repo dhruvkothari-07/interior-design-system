@@ -139,7 +139,7 @@ const Clients = () => {
             <Sidebar />
 
             {/* Main Content */}
-            <main className="flex-1 p-8 overflow-y-auto">
+            <main className="flex-1 p-4 md:p-8 overflow-y-auto pt-20 md:pt-8">
                 <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
                     <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Clients</h1>
                     <button onClick={() => setIsAddModalOpen(true)} className="bg-indigo-600 text-white px-5 py-2 rounded-lg shadow hover:bg-indigo-700 transition duration-150 ease-in-out">+ New Client</button>
@@ -155,7 +155,8 @@ const Clients = () => {
                     />
                 </header>
 
-                <section className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden">
+                {/* Desktop View: Table */}
+                <section className="hidden md:block bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         {isLoading ? (
                             <p className="text-center text-gray-500 py-8">Loading clients...</p>
@@ -193,6 +194,41 @@ const Clients = () => {
                             <p className="text-center text-gray-500 py-8 italic">No clients found. Add one to get started!</p>
                         )}
                     </div>
+                </section>
+
+                {/* Mobile View: Cards */}
+                <section className="md:hidden space-y-4">
+                    {isLoading ? (
+                        <p className="text-center text-gray-500 py-8">Loading clients...</p>
+                    ) : clients.length > 0 ? (
+                        clients.map((client) => (
+                            <div key={client.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-3">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3 
+                                            className="font-semibold text-gray-900 text-lg"
+                                            onClick={() => navigate(`/clients/${client.id}`)}
+                                        >
+                                            {client.name}
+                                        </h3>
+                                        <p className="text-sm text-gray-500">{client.email || 'No email'}</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="text-sm text-gray-600">
+                                    <span className="font-medium">Phone:</span> {client.phone || 'N/A'}
+                                </div>
+
+                                <div className="pt-3 border-t border-gray-100 flex justify-end space-x-4 mt-1">
+                                    <button onClick={() => handleEditClick(client)} className="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition">Edit</button>
+                                    <button onClick={() => handleDeleteClient(client.id, client.name)} className="text-sm font-medium text-red-600 hover:text-red-800 transition">Delete</button>
+                                    <button onClick={() => navigate(`/clients/${client.id}`)} className="text-sm font-medium text-gray-600 hover:text-gray-800 transition">View Details →</button>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-center text-gray-500 py-8 italic">No clients found. Add one to get started!</p>
+                    )}
                 </section>
 
                 {/* Add Client Modal */}

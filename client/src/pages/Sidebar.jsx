@@ -25,14 +25,17 @@ const Sidebar = () => {
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 text-white rounded-md shadow-lg hover:bg-gray-700 transition-colors"
-        aria-label="Toggle Menu"
-      >
-        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-      </button>
+      {/* Mobile Header Bar */}
+      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-gray-800 text-white z-50 flex items-center px-4 shadow-md">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="p-2 hover:bg-gray-700 rounded-md transition-colors"
+          aria-label="Toggle Menu"
+        >
+          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+        <span className="ml-4 font-semibold text-lg tracking-tight">Management</span>
+      </div>
 
       {/* Mobile Overlay */}
       {isOpen && (
@@ -43,10 +46,10 @@ const Sidebar = () => {
       )}
 
       {/* Sidebar Container */}
-      <aside className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-gray-800 text-white p-5 flex flex-col justify-between shadow-lg transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}>
+      <aside className={`fixed md:static inset-y-0 left-0 z-40 w-64 bg-gray-800 text-white p-5 flex flex-col justify-between shadow-lg transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 mt-16 md:mt-0`}>
       {/* TOP SECTION */}
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-gray-200 mb-8 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-200 mb-8 text-center hidden md:block">
           Management
         </h1>
 

@@ -190,10 +190,10 @@ const QuotationSummary = () => {
             <Sidebar />
 
             {/* Main Content */}
-            <main className="flex-1 p-8 overflow-y-auto">
-                <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
+            <main className="flex-1 p-4 md:p-8 overflow-y-auto pt-20 md:pt-8">
+                <header className="mb-8 flex flex-col md:flex-row items-start md:items-center justify-between border-b border-gray-300 pb-4 gap-4">
                     <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Summary for: {quotation.title}</h1>
-                    <div className="flex items-center space-x-4">
+                    <div className="flex flex-wrap items-center gap-2 md:space-x-4 w-full md:w-auto">
                         <button
                             onClick={handleSaveFinalTotal}
                             className="bg-green-600 text-white px-4 py-2 rounded-md shadow hover:bg-green-700 transition"
@@ -212,12 +212,12 @@ const QuotationSummary = () => {
                     </div>
                 </header>
 
-                <section ref={printRef} className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+                <section ref={printRef} className="bg-white p-4 md:p-8 rounded-xl shadow-sm border border-gray-200">
                     {/* New Header for PDF */}
                     <div className="mb-8 border-b pb-4">
-                        <div className="flex justify-between items-start"> 
+                        <div className="flex flex-col md:flex-row justify-between items-start gap-6"> 
                             {/* Company Info & Logo */}
-                            <div className="w-1/2">
+                            <div className="w-full md:w-1/2">
                                 {settings.logo_url && <img src={settings.logo_url} alt="Company Logo" className="h-20 mb-4 object-contain" />}
                                 <h2 className="text-lg font-bold text-gray-800">{settings.company_name || 'Your Company'}</h2>
                                 {settings.company_address && <p className="text-sm text-gray-600 whitespace-pre-line">{settings.company_address}</p>}
@@ -226,7 +226,7 @@ const QuotationSummary = () => {
                             </div>
 
                             {/* Client Info */}
-                            <div className="w-1/2 text-right">
+                            <div className="w-full md:w-1/2 text-left md:text-right">
                                 <h3 className="text-xl font-semibold text-gray-800">Quotation For</h3>
                                 <p className="text-lg font-medium text-gray-700"> {quotation.client_name || 'N/A'}</p>
                                 <p className="text-sm text-gray-600">{quotation.client_email || ''}</p>
@@ -274,7 +274,7 @@ const QuotationSummary = () => {
                     {/* Final Summary Section */}
                     <div className="mt-12 border-t-2 border-gray-200 pt-8"> 
                         {/* Final Calculation Card */}
-                        <div className="max-w-sm ml-auto"> {/* Aligns the card to the right */} 
+                        <div className="w-full md:max-w-sm md:ml-auto"> {/* Aligns the card to the right */} 
                             <div className="bg-white p-6 rounded-lg"> 
                                 <div className="space-y-3">
                                     <div className="flex justify-between"><span className="text-gray-600">Total Materials</span><span className="font-medium">{formatCurrency(materialsTotal)}</span></div>

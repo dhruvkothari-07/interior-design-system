@@ -3,6 +3,7 @@ import axios from 'axios';
 import Sidebar from './Sidebar';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
+import { Check, Plus, Minus } from 'lucide-react';
 
 const RoomMaterials = () => {
     const { quotationId, roomId } = useParams();
@@ -109,17 +110,39 @@ const RoomMaterials = () => {
         }
     };
 
-    const handleDeleteMaterialFromRoom = async (roomMaterialId, materialName) => {
-        if (!window.confirm(`Are you sure you want to remove "${materialName}" from this room?`)) return;
+    const handleUpdateMaterialQuantity = async (roomMaterialId, newQuantity) => {
         try {
             const token = localStorage.getItem("token");
+            
+            // Optimistic UI update
+            setActiveRoomMaterials(prev => prev.map(m => 
+                m.id === roomMaterialId ? { ...m, quantity: newQuantity } : m
+            ));
+
+            await axios.put(`${API_URL}/room-materials/${roomMaterialId}`, 
+                { quantity: newQuantity },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+        } catch (err) {
+            console.error("Error updating material quantity:", err);
+            fetchData(); // Revert on error
+        }
+    };
+
+    const handleDeleteMaterialFromRoom = async (roomMaterialId, materialName, skipConfirm = false) => {
+        if (!skipConfirm && !window.confirm(`Are you sure you want to remove "${materialName}" from this room?`)) return;
+        try {
+            const token = localStorage.getItem("token");
+            
+            // Optimistic UI update
+            setActiveRoomMaterials(prev => prev.filter(mat => mat.id !== roomMaterialId));
+
             await axios.delete(`${API_URL}/room-materials/${roomMaterialId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setActiveRoomMaterials(prev => prev.filter(mat => mat.id !== roomMaterialId));
         } catch (err) {
             console.error("Error deleting material from room:", err);
-            alert("Failed to delete material from room.");
+            fetchData(); // Revert on error
         }
     };
 
@@ -144,47 +167,77 @@ const RoomMaterials = () => {
 
     // Component for a single material card in the selection grid
     const MaterialCard = ({ material }) => {
-        const [quantity, setQuantity] = useState('');
-        const isAdded = activeRoomMaterials.some(m => m.material_id === material.id);
-
-        const handleQuantityStep = (step) => {
-            const currentQty = Number(quantity) || 0;
-            const newQty = Math.max(0, currentQty + step);
-            setQuantity(newQty.toString());
-        };
+        const roomMaterial = activeRoomMaterials.find(m => m.material_id === material.id);
+        const quantity = roomMaterial ? roomMaterial.quantity : 0;
+        const isAdded = quantity > 0;
 
         // Horizontal Card Style
         return (
-            <div className={`p-3 rounded-xl border flex items-center justify-between gap-4 ${isAdded ? 'bg-green-50 border-green-200' : 'bg-white'}`}>
-                <div className="flex-1">
-                    <h4 className="font-semibold text-gray-800">{material.name}</h4>
-                    <p className="text-sm text-gray-500">{formatCurrency(material.price)} / {material.unit}</p>
-                </div>
-                <div className="flex items-center gap-1">
-                    {/* Numeric Stepper */}
-                    <div className="flex items-center border rounded-md">
-                        <button onClick={() => handleQuantityStep(-1)} disabled={isAdded} className="px-2 py-1 text-lg text-gray-600 hover:bg-gray-100 disabled:opacity-50">-</button>
-                        <input
-                            type="number"
-                            value={quantity}
-                            onChange={(e) => setQuantity(e.target.value)}
-                            placeholder="Qty"
-                            className="w-16 text-center border-l border-r focus:outline-none text-sm"
-                            disabled={isAdded}
-                        />
-                        <button onClick={() => handleQuantityStep(1)} disabled={isAdded} className="px-2 py-1 text-lg text-gray-600 hover:bg-gray-100 disabled:opacity-50">+</button>
+            <div className={`group relative bg-white rounded-2xl border p-5 shadow-sm transition-all duration-300 hover:shadow-md flex flex-col justify-between h-full ${isAdded ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-100 hover:border-slate-200'}`}>
+                
+                <div className="mb-4">
+                    <div className="flex justify-between items-start mb-3">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${isAdded ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                            {material.category || 'General'}
+                        </span>
+                        {isAdded && (
+                            <div className="h-6 w-6 bg-emerald-100 rounded-full flex items-center justify-center">
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            </div>
+                        )}
                     </div>
+                    <h3 className="text-lg font-bold text-slate-800 leading-tight mb-1">{material.name}</h3>
+                    <div className="flex items-baseline gap-1 mt-2">
+                        <span className="text-2xl font-bold text-slate-900">{formatCurrency(material.price)}</span>
+                        <span className="text-sm text-slate-400 font-medium">/ {material.unit}</span>
+                    </div>
+                </div>
 
-                    <button
-                        onClick={() => {
-                            handleAddMaterialToRoom(material.id, quantity);
-                            setQuantity('');
-                        }}
-                        className="w-20 text-center px-3 py-1 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                        disabled={isAdded}
-                    >
-                        {isAdded ? 'Added' : 'Add'}
-                    </button>
+                <div className="mt-auto pt-4 border-t border-slate-50">
+                    {isAdded ? (
+                        <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                            <div className="flex-1 flex items-center justify-between bg-white rounded-xl border border-emerald-200 p-1 shadow-sm">
+                                <button 
+                                    onClick={() => {
+                                        if (quantity > 1) {
+                                            handleUpdateMaterialQuantity(roomMaterial.id, Number(quantity) - 1);
+                                        } else {
+                                            handleDeleteMaterialFromRoom(roomMaterial.id, material.name, true);
+                                        }
+                                    }}
+                                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                                >
+                                    <Minus className="w-4 h-4" />
+                                </button>
+                                <input 
+                                    type="number"
+                                    value={quantity}
+                                    onChange={(e) => {
+                                        const val = Number(e.target.value);
+                                        if (val > 0) {
+                                            handleUpdateMaterialQuantity(roomMaterial.id, val);
+                                        } else {
+                                            handleDeleteMaterialFromRoom(roomMaterial.id, material.name, true);
+                                        }
+                                    }}
+                                    className="w-12 text-center bg-transparent font-bold text-slate-800 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                                <button 
+                                    onClick={() => handleUpdateMaterialQuantity(roomMaterial.id, Number(quantity) + 1)}
+                                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition-colors shadow-sm"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <button 
+                            onClick={() => handleAddMaterialToRoom(material.id, 1)}
+                            className="w-full py-2.5 bg-slate-900 text-white font-medium rounded-xl text-sm hover:bg-slate-800 transition-all shadow-sm flex items-center justify-center gap-2"
+                        >
+                            <Plus className="w-4 h-4" /> Add Material
+                        </button>
+                    )}
                 </div>
             </div>
         );
@@ -193,9 +246,26 @@ const RoomMaterials = () => {
     return (
         <div className="flex h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 text-gray-800">
             <Sidebar />
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-1 overflow-hidden flex-col md:flex-row pt-16 md:pt-0">
+                {/* Mobile Room Selector */}
+                <div className="md:hidden bg-white border-b p-4 flex-shrink-0">
+                    <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider">Current Room</label>
+                    <select 
+                        value={activeRoomId} 
+                        onChange={(e) => handleRoomSelect(Number(e.target.value))}
+                        className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    >
+                        {allQuotationRooms.map(r => (
+                            <option key={r.id} value={r.id}>{r.name}</option>
+                        ))}
+                    </select>
+                    <button onClick={() => navigate(`/quotations/${quotationId}`)} className="w-full mt-3 text-sm text-indigo-600 font-medium flex items-center justify-center gap-1">
+                        <span>←</span> Back to Quotation
+                    </button>
+                </div>
+
                 {/* Left Rooms Sidebar */}
-                <aside className="w-64 bg-white border-r p-4 flex-shrink-0">
+                <aside className="hidden md:block w-64 bg-white border-r p-4 flex-shrink-0 overflow-y-auto">
                     <h3 className="text-lg font-semibold mb-4 text-gray-700">Rooms</h3>
                     <nav className="space-y-2">
                         {allQuotationRooms.map(r => (
@@ -220,11 +290,11 @@ const RoomMaterials = () => {
                 {/* New container for Main Content and Sticky Bar */}
                 <div className="flex-1 flex flex-col relative">
                     {/* Main Content */}
-                    <main className="flex-1 p-8 overflow-y-auto pb-24"> {/* Add padding-bottom for the sticky bar */}
+                    <main className="flex-1 p-4 md:p-8 overflow-y-auto pb-24"> {/* Add padding-bottom for the sticky bar */}
                         <header className="mb-6">
                             <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Select Materials for: <span className="text-indigo-600">{activeRoom?.name}</span></h1>
                             <p className="text-sm text-gray-500 mt-1">For Quotation: {quotation.title}</p>
-                            <div className="flex flex-wrap gap-4 mt-4">
+                            <div className="flex flex-col sm:flex-row gap-4 mt-4">
                                 <input
                                     type="text"
                                     placeholder="Search by name..."

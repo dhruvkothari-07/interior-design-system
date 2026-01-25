@@ -259,7 +259,7 @@ const QuotationDetail = () => {
             <Sidebar />
 
             {/* Main Content */}
-            <main className="flex-1 p-8 overflow-y-auto">
+            <main className="flex-1 p-4 md:p-8 overflow-y-auto pt-20 md:pt-8">
                 <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
                     <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Quotation: {quotation.title}</h1>
                     <button

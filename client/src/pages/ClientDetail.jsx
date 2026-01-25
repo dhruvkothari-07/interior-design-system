@@ -50,7 +50,7 @@ const ClientDetail = () => {
     return (
         <div className="flex h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 text-gray-800">
             <Sidebar />
-            <main className="flex-1 p-8 overflow-y-auto">
+            <main className="flex-1 p-4 md:p-8 overflow-y-auto pt-20 md:pt-8">
                 <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
                     <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Client Hub: {clientData.name}</h1>
                     <button onClick={() => navigate('/clients')} className="bg-gray-600 text-white px-5 py-2 rounded-lg shadow hover:bg-gray-700 transition">
@@ -72,7 +72,8 @@ const ClientDetail = () => {
                     {/* Quotations Section */}
                     <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <h3 className="text-xl font-semibold mb-4">Quotations</h3>
-                        <div className="overflow-x-auto max-h-96">
+                        {/* Desktop Table */}
+                        <div className="hidden md:block overflow-x-auto max-h-96">
                             {clientData.quotations && clientData.quotations.length > 0 ? (
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50 sticky top-0">
@@ -96,12 +97,32 @@ const ClientDetail = () => {
                                 <p className="text-center text-gray-400 italic py-4">No quotations found for this client.</p>
                             )}
                         </div>
+
+                        {/* Mobile Cards */}
+                        <div className="md:hidden space-y-3">
+                            {clientData.quotations && clientData.quotations.length > 0 ? (
+                                clientData.quotations.map(q => (
+                                    <div key={q.id} onClick={() => navigate(`/quotations/${q.id}`)} className="bg-gray-50 p-4 rounded-lg border border-gray-100 active:bg-gray-100 transition-colors">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="font-medium text-indigo-600 text-sm">{q.title}</span>
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getStatusBadge(q.status)}`}>{q.status}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-gray-500 text-xs">Amount</span>
+                                            <span className="font-semibold text-gray-700">{q.total_amount ? formatCurrency(q.total_amount) : 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-center text-gray-400 italic py-4 text-sm">No quotations found.</p>
+                            )}
+                        </div>
                     </section>
 
                     {/* Projects Section */}
                     <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <h3 className="text-xl font-semibold mb-4">Projects</h3>
-                        <div className="overflow-x-auto max-h-96">
+                        <div className="hidden md:block overflow-x-auto max-h-96">
                             {clientData.projects && clientData.projects.length > 0 ? (
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50 sticky top-0">
@@ -123,6 +144,26 @@ const ClientDetail = () => {
                                 </table>
                             ) : (
                                 <p className="text-center text-gray-400 italic py-4">No projects found for this client.</p>
+                            )}
+                        </div>
+
+                        {/* Mobile Cards */}
+                        <div className="md:hidden space-y-3">
+                            {clientData.projects && clientData.projects.length > 0 ? (
+                                clientData.projects.map(p => (
+                                    <div key={p.id} onClick={() => navigate(`/projects/${p.id}`)} className="bg-gray-50 p-4 rounded-lg border border-gray-100 active:bg-gray-100 transition-colors">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="font-medium text-indigo-600 text-sm">{p.name}</span>
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getStatusBadge(p.status)}`}>{p.status}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-gray-500 text-xs">Budget</span>
+                                            <span className="font-semibold text-gray-700">{p.budget ? formatCurrency(p.budget) : 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-center text-gray-400 italic py-4 text-sm">No projects found.</p>
                             )}
                         </div>
                     </section>

@@ -166,7 +166,7 @@ const Quotations = () => {
             <Sidebar />
 
             {/* Main Content */}
-            <main className="flex-1 p-8 overflow-y-auto">
+            <main className="flex-1 p-4 md:p-8 overflow-y-auto pt-20 md:pt-8">
                 <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
                     <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Quotations</h1>
                     <button
@@ -187,7 +187,8 @@ const Quotations = () => {
                     />
                 </header>
 
-                <section className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden">
+                {/* Desktop View: Table */}
+                <section className="hidden md:block bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         {isLoading ? (
                             <p className="text-center text-gray-500 py-8">Loading quotations...</p>
@@ -225,6 +226,39 @@ const Quotations = () => {
                             <p className="text-center text-gray-500 py-8 italic">No quotations found.</p>
                         )}
                     </div>
+                </section>
+
+                {/* Mobile View: Cards */}
+                <section className="md:hidden space-y-4">
+                    {isLoading ? (
+                        <p className="text-center text-gray-500 py-8">Loading quotations...</p>
+                    ) : quotations.length > 0 ? (
+                        quotations.map((item) => (
+                            <div key={item.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-3">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900">{item.title}</h3>
+                                        <p className="text-sm text-gray-500">{item.client_name || 'N/A'}</p>
+                                    </div>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(item.status)}`}>
+                                        {item.status}
+                                    </span>
+                                </div>
+                                
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-500">Total Amount</span>
+                                    <span className="font-medium text-gray-900">{item.total_amount ? `₹${Number(item.total_amount).toLocaleString('en-IN')}` : 'N/A'}</span>
+                                </div>
+
+                                <div className="pt-3 border-t border-gray-100 flex justify-end space-x-4 mt-1">
+                                    <button onClick={() => handleDeleteQuotation(item.id, item.title)} className="text-sm font-medium text-red-600 hover:text-red-800 transition">Delete</button>
+                                    <button onClick={() => handleViewEdit(item.id)} className="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition">View/Edit →</button>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-center text-gray-500 py-8 italic">No quotations found.</p>
+                    )}
                 </section>
 
                 {/* Add Quotation Modal */}
