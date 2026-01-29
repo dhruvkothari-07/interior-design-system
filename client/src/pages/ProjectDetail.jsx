@@ -18,17 +18,11 @@ import {
   AlertTriangle,
   Plus,
   X,
-  Trash2,
-  UploadCloud,
   Image as ImageIcon,
   Eye,
   File as FileIcon,
   FileSpreadsheet,
   FileText,
-  FileCode,
-  FileArchive,
-  FileSearch,
-  MoreHorizontal,
   Calendar
 } from "lucide-react";
 import { API_URL, SERVER_URL } from '../config';
@@ -297,46 +291,63 @@ const TasksPanel = ({
   );
 };
 
-// ---- Materials Panel (Mock Data) -------------------------
+// ---- Materials Panel -------------------------------------
 
-const MaterialsPanel = () => {
-  // Mock data since backend doesn't support materials yet
-  const [materials] = useState([
-    { id: 1, name: "Carrara Marble", type: "Flooring", status: "Ordered", price: "₹450/sqft", img: "https://images.unsplash.com/photo-1618221381711-42ca8ab6e908?auto=format&fit=crop&w=300&q=80" },
-    { id: 2, name: "Teak Wood Veneer", type: "Carpentry", status: "Selected", price: "₹120/sqft", img: "https://images.unsplash.com/photo-1545060894-5b45870f191d?auto=format&fit=crop&w=300&q=80" },
-    { id: 3, name: "Brass Handles", type: "Hardware", status: "Delivered", price: "₹850/pc", img: "https://images.unsplash.com/photo-1601058268499-e52642d15d39?auto=format&fit=crop&w=300&q=80" },
-    { id: 4, name: "Sage Green Paint", type: "Paint", status: "In Stock", price: "₹2,500/gal", img: "https://images.unsplash.com/photo-1562184552-e0a53972f06b?auto=format&fit=crop&w=300&q=80" },
-  ]);
-
+const MaterialsPanel = ({ rooms = [] }) => {
   return (
-    <div>
+    <div className="space-y-8">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-serif text-slate-800">Design & Materials</h3>
-        <button className="text-sm bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-700">
-          + Add Material
-        </button>
+        <h3 className="text-xl font-serif text-slate-800">Scope of Work & Materials</h3>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {materials.map((m) => (
-          <div key={m.id} className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow group">
-            <div className="h-40 overflow-hidden relative">
-              <img src={m.img} alt={m.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-              <span className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide text-slate-700">
-                {m.status}
-              </span>
-            </div>
-            <div className="p-4">
-              <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">{m.type}</p>
-              <h4 className="font-medium text-slate-800 mb-2">{m.name}</h4>
-              <p className="text-sm font-semibold text-emerald-600">{m.price}</p>
-            </div>
+      
+      {rooms.length > 0 ? (
+        rooms.map(room => (
+          <div key={room.id} className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+             <div className="bg-slate-50 px-6 py-3 border-b border-slate-100 flex justify-between items-center">
+                <h4 className="font-semibold text-slate-700">{room.name}</h4>
+                <span className="text-xs font-medium bg-white border border-slate-200 px-2 py-1 rounded text-slate-500">
+                  {room.items?.length || 0} Items
+                </span>
+             </div>
+             <div className="divide-y divide-slate-100">
+                {room.items && room.items.length > 0 ? (
+                   room.items.map(item => (
+                      <div key={item.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+                         <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider border border-slate-200 px-1.5 rounded">
+                                    {item.unit}
+                                </span>
+                                <p className="font-medium text-slate-800">{item.name}</p>
+                            </div>
+                            {item.specification && (
+                                <p className="text-sm text-slate-500 leading-relaxed">{item.specification}</p>
+                            )}
+                         </div>
+                         <div className="flex items-center gap-6 text-sm">
+                            <div className="text-right">
+                                <p className="text-xs text-slate-400 uppercase">Quantity</p>
+                                <p className="font-semibold text-slate-700">{item.quantity}</p>
+                            </div>
+                            <div className="text-right min-w-[80px]">
+                                <p className="text-xs text-slate-400 uppercase">Status</p>
+                                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1"></span>
+                                <span className="text-slate-700">Approved</span>
+                            </div>
+                         </div>
+                      </div>
+                   ))
+                ) : (
+                   <p className="p-6 text-center text-slate-400 italic text-sm">No items in this room.</p>
+                )}
+             </div>
           </div>
-        ))}
-        <div className="border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400 p-6 hover:border-emerald-400 hover:text-emerald-600 transition-colors cursor-pointer">
-          <Plus className="w-8 h-8 mb-2" />
-          <span className="text-sm font-medium">Add New Item</span>
+        ))
+      ) : (
+        <div className="text-center py-12 bg-white rounded-xl border border-dashed border-slate-200">
+            <p className="text-slate-400">No materials found linked to this project's quotation.</p>
         </div>
-      </div>
+      )}
     </div>
   );
 };
@@ -722,6 +733,7 @@ const ProjectDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [projectMaterials, setProjectMaterials] = useState([]);
   const [taskFilter, setTaskFilter] = useState(null);
 
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -769,6 +781,33 @@ const ProjectDetail = () => {
   useEffect(() => {
     fetchProjectDetails();
   }, [fetchProjectDetails]);
+
+  // Fetch Project Materials (from linked Quotation)
+  useEffect(() => {
+    if (activeTab === 'design' && project?.quotation_id && projectMaterials.length === 0) {
+        const fetchMaterials = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                // 1. Fetch rooms
+                const roomsRes = await axios.get(`${API_URL}/quotations/${project.quotation_id}/rooms`, {
+                     headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                // 2. Fetch items for each room
+                const roomsData = await Promise.all(roomsRes.data.map(async (room) => {
+                    const matRes = await axios.get(`${API_URL}/rooms/${room.id}/materials`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    return { ...room, items: matRes.data };
+                }));
+                setProjectMaterials(roomsData);
+            } catch (err) {
+                console.error("Error loading project materials", err);
+            }
+        };
+        fetchMaterials();
+    }
+  }, [activeTab, project, projectMaterials.length]);
 
   const totalExpenses = useMemo(
     () =>
@@ -1217,7 +1256,7 @@ const ProjectDetail = () => {
           )}
 
           {activeTab === "design" && (
-            <MaterialsPanel />
+            <MaterialsPanel rooms={projectMaterials} />
           )}
 
           {activeTab === "financials" && (

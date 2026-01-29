@@ -14,6 +14,11 @@ import {
 } from 'lucide-react';
 import { API_URL } from '../config';
 
+// Simple Skeleton Component
+const Skeleton = ({ className }) => (
+    <div className={`animate-pulse bg-gray-200 rounded ${className}`}></div>
+);
+
 const Dashboard = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
@@ -102,7 +107,11 @@ const Dashboard = () => {
                             </div>
                             <span className="text-[10px] md:text-xs font-medium text-gray-400 uppercase tracking-wider">YTD</span>
                         </div>
-                        <h3 className="text-lg md:text-2xl font-bold text-gray-900">{formatCompactCurrency(data.financials.revenueYTD)}</h3>
+                        {isLoading ? (
+                            <Skeleton className="h-8 w-24 mb-1" />
+                        ) : (
+                            <h3 className="text-lg md:text-2xl font-bold text-gray-900">{formatCompactCurrency(data.financials.revenueYTD)}</h3>
+                        )}
                         <p className="text-xs md:text-sm text-gray-500 mt-1">Total Revenue</p>
                     </div>
 
@@ -114,7 +123,11 @@ const Dashboard = () => {
                             </div>
                             <span className="text-[10px] md:text-xs font-medium text-gray-400 uppercase tracking-wider">Month</span>
                         </div>
-                        <h3 className="text-lg md:text-2xl font-bold text-gray-900">{formatCompactCurrency(data.financials.revenueMonth)}</h3>
+                        {isLoading ? (
+                            <Skeleton className="h-8 w-24 mb-1" />
+                        ) : (
+                            <h3 className="text-lg md:text-2xl font-bold text-gray-900">{formatCompactCurrency(data.financials.revenueMonth)}</h3>
+                        )}
                         <p className="text-xs md:text-sm text-gray-500 mt-1">Booked Rev.</p>
                     </div>
 
@@ -126,7 +139,11 @@ const Dashboard = () => {
                             </div>
                             <span className="text-[10px] md:text-xs font-medium text-gray-400 uppercase tracking-wider">Expenses</span>
                         </div>
-                        <h3 className="text-lg md:text-2xl font-bold text-gray-900">{formatCompactCurrency(data.financials.expensesMonth)}</h3>
+                        {isLoading ? (
+                            <Skeleton className="h-8 w-24 mb-1" />
+                        ) : (
+                            <h3 className="text-lg md:text-2xl font-bold text-gray-900">{formatCompactCurrency(data.financials.expensesMonth)}</h3>
+                        )}
                         <p className="text-xs md:text-sm text-gray-500 mt-1">Operational</p>
                     </div>
 
@@ -138,9 +155,13 @@ const Dashboard = () => {
                             </div>
                             <span className="text-[10px] md:text-xs font-medium text-gray-400 uppercase tracking-wider">Net Flow</span>
                         </div>
-                        <h3 className={`text-lg md:text-2xl font-bold ${data.financials.revenueMonth - data.financials.expensesMonth >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                            {formatCompactCurrency(data.financials.revenueMonth - data.financials.expensesMonth)}
-                        </h3>
+                        {isLoading ? (
+                            <Skeleton className="h-8 w-24 mb-1" />
+                        ) : (
+                            <h3 className={`text-lg md:text-2xl font-bold ${data.financials.revenueMonth - data.financials.expensesMonth >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                {formatCompactCurrency(data.financials.revenueMonth - data.financials.expensesMonth)}
+                            </h3>
+                        )}
                         <p className="text-xs md:text-sm text-gray-500 mt-1">Bottom Line</p>
                     </div>
                 </section>
@@ -149,7 +170,13 @@ const Dashboard = () => {
                 <section className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100 mb-6 md:mb-8">
                     <h3 className="font-semibold text-gray-800 mb-6">Revenue Trend (Last 6 Months)</h3>
                     <div className="flex items-end justify-between gap-2 h-48 md:h-64 pt-8 pb-2">
-                        {data.revenueTrend && data.revenueTrend.length > 0 ? (
+                        {isLoading ? (
+                            // Skeleton Bars
+                            Array(6).fill(0).map((_, i) => (
+                                <Skeleton key={i} className="flex-1 h-full rounded-t-lg opacity-50" style={{ height: `${Math.random() * 60 + 20}%` }} />
+                            ))
+                        ) : (
+                            data.revenueTrend && data.revenueTrend.length > 0 ? (
                             data.revenueTrend.map((item, index) => {
                                 const maxVal = Math.max(...data.revenueTrend.map(d => d.total), 1);
                                 const heightPct = (item.total / maxVal) * 100;
@@ -172,7 +199,7 @@ const Dashboard = () => {
                             })
                         ) : (
                             <p className="w-full text-center text-gray-400 italic self-center">No revenue data available yet.</p>
-                        )}
+                        ))}
                     </div>
                 </section>
 
@@ -188,11 +215,19 @@ const Dashboard = () => {
                                 <h3 className="font-semibold text-gray-800">Pending Client Action</h3>
                             </div>
                             <div className="mt-2">
-                                <p className="text-4xl font-bold text-gray-900">{data.pipeline.pendingCount}</p>
+                                {isLoading ? (
+                                    <Skeleton className="h-10 w-16 mb-1" />
+                                ) : (
+                                    <p className="text-4xl font-bold text-gray-900">{data.pipeline.pendingCount}</p>
+                                )}
                                 <p className="text-sm text-gray-500 mt-1">Quotes Sent</p>
                                 <div className="mt-4 pt-4 border-t border-gray-50">
                                     <p className="text-xs text-gray-400 uppercase tracking-wide">Potential Value</p>
-                                    <p className="text-lg font-medium text-indigo-600">{formatCompactCurrency(data.pipeline.pendingValue)}</p>
+                                    {isLoading ? (
+                                        <Skeleton className="h-6 w-24 mt-1" />
+                                    ) : (
+                                        <p className="text-lg font-medium text-indigo-600">{formatCompactCurrency(data.pipeline.pendingValue)}</p>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -204,11 +239,19 @@ const Dashboard = () => {
                                 <h3 className="font-semibold text-gray-800">Won This Month</h3>
                             </div>
                             <div className="mt-2">
-                                <p className="text-4xl font-bold text-gray-900">{data.pipeline.wonMonthCount}</p>
+                                {isLoading ? (
+                                    <Skeleton className="h-10 w-16 mb-1" />
+                                ) : (
+                                    <p className="text-4xl font-bold text-gray-900">{data.pipeline.wonMonthCount}</p>
+                                )}
                                 <p className="text-sm text-gray-500 mt-1">Approved Quotes</p>
                                 <div className="mt-4 pt-4 border-t border-gray-200">
                                     <p className="text-xs text-gray-400 uppercase tracking-wide">New Booked Revenue</p>
-                                    <p className="text-lg font-medium text-emerald-600">{formatCompactCurrency(data.pipeline.wonMonthValue)}</p>
+                                    {isLoading ? (
+                                        <Skeleton className="h-6 w-24 mt-1" />
+                                    ) : (
+                                        <p className="text-lg font-medium text-emerald-600">{formatCompactCurrency(data.pipeline.wonMonthValue)}</p>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -219,15 +262,27 @@ const Dashboard = () => {
                         <h3 className="font-semibold text-gray-800 mb-4 md:mb-6">Active Project Health</h3>
                         <div className="grid grid-cols-3 gap-2 md:gap-4 text-center">
                             <div className="p-4 rounded-xl bg-rose-50 border border-rose-100">
-                                <p className="text-3xl font-bold text-rose-600">{projectHealth.critical}</p>
+                                {isLoading ? (
+                                    <Skeleton className="h-8 w-8 mx-auto mb-1 bg-rose-200" />
+                                ) : (
+                                    <p className="text-3xl font-bold text-rose-600">{projectHealth.critical}</p>
+                                )}
                                 <p className="text-xs font-medium text-rose-800 mt-1 uppercase tracking-wide">Critical</p>
                             </div>
                             <div className="p-4 rounded-xl bg-orange-50 border border-orange-100">
-                                <p className="text-3xl font-bold text-orange-600">{projectHealth.atRisk}</p>
+                                {isLoading ? (
+                                    <Skeleton className="h-8 w-8 mx-auto mb-1 bg-orange-200" />
+                                ) : (
+                                    <p className="text-3xl font-bold text-orange-600">{projectHealth.atRisk}</p>
+                                )}
                                 <p className="text-xs font-medium text-orange-800 mt-1 uppercase tracking-wide">At Risk</p>
                             </div>
                             <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
-                                <p className="text-3xl font-bold text-emerald-600">{projectHealth.onTrack}</p>
+                                {isLoading ? (
+                                    <Skeleton className="h-8 w-8 mx-auto mb-1 bg-emerald-200" />
+                                ) : (
+                                    <p className="text-3xl font-bold text-emerald-600">{projectHealth.onTrack}</p>
+                                )}
                                 <p className="text-xs font-medium text-emerald-800 mt-1 uppercase tracking-wide">On Track</p>
                             </div>
                         </div>
@@ -247,63 +302,89 @@ const Dashboard = () => {
                     <div className="hidden md:block overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-100">
                             <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project Name</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Budget Health</th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                                </tr>
+                                {isLoading ? (
+                                    // Skeleton Header
+                                    <tr>
+                                        <th className="px-6 py-3"><Skeleton className="h-4 w-24" /></th>
+                                        <th className="px-6 py-3"><Skeleton className="h-4 w-20" /></th>
+                                        <th className="px-6 py-3"><Skeleton className="h-4 w-16" /></th>
+                                        <th className="px-6 py-3"><Skeleton className="h-4 w-32" /></th>
+                                        <th className="px-6 py-3"><Skeleton className="h-4 w-12" /></th>
+                                    </tr>
+                                ) : (
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project Name</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Budget Health</th>
+                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                    </tr>
+                                )}
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-100">
-                                {data.projects.map((project) => {
-                                    const percentSpent = project.budget > 0 ? (project.total_spent / project.budget) * 100 : 0;
-                                    const isOverBudget = percentSpent > 100;
-                                    
-                                    return (
-                                        <tr key={project.id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="font-medium text-gray-900">{project.name}</div>
-                                                <div className="text-xs text-gray-400">ID: #{project.id}</div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.client_name}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                                                    project.status === 'In Progress' ? 'bg-blue-50 text-blue-700' :
-                                                    project.status === 'Completed' ? 'bg-green-50 text-green-700' :
-                                                    'bg-gray-100 text-gray-600'
-                                                }`}>
-                                                    {project.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap align-middle">
-                                                <div className="w-full max-w-xs">
-                                                    <div className="flex justify-between text-xs mb-1">
-                                                        <span className="text-gray-500">{formatCompactCurrency(project.total_spent)} spent</span>
-                                                        <span className="text-gray-400">of {formatCompactCurrency(project.budget)}</span>
-                                                    </div>
-                                                    <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                                                        <div 
-                                                            className={`h-full rounded-full ${isOverBudget ? 'bg-rose-500' : percentSpent > 80 ? 'bg-orange-400' : 'bg-emerald-500'}`} 
-                                                            style={{ width: `${Math.min(percentSpent, 100)}%` }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                                <button onClick={() => navigate(`/projects/${project.id}`)} className="text-indigo-600 hover:text-indigo-900 font-medium">
-                                                    Manage
-                                                </button>
-                                            </td>
+                                {isLoading ? (
+                                    // Skeleton Rows
+                                    Array(3).fill(0).map((_, i) => (
+                                        <tr key={i}>
+                                            <td className="px-6 py-4"><Skeleton className="h-5 w-32 mb-1" /><Skeleton className="h-3 w-16" /></td>
+                                            <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
+                                            <td className="px-6 py-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                                            <td className="px-6 py-4"><Skeleton className="h-4 w-full max-w-xs mb-1" /><Skeleton className="h-2 w-full max-w-xs rounded-full" /></td>
+                                            <td className="px-6 py-4 text-right"><Skeleton className="h-4 w-12 ml-auto" /></td>
                                         </tr>
-                                    );
-                                })}
-                                {data.projects.length === 0 && (
-                                    <tr>
-                                        <td colSpan="5" className="px-6 py-8 text-center text-gray-400 italic">
-                                            No active projects found.
-                                        </td>
-                                    </tr>
+                                    ))
+                                ) : (
+                                    <>
+                                        {data.projects.map((project) => {
+                                            const percentSpent = project.budget > 0 ? (project.total_spent / project.budget) * 100 : 0;
+                                            const isOverBudget = percentSpent > 100;
+                                            
+                                            return (
+                                                <tr key={project.id} className="hover:bg-gray-50 transition-colors">
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="font-medium text-gray-900">{project.name}</div>
+                                                        <div className="text-xs text-gray-400">ID: #{project.id}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{project.client_name}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                                                            project.status === 'In Progress' ? 'bg-blue-50 text-blue-700' :
+                                                            project.status === 'Completed' ? 'bg-green-50 text-green-700' :
+                                                            'bg-gray-100 text-gray-600'
+                                                        }`}>
+                                                            {project.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap align-middle">
+                                                        <div className="w-full max-w-xs">
+                                                            <div className="flex justify-between text-xs mb-1">
+                                                                <span className="text-gray-500">{formatCompactCurrency(project.total_spent)} spent</span>
+                                                                <span className="text-gray-400">of {formatCompactCurrency(project.budget)}</span>
+                                                            </div>
+                                                            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                                                                <div 
+                                                                    className={`h-full rounded-full ${isOverBudget ? 'bg-rose-500' : percentSpent > 80 ? 'bg-orange-400' : 'bg-emerald-500'}`} 
+                                                                    style={{ width: `${Math.min(percentSpent, 100)}%` }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                                        <button onClick={() => navigate(`/projects/${project.id}`)} className="text-indigo-600 hover:text-indigo-900 font-medium">
+                                                            Manage
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                        {data.projects.length === 0 && (
+                                            <tr>
+                                                <td colSpan="5" className="px-6 py-8 text-center text-gray-400 italic">
+                                                    No active projects found.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </>
                                 )}
                             </tbody>
                         </table>
@@ -311,50 +392,62 @@ const Dashboard = () => {
 
                     {/* Mobile Cards */}
                     <div className="md:hidden p-4 space-y-4">
-                        {data.projects.map((project) => {
-                            const percentSpent = project.budget > 0 ? (project.total_spent / project.budget) * 100 : 0;
-                            const isOverBudget = percentSpent > 100;
-                            
-                            return (
-                                <div key={project.id} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div>
-                                            <h4 className="font-medium text-gray-900">{project.name}</h4>
-                                            <p className="text-xs text-gray-500">{project.client_name}</p>
-                                        </div>
-                                        <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                                            project.status === 'In Progress' ? 'bg-blue-50 text-blue-700' :
-                                            project.status === 'Completed' ? 'bg-green-50 text-green-700' :
-                                            'bg-gray-100 text-gray-600'
-                                        }`}>
-                                            {project.status}
-                                        </span>
-                                    </div>
-                                    
-                                    <div className="mb-3">
-                                        <div className="flex justify-between text-xs mb-1">
-                                            <span className="text-gray-500">{formatCompactCurrency(project.total_spent)} spent</span>
-                                            <span className="text-gray-400">of {formatCompactCurrency(project.budget)}</span>
-                                        </div>
-                                        <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-                                            <div 
-                                                className={`h-full rounded-full ${isOverBudget ? 'bg-rose-500' : percentSpent > 80 ? 'bg-orange-400' : 'bg-emerald-500'}`} 
-                                                style={{ width: `${Math.min(percentSpent, 100)}%` }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <button 
-                                        onClick={() => navigate(`/projects/${project.id}`)} 
-                                        className="w-full py-2 text-xs font-medium text-indigo-600 bg-white border border-indigo-100 rounded hover:bg-indigo-50 transition-colors"
-                                    >
-                                        Manage Project
-                                    </button>
+                        {isLoading ? (
+                            Array(3).fill(0).map((_, i) => (
+                                <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                    <Skeleton className="h-5 w-3/4 mb-2" />
+                                    <Skeleton className="h-4 w-1/2 mb-4" />
+                                    <Skeleton className="h-8 w-full rounded" />
                                 </div>
-                            );
-                        })}
-                        {data.projects.length === 0 && (
-                            <p className="text-center text-gray-400 italic py-4">No active projects found.</p>
+                            ))
+                        ) : (
+                            <>
+                                {data.projects.map((project) => {
+                                    const percentSpent = project.budget > 0 ? (project.total_spent / project.budget) * 100 : 0;
+                                    const isOverBudget = percentSpent > 100;
+                                    
+                                    return (
+                                        <div key={project.id} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <h4 className="font-medium text-gray-900">{project.name}</h4>
+                                                    <p className="text-xs text-gray-500">{project.client_name}</p>
+                                                </div>
+                                                <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                                                    project.status === 'In Progress' ? 'bg-blue-50 text-blue-700' :
+                                                    project.status === 'Completed' ? 'bg-green-50 text-green-700' :
+                                                    'bg-gray-100 text-gray-600'
+                                                }`}>
+                                                    {project.status}
+                                                </span>
+                                            </div>
+                                            
+                                            <div className="mb-3">
+                                                <div className="flex justify-between text-xs mb-1">
+                                                    <span className="text-gray-500">{formatCompactCurrency(project.total_spent)} spent</span>
+                                                    <span className="text-gray-400">of {formatCompactCurrency(project.budget)}</span>
+                                                </div>
+                                                <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className={`h-full rounded-full ${isOverBudget ? 'bg-rose-500' : percentSpent > 80 ? 'bg-orange-400' : 'bg-emerald-500'}`} 
+                                                        style={{ width: `${Math.min(percentSpent, 100)}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <button 
+                                                onClick={() => navigate(`/projects/${project.id}`)} 
+                                                className="w-full py-2 text-xs font-medium text-indigo-600 bg-white border border-indigo-100 rounded hover:bg-indigo-50 transition-colors"
+                                            >
+                                                Manage Project
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                                {data.projects.length === 0 && (
+                                    <p className="text-center text-gray-400 italic py-4">No active projects found.</p>
+                                )}
+                            </>
                         )}
                     </div>
                 </section>

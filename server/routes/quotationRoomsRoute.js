@@ -11,10 +11,9 @@ router.get("/quotations/:quotationId/rooms", authMiddleware, async (req, res) =>
         const [rooms] = await db.query(
             `SELECT 
                 qr.id, qr.quotation_id, qr.name, qr.length, qr.width, qr.height, qr.notes,
-                COALESCE(SUM(rm.quantity * m.price), 0) AS room_total
+                COALESCE(SUM(ri.total), 0) AS room_total
              FROM rooms qr
-             LEFT JOIN room_materials rm ON qr.id = rm.room_id
-             LEFT JOIN materials m ON rm.material_id = m.id
+             LEFT JOIN room_items ri ON qr.id = ri.room_id
              WHERE qr.quotation_id = ?
              GROUP BY qr.id
              ORDER BY qr.id ASC`,

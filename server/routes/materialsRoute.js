@@ -7,7 +7,7 @@ const router = Router();
 router.get("/materials", authMiddleware, async (req, res) => {
     const { search = '' } = req.query;
     try {
-        let query = "SELECT * FROM materials";
+        let query = "SELECT id, name, category, unit, default_rate as price, default_description FROM catalog_items";
         const params = [];
 
         if (search) {
@@ -25,13 +25,13 @@ router.get("/materials", authMiddleware, async (req, res) => {
 
 router.post("/materials", authMiddleware, async (req, res) => {
     // Include category in destructuring
-    const { name, price, unit, category } = req.body;
+    const { name, price, unit, category, default_description } = req.body;
     if (!name || !price || !unit) {
         return res.status(400).json({ message: "All fields are required" })
     }
     try {
         // Add category to the INSERT statement
-        const [result] = await db.query("INSERT INTO materials (name, category, price, unit) VALUES (?, ?, ?, ?)", [name, category, price, unit]);
+        const [result] = await db.query("INSERT INTO catalog_items (name, category, default_rate, unit, default_description) VALUES (?, ?, ?, ?, ?)", [name, category, price, unit, default_description || null]);
         
         // Return the full new material object
         const newMaterial = {
@@ -39,7 +39,8 @@ router.post("/materials", authMiddleware, async (req, res) => {
             name,
             category,
             price,
-            unit
+            unit,
+            default_description
         };
         res.status(201).json(newMaterial);
     }
@@ -54,7 +55,7 @@ router.post("/materials", authMiddleware, async (req, res) => {
 router.delete("/materials/:id/", authMiddleware, async (req, res) => {
     const { id } = req.params;
     try {
-        const [result] = await db.query("DELETE FROM materials WHERE id = ?", [id]);
+        const [result] = await db.query("DELETE FROM catalog_items WHERE id = ?", [id]);
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: "Material not found" })
         }
@@ -71,14 +72,14 @@ router.delete("/materials/:id/", authMiddleware, async (req, res) => {
 router.put("/materials/:id", authMiddleware, async (req, res) => {
     const { id } = req.params;
     // Include category
-    const { name, price, unit, category } = req.body
+    const { name, price, unit, category, default_description } = req.body
     if (!name || !price || !unit) {
         return res.status(400).json({ message: "All fields are required" });
 
     }
     try {
         // Add category to the UPDATE statement
-        const [update] = await db.query("UPDATE materials SET name = ?, category = ?, price = ?, unit = ? WHERE id = ?", [name, category, price, unit, id]);
+        const [update] = await db.query("UPDATE catalog_items SET name = ?, category = ?, default_rate = ?, unit = ?, default_description = ? WHERE id = ?", [name, category, price, unit, default_description || null, id]);
         if (update.affectedRows === 0) {
             return res.status(404).json({ message: "Material not found" });
         }
@@ -89,7 +90,8 @@ router.put("/materials/:id", authMiddleware, async (req, res) => {
             name,
             category,
             price,
-            unit
+            unit,
+            default_description
         };
         res.status(200).json(updatedMaterial);
     }

@@ -65,11 +65,13 @@ router.get("/dashboard/stats", authMiddleware, async (req, res) => {
         const [projects] = await db.query(
             `SELECT 
                 p.id, p.name, p.status, p.budget,
-                c.name as client_name,
-                COALESCE((SELECT SUM(amount) FROM expenses WHERE project_id = p.id), 0) as total_spent
+                c.name as client_name, 
+                COALESCE(SUM(e.amount), 0) as total_spent
             FROM projects p
             JOIN quotations q ON p.quotation_id = q.id
             JOIN clients c ON q.client_id = c.id
+            LEFT JOIN expenses e ON p.id = e.project_id
+            GROUP BY p.id
             ORDER BY p.createdAt DESC`
         );
 

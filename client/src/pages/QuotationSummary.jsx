@@ -256,9 +256,12 @@ const QuotationSummary = () => {
                                             {room.materials && room.materials.length > 0 ? room.materials.map(material => {
                                                 const lineItemTotal = Number(material.price) * Number(material.quantity);
                                                 return (
-                                                    <li key={material.id} className="flex justify-between items-center pl-4">
-                                                        <span>{material.name} - {material.quantity} {material.unit} @ {formatCurrency(material.price)}/{material.unit}</span>
-                                                        <span>{formatCurrency(lineItemTotal)}</span>
+                                                    <li key={material.id} className="pl-4 py-2 border-b border-gray-100 last:border-0">
+                                                        <div className="flex justify-between items-center">
+                                                            <span className="font-medium">{material.name} - {material.quantity} {material.unit} @ {formatCurrency(material.price)}/{material.unit}</span>
+                                                            <span className="font-semibold">{formatCurrency(lineItemTotal)}</span>
+                                                        </div>
+                                                        {material.specification && <p className="text-xs text-gray-500 mt-1 leading-relaxed">{material.specification}</p>}
                                                     </li>
                                                 );
                                             }) : <li className="list-none italic text-gray-400 pl-4">No materials added.</li>}

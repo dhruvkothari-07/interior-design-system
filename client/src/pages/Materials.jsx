@@ -12,7 +12,8 @@ const Materials = () => {
         name: '',
         category: '',
         unit: '',
-        price: ''
+        price: '',
+        default_description: ''
     });
 
     // State for Edit Modal
@@ -278,6 +279,10 @@ const Materials = () => {
                                         <label htmlFor="price" className="block text-sm font-medium text-gray-700">Price</label>
                                         <input type="number" name="price" id="price" value={newMaterial.price} onChange={handleInputChange} required step="0.01" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
                                     </div>
+                                    <div>
+                                        <label htmlFor="default_description" className="block text-sm font-medium text-gray-700">Default Specification (Template)</label>
+                                        <textarea name="default_description" id="default_description" value={newMaterial.default_description} onChange={handleInputChange} rows="3" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g. 18mm BWP Ply with 1mm laminate finish..." />
+                                    </div>
                                 </div>
                                 <div className="mt-8 flex justify-end space-x-4">
                                     <button
@@ -321,6 +326,10 @@ const Materials = () => {
                                     <div>
                                         <label htmlFor="edit-price" className="block text-sm font-medium text-gray-700">Price</label>
                                         <input type="number" name="price" id="edit-price" value={editingMaterial.price} onChange={handleEditInputChange} required step="0.01" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="edit-desc" className="block text-sm font-medium text-gray-700">Default Specification</label>
+                                        <textarea name="default_description" id="edit-desc" value={editingMaterial.default_description} onChange={handleEditInputChange} rows="3" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
                                     </div>
                                 </div>
                                 <div className="mt-8 flex justify-end space-x-4">
