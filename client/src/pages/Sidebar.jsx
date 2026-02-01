@@ -8,7 +8,8 @@ import {
   Package,
   LogOut,
   Menu,
-  X
+  X,
+  Settings
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -87,6 +88,13 @@ const Sidebar = () => {
                 <NavLink to="/materials" className={navLinkClasses} onClick={closeMenu}>
                   <Package className="w-5 h-5" />
                   Materials
+                </NavLink>
+              </li>
+
+              <li>
+                <NavLink to="/settings" className={navLinkClasses} onClick={closeMenu}>
+                  <Settings className="w-5 h-5" />
+                  Settings
                 </NavLink>
               </li>
 

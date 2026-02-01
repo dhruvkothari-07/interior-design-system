@@ -213,7 +213,25 @@ const QuotationDetail = () => {
                         </div>
                         <form onSubmit={handleSaveRoom} className="space-y-5">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Room Name</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Room Name</label>
+
+                                {/* Quick Select Chips */}
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                    {['Living Room', 'Master Bedroom', 'Kitchen', 'Bathroom', 'Dining', 'Balcony'].map(roomType => (
+                                        <button
+                                            key={roomType}
+                                            type="button"
+                                            onClick={() => setRoomForm({ ...roomForm, name: roomType })}
+                                            className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${roomForm.name === roomType
+                                                    ? 'bg-indigo-100 text-indigo-700 border-indigo-200'
+                                                    : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
+                                                }`}
+                                        >
+                                            {roomType}
+                                        </button>
+                                    ))}
+                                </div>
+
                                 <input type="text" name="name" required value={roomForm.name} onChange={handleRoomFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="e.g. Master Bedroom" />
                             </div>
                             <div className="grid grid-cols-3 gap-4">

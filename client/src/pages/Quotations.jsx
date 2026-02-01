@@ -114,7 +114,8 @@ const Quotations = () => {
             };
 
             const res = await axios.post(`${API_URL}/quotations`, postData, {
-                headers: { Authorization: `Bearer ${token}` } });
+                headers: { Authorization: `Bearer ${token}` }
+            });
 
             // Add new quotation to the top of the list and close modal
             setQuotations([res.data, ...quotations]);
@@ -244,7 +245,7 @@ const Quotations = () => {
                                         {item.status}
                                     </span>
                                 </div>
-                                
+
                                 <div className="flex justify-between items-center">
                                     <span className="text-sm text-gray-500">Total Amount</span>
                                     <span className="font-medium text-gray-900">{item.total_amount ? `₹${Number(item.total_amount).toLocaleString('en-IN')}` : 'N/A'}</span>

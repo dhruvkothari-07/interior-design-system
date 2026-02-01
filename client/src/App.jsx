@@ -12,6 +12,7 @@ import QuotationDetail from "./pages/QuotationDetail";
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import ClientDetail from './pages/ClientDetail';
+import Settings from './pages/Settings';
 
 const App = () => {
     return (
@@ -29,6 +30,7 @@ const App = () => {
                 <Route path="/quotations/:id" element={<QuotationDetail />} />
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/projects/:id" element={<ProjectDetail />} />
+                <Route path="/settings" element={<Settings />} />
             </Routes>
         </Router>
     );

@@ -74,7 +74,7 @@ router.get("/settings", authMiddleware, async (req, res) => {
     } catch (err) {
         // If table doesn't exist yet, return empty object to prevent frontend crash
         if (err.code === 'ER_NO_SUCH_TABLE') return res.status(200).json({});
-        
+
         console.error("Error fetching settings:", err);
         return res.status(500).json({ message: "Server Error while getting settings" });
     }
@@ -129,6 +129,89 @@ router.post("/quotations", authMiddleware, async (req, res) => {
         return res.status(500).json({
             message: "Server error while creating quotation"
         });
+    }
+});
+
+router.post("/quotations/:id/duplicate", authMiddleware, async (req, res) => {
+    const { id } = req.params; // Source Quotation ID
+    const { new_title, new_client_id, new_client_name, new_client_email, new_client_phone, new_client_address } = req.body;
+
+    if (!new_title) {
+        return res.status(400).json({ message: "New Quotation Title is required" });
+    }
+
+    try {
+        // 1. Fetch Source Quotation to get basic details (mostly for fallback or validation)
+        const [[sourceQuotation]] = await db.query("SELECT * FROM quotations WHERE id = ?", [id]);
+        if (!sourceQuotation) {
+            return res.status(404).json({ message: "Source quotation not found" });
+        }
+
+        // 2. Create or Find Client
+        let finalClientId = null;
+        if (new_client_id) {
+            // Case A: User selected an existing client explicitly
+            finalClientId = new_client_id;
+        } else if (new_client_name) {
+            // Case B: User entered details for a NEW client
+            const [clientResult] = await db.query(
+                "INSERT INTO clients (name, email, phone, address) VALUES (?, ?, ?, ?)",
+                [new_client_name, new_client_email || null, new_client_phone || null, new_client_address || null]
+            );
+            finalClientId = clientResult.insertId;
+        } else {
+            // Case C: No client details provided -> Keep original client
+            finalClientId = sourceQuotation.client_id;
+        }
+
+        // 3. Create New Quotation
+        // We copy over high-level defaults but rely on re-calculation for totals to be safe, though copying total is fine initially.
+        const [quotationResult] = await db.query(
+            "INSERT INTO quotations (title, client_id, status, total_amount, labor_cost, design_fee_type, design_fee_value) VALUES (?, ?, 'Draft', ?, ?, ?, ?)",
+            [new_title, finalClientId, sourceQuotation.total_amount, sourceQuotation.labor_cost, sourceQuotation.design_fee_type, sourceQuotation.design_fee_value]
+        );
+        const newQuotationId = quotationResult.insertId;
+
+        // 4. Fetch Source Rooms
+        const [sourceRooms] = await db.query("SELECT * FROM rooms WHERE quotation_id = ?", [id]);
+
+        // 5. Loop and Copy Rooms & Items
+        for (const room of sourceRooms) {
+            // Insert New Room
+            const [roomResult] = await db.query(
+                "INSERT INTO rooms (quotation_id, name, length, width, height, notes, room_total) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [newQuotationId, room.name, room.length, room.width, room.height, room.notes, room.room_total]
+            );
+            const newRoomId = roomResult.insertId;
+
+            // Fetch Source Items for this Room
+            const [sourceItems] = await db.query("SELECT * FROM room_items WHERE room_id = ?", [room.id]);
+
+            // Copy Items
+            for (const item of sourceItems) {
+                await db.query(
+                    "INSERT INTO room_items (room_id, catalog_item_id, description, specification, unit, rate, quantity, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    [newRoomId, item.catalog_item_id, item.description, item.specification, item.unit, item.rate, item.quantity, item.total]
+                );
+            }
+        }
+
+        // 6. Return the new quotation
+        const [[newQuotation]] = await db.query(
+            `SELECT 
+                q.id, q.title, q.status, q.total_amount, q.createdAt,
+                c.id as client_id, c.name as client_name 
+             FROM quotations q 
+             LEFT JOIN clients c ON q.client_id = c.id
+             WHERE q.id = ?`,
+            [newQuotationId]
+        );
+
+        res.status(201).json(newQuotation);
+
+    } catch (err) {
+        console.error("Error duplicating quotation:", err);
+        res.status(500).json({ message: "Server error while duplicating quotation" });
     }
 });
 

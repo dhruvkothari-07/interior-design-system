@@ -202,7 +202,7 @@ const QuotationSummary = () => {
                         </button>
                         <button
                             onClick={handleDownloadPdf}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-700 transition"
+                            className="bg-indigo-600 text-white px-4 py-2 rounded-md shadow hover:bg-indigo-700 transition"
                         >
                             Download PDF
                         </button>

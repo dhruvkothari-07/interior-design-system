@@ -1,11 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import axios from "axios";
 import Sidebar from './Sidebar';
 import { API_URL } from '../config';
 
 const Materials = () => {
     const [materials, setMaterials] = useState([]);
-    
+
+    // Derived State for Smart Categories
+    const uniqueCategories = useMemo(() => {
+        const categories = materials.map(m => m.category).filter(c => c && c.trim() !== '');
+        return [...new Set(categories)].sort();
+    }, [materials]);
+
+    const [isAddCustomCategory, setIsAddCustomCategory] = useState(false);
+    const [isEditCustomCategory, setIsEditCustomCategory] = useState(false);
+
     // State for Add Modal
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [newMaterial, setNewMaterial] = useState({
@@ -71,12 +80,22 @@ const Materials = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setNewMaterial(prev => ({ ...prev, [name]: value }));
+        if (name === 'category' && value === '__NEW__') {
+            setIsAddCustomCategory(true);
+            setNewMaterial(prev => ({ ...prev, category: '' }));
+        } else {
+            setNewMaterial(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleEditInputChange = (e) => {
         const { name, value } = e.target;
-        setEditingMaterial(prev => ({ ...prev, [name]: value }));
+        if (name === 'category' && value === '__NEW__') {
+            setIsEditCustomCategory(true);
+            setEditingMaterial(prev => ({ ...prev, category: '' }));
+        } else {
+            setEditingMaterial(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleAddMaterial = async (e) => {
@@ -92,6 +111,7 @@ const Materials = () => {
             // Instead of optimistically updating, just re-fetch the whole list
             await fetchMaterials();
             setIsAddModalOpen(false);
+            setIsAddCustomCategory(false); // Reset custom toggle
             // Reset form
             setNewMaterial({
                 name: '',
@@ -110,6 +130,7 @@ const Materials = () => {
     const handleEditClick = (material) => {
         setEditingMaterial(material);
         setIsEditModalOpen(true);
+        setIsEditCustomCategory(false); // Reset custom toggle
     };
 
     const handleUpdateMaterial = async (e) => {
@@ -167,8 +188,6 @@ const Materials = () => {
                         className="w-full sm:w-1/3 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                     />
                 </header>
-
-
 
                 {/* Desktop View: Table */}
                 <section className="hidden md:block bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden">
@@ -268,8 +287,42 @@ const Materials = () => {
                                         <input type="text" name="name" id="name" value={newMaterial.name} onChange={handleInputChange} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
                                     </div>
                                     <div>
-                                        <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category (Optional)</label>
-                                        <input type="text" name="category" id="category" value={newMaterial.category} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+                                        <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category {isAddCustomCategory ? '(New)' : '(Select)'}</label>
+                                        {isAddCustomCategory ? (
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    name="category"
+                                                    id="category"
+                                                    value={newMaterial.category}
+                                                    onChange={handleInputChange}
+                                                    autoFocus
+                                                    placeholder="Enter new category"
+                                                    className="flex-1 mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsAddCustomCategory(false)}
+                                                    className="mt-1 px-3 py-2 text-sm text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <select
+                                                name="category"
+                                                id="category"
+                                                value={newMaterial.category}
+                                                onChange={handleInputChange}
+                                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                            >
+                                                <option value="">Select Category...</option>
+                                                {uniqueCategories.map((cat) => (
+                                                    <option key={cat} value={cat}>{cat}</option>
+                                                ))}
+                                                <option value="__NEW__" className="font-semibold text-indigo-600">+ Create New Category</option>
+                                            </select>
+                                        )}
                                     </div>
                                     <div>
                                         <label htmlFor="unit" className="block text-sm font-medium text-gray-700">Unit</label>
@@ -316,8 +369,42 @@ const Materials = () => {
                                         <input type="text" name="name" id="edit-name" value={editingMaterial.name} onChange={handleEditInputChange} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
                                     </div>
                                     <div>
-                                        <label htmlFor="edit-category" className="block text-sm font-medium text-gray-700">Category (Optional)</label>
-                                        <input type="text" name="category" id="edit-category" value={editingMaterial.category} onChange={handleEditInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+                                        <label htmlFor="edit-category" className="block text-sm font-medium text-gray-700">Category {isEditCustomCategory ? '(New)' : '(Select)'}</label>
+                                        {isEditCustomCategory ? (
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    name="category"
+                                                    id="edit-category"
+                                                    value={editingMaterial.category}
+                                                    onChange={handleEditInputChange}
+                                                    autoFocus
+                                                    placeholder="Enter new category"
+                                                    className="flex-1 mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsEditCustomCategory(false)}
+                                                    className="mt-1 px-3 py-2 text-sm text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <select
+                                                name="category"
+                                                id="edit-category"
+                                                value={editingMaterial.category}
+                                                onChange={handleEditInputChange}
+                                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                            >
+                                                <option value="">Select Category...</option>
+                                                {uniqueCategories.map((cat) => (
+                                                    <option key={cat} value={cat}>{cat}</option>
+                                                ))}
+                                                <option value="__NEW__" className="font-semibold text-indigo-600">+ Create New Category</option>
+                                            </select>
+                                        )}
                                     </div>
                                     <div>
                                         <label htmlFor="edit-unit" className="block text-sm font-medium text-gray-700">Unit</label>

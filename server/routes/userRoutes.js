@@ -4,11 +4,13 @@ const jwt = require("jsonwebtoken");
 const router = Router();
 const db = require("../db/db");
 const { rateLimit } = require('express-rate-limit');
+const authMiddleware = require("../middleware/authMiddleware");
+const upload = require("../middleware/uploadMiddleware");
 
 // Rate limiter for login: 5 attempts per 15 minutes
 const loginLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, 
-    max: 5, 
+    windowMs: 15 * 60 * 1000,
+    max: 5,
     message: { message: 'Too many login attempts, please try again later' }
 });
 
@@ -30,7 +32,7 @@ router.post("/signup", async (req, res) => {
             return res.status(409).json({ message: "User already exists" });
         }
 
-        const hashpass = await bcrypt.hash(password,10);
+        const hashpass = await bcrypt.hash(password, 10);
         const createUser = "INSERT INTO users (username, email, password) VALUES(?,?,?)";
 
         const [result] = await db.query(createUser, [username, email, hashpass]);
@@ -90,4 +92,52 @@ router.post("/signin", loginLimiter, async (req, res) => {
     }
 });
 
-module.exports = router; 
+// GET /settings - Fetch current user's company settings
+router.get("/settings", authMiddleware, async (req, res) => {
+    try {
+        const [rows] = await db.query(
+            "SELECT company_name, company_address, company_email, company_phone, default_terms, logo_url FROM users WHERE id = ?",
+            [req.user.id]
+        );
+        if (rows.length === 0) return res.status(404).json({ message: "User not found" });
+        res.json(rows[0]);
+    } catch (err) {
+        console.error("Error fetching settings:", err);
+        res.status(500).json({ message: "Error fetching settings" });
+    }
+});
+
+// PUT /settings - Update company settings
+router.put("/settings", authMiddleware, upload.single('logo'), async (req, res) => {
+    let { company_name, company_address, company_email, company_phone, default_terms, logo_url } = req.body;
+
+    // If file uploaded, use its path (relative to server root)
+    if (req.file) {
+        // Construct URL assuming server is hosting static /uploads
+        // req.protocol + '://' + req.get('host') + '/uploads/' + req.file.filename
+        // For simplicity, just storing relative path for now, frontend knows to prepend API base or just simple path
+        // actually standard is to store full URL or consistent relative path.
+        // Let's store '/uploads/filename'
+        logo_url = `/uploads/${req.file.filename}`;
+    }
+
+    try {
+        await db.query(
+            `UPDATE users SET 
+            company_name = ?, 
+            company_address = ?, 
+            company_email = ?, 
+            company_phone = ?, 
+            default_terms = ?, 
+            logo_url = ? 
+            WHERE id = ?`,
+            [company_name, company_address, company_email, company_phone, default_terms, logo_url, req.user.id]
+        );
+        res.json({ message: "Settings updated successfully", logo_url });
+    } catch (err) {
+        console.error("Error updating settings:", err);
+        res.status(500).json({ message: "Error updating settings" });
+    }
+});
+
+module.exports = router;

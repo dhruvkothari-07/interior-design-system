@@ -7,7 +7,7 @@ import { API_URL } from '../../config';
 const PreviewTab = ({ quotation, setQuotation }) => {
     const [rooms, setRooms] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [settings] = useState({
+    const [settings, setSettings] = useState({
         company_name: 'My Interior Design Co.',
         company_address: '123 Design Street, Creative City',
         company_email: 'contact@designco.com',
@@ -15,6 +15,31 @@ const PreviewTab = ({ quotation, setQuotation }) => {
         logo_url: '/logo.jpg',
         terms_and_conditions: '1. This quotation includes only the work and materials specifically mentioned above. Any additional or modified work will be charged separately.\n2. Prices are valid for a limited period and may change due to variation in material costs or project requirements.\n3. Payments must be made as per agreed milestones. Delay in payment may result in temporary suspension of work.\n4. The client shall ensure site readiness, including access, electricity, water, and necessary permissions before commencement of work.\n5. Once materials, designs, shades, or finishes are finalized and ordered, they cannot be cancelled or returned. Any changes will be charged additionally.\n6. The service provider shall not be responsible for delays or damages caused due to site conditions, third-party work, natural events, or circumstances beyond control.'
     });
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.get(`${API_URL}/settings`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (res.data) {
+                    setSettings(prev => ({
+                        ...prev,
+                        company_name: res.data.company_name || prev.company_name,
+                        company_address: res.data.company_address || prev.company_address,
+                        company_email: res.data.company_email || prev.company_email,
+                        company_phone: res.data.company_phone || prev.company_phone,
+                        logo_url: res.data.logo_url || prev.logo_url,
+                        terms_and_conditions: res.data.default_terms || prev.terms_and_conditions
+                    }));
+                }
+            } catch (err) {
+                console.error("Error fetching company settings", err);
+            }
+        };
+        fetchSettings();
+    }, []);
 
     const [taxPercentage, setTaxPercentage] = useState(18.00);
     const [laborCost, setLaborCost] = useState(0);
@@ -58,6 +83,13 @@ const PreviewTab = ({ quotation, setQuotation }) => {
             style: 'currency',
             currency: 'INR',
         }).format(amount);
+    };
+
+    const getImageUrl = (url) => {
+        if (!url) return null;
+        if (url.startsWith('http')) return url;
+        const baseUrl = API_URL.replace('/api/v1', '');
+        return `${baseUrl}${url}`;
     };
 
     const materialsTotal = useMemo(() => {
@@ -146,7 +178,7 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                     <button onClick={handleSaveFinalTotal} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm transition shadow-sm">
                         Save Totals
                     </button>
-                    <button onClick={handleDownloadPdf} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm transition shadow-sm">
+                    <button onClick={handleDownloadPdf} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium text-sm transition shadow-sm">
                         Download PDF
                     </button>
                 </div>
@@ -154,11 +186,11 @@ const PreviewTab = ({ quotation, setQuotation }) => {
 
             {/* Print Area */}
             <div className="flex justify-center bg-gray-100 p-4 rounded-xl overflow-x-auto">
-                <div ref={printRef} className="bg-white p-8 shadow-lg w-[210mm] min-h-[297mm] text-gray-800 text-sm"> {/* A4 Dimensions approx */}
+                <div ref={printRef} className="bg-white p-4 md:p-8 shadow-lg w-full md:w-[210mm] min-h-[297mm] text-gray-800 text-sm"> {/* A4 Dimensions approx */}
                     {/* Header */}
                     <div className="flex justify-between items-start mb-8 border-b pb-6">
                         <div className="w-1/2">
-                            {settings.logo_url && <img src={settings.logo_url} alt="Logo" className="h-16 mb-4 object-contain" />}
+                            {settings.logo_url && <img src={getImageUrl(settings.logo_url)} alt="Logo" className="h-16 mb-4 object-contain" />}
                             <h1 className="text-2xl font-bold text-gray-900">{settings.company_name}</h1>
                             <p className="text-gray-500 whitespace-pre-line mt-1">{settings.company_address}</p>
                             <p className="text-gray-500 mt-1">{settings.company_email} • {settings.company_phone}</p>
@@ -184,18 +216,18 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                                         <span>{room.name}</span>
                                         <span>{formatCurrency(roomTotal)}</span>
                                     </div>
-                                    <table className="w-full text-left">
-                                        <thead><tr className="text-xs text-gray-500 border-b"><th className="pb-1 pl-2 font-normal">Description</th><th className="pb-1 px-4 text-right font-normal">Rate</th><th className="pb-1 px-4 text-right font-normal">Qty</th><th className="pb-1 pl-4 text-right font-normal">Amount</th></tr></thead>
+                                    <table className="w-full text-left table-fixed md:table-auto">
+                                        <thead><tr className="text-[10px] md:text-xs text-gray-500 border-b"><th className="pb-1 pl-1 md:pl-2 font-normal w-[40%] md:w-auto">Description</th><th className="pb-1 px-1 md:px-4 text-right font-normal">Rate</th><th className="pb-1 px-1 md:px-4 text-right font-normal">Qty</th><th className="pb-1 pl-1 md:pl-4 text-right font-normal">Amount</th></tr></thead>
                                         <tbody className="text-gray-700">
                                             {room.materials && room.materials.map(m => (
-                                                <tr key={m.id} className="border-b border-gray-100 last:border-0">
-                                                    <td className="py-2 pl-2 pr-2">
+                                                <tr key={m.id} className="border-b border-gray-100 last:border-0 text-xs md:text-sm">
+                                                    <td className="py-2 pl-1 md:pl-2 pr-1 md:pr-2 break-words">
                                                         <div className="font-medium">{m.name}</div>
-                                                        {m.specification && <div className="text-xs text-gray-500">{m.specification}</div>}
+                                                        {m.specification && <div className="text-[10px] md:text-xs text-gray-500">{m.specification}</div>}
                                                     </td>
-                                                    <td className="py-2 px-4 text-right whitespace-nowrap">{formatCurrency(m.price)}</td>
-                                                    <td className="py-2 px-4 text-right">{m.quantity} <span className="text-gray-500 text-xs">{m.unit}</span></td>
-                                                    <td className="py-2 pl-4 text-right font-medium whitespace-nowrap">{formatCurrency(m.price * m.quantity)}</td>
+                                                    <td className="py-2 px-1 md:px-4 text-right whitespace-nowrap">{formatCurrency(m.price)}</td>
+                                                    <td className="py-2 px-1 md:px-4 text-right whitespace-nowrap">{m.quantity} <span className="text-gray-500 text-[10px] md:text-xs">{m.unit}</span></td>
+                                                    <td className="py-2 pl-1 md:pl-4 text-right font-medium whitespace-nowrap">{formatCurrency(m.price * m.quantity)}</td>
                                                 </tr>
                                             ))}
                                             {(!room.materials || room.materials.length === 0) && <tr><td colSpan="4" className="py-2 text-center text-gray-400 italic">No items</td></tr>}
@@ -207,12 +239,12 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                     </div>
 
                     {/* Footer / Totals */}
-                    <div className="flex flex-col md:flex-row break-inside-avoid">
-                        <div className="w-full md:w-1/2 mb-6 md:mb-0 md:pr-8">
+                    <div className="flex flex-col-reverse md:flex-row break-inside-avoid">
+                        <div className="w-full md:w-1/2 mt-6 md:mt-0 md:pr-8 border-t md:border-t-0 pt-6 md:pt-0">
                             <h4 className="font-bold text-gray-800 mb-2 text-xs uppercase tracking-wide">Terms & Conditions</h4>
                             <p className="text-xs text-gray-500 whitespace-pre-line leading-relaxed">{settings.terms_and_conditions}</p>
                         </div>
-                        <div className="w-full md:w-1/2 md:pl-8 border-t md:border-t-0 md:border-l pt-6 md:pt-0">
+                        <div className="w-full md:w-1/2 md:pl-8 md:border-l">
                             <div className="space-y-2 text-right">
                                 <div className="flex justify-between"><span>Material Cost</span><span>{formatCurrency(materialsTotal)}</span></div>
                                 <div className="flex justify-between items-center text-gray-600">
@@ -220,7 +252,7 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                                     {isPrinting ? (
                                         <span className="font-medium">{formatCurrency(laborCost)}</span>
                                     ) : (
-                                        <input type="number" value={laborCost} onChange={(e) => setLaborCost(e.target.value)} className="w-24 text-right border-b border-gray-300 focus:outline-none focus:border-blue-500 text-sm py-0.5" />
+                                        <input type="number" value={laborCost} onChange={(e) => setLaborCost(e.target.value)} className="w-24 text-right border-b border-gray-300 focus:outline-none focus:border-indigo-500 text-sm py-0.5" />
                                     )}
                                 </div>
                                 <div className="flex justify-between items-center text-gray-600">
@@ -229,7 +261,7 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                                         {isPrinting ? (
                                             <span className="font-medium">{formatCurrency(calculatedDesignFee)}</span>
                                         ) : (
-                                            <input type="number" value={designFeeValue} onChange={(e) => setDesignFeeValue(e.target.value)} className="w-16 text-right border-b border-gray-300 focus:outline-none focus:border-blue-500 text-sm py-0.5" />
+                                            <input type="number" value={designFeeValue} onChange={(e) => setDesignFeeValue(e.target.value)} className="w-16 text-right border-b border-gray-300 focus:outline-none focus:border-indigo-500 text-sm py-0.5" />
                                         )}
                                     </div>
                                 </div>
