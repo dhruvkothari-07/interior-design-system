@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
-import Sidebar from './Sidebar';
+import Navbar from '../components/Navbar';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
-import { LayoutDashboard, TableProperties, FileText, Plus, X } from 'lucide-react';
+import { LayoutDashboard, TableProperties, FileText, Plus, X, ArrowLeft, FileSpreadsheet, IndianRupee } from 'lucide-react';
 
 import OverviewTab from './quotation-tabs/OverviewTab';
 import WorksheetTab from './quotation-tabs/WorksheetTab';
@@ -59,6 +59,8 @@ const QuotationDetail = () => {
         return rooms.reduce((sum, room) => sum + (parseFloat(room.room_total) || 0), 0);
     }, [rooms]);
 
+    const formatCurrency = (amt) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amt);
+
     // --- Room Management Handlers ---
     const handleRoomFormChange = (e) => {
         setRoomForm({ ...roomForm, [e.target.name]: e.target.value });
@@ -87,20 +89,17 @@ const QuotationDetail = () => {
         try {
             const token = localStorage.getItem("token");
             if (editingRoom) {
-                // Update
                 await axios.put(`${API_URL}/rooms/${editingRoom.id}`, roomForm, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             } else {
-                // Create
                 const res = await axios.post(`${API_URL}/quotations/${id}/rooms`, roomForm, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                // If this is the first room, auto-select it
                 if (rooms.length === 0) setActiveRoomId(res.data.id);
             }
             setIsRoomModalOpen(false);
-            fetchData(); // Refresh list
+            fetchData();
         } catch (err) {
             console.error("Error saving room:", err);
             alert("Failed to save room.");
@@ -121,35 +120,79 @@ const QuotationDetail = () => {
         }
     };
 
-    if (isLoading) return <div className="flex h-screen items-center justify-center text-gray-500">Loading...</div>;
+    const getStatusConfig = (status) => {
+        const configs = {
+            'Approved': { bg: 'bg-emerald-100', text: 'text-emerald-700' },
+            'Pending': { bg: 'bg-amber-100', text: 'text-amber-700' },
+            'Rejected': { bg: 'bg-rose-100', text: 'text-rose-700' },
+            'Draft': { bg: 'bg-stone-100', text: 'text-stone-600' }
+        };
+        return configs[status] || configs['Draft'];
+    };
+
+    if (isLoading) return (
+        <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center">
+            <div className="animate-pulse text-[var(--color-text-muted)]">Loading quotation...</div>
+        </div>
+    );
     if (!quotation) return null;
 
-    return (
-        <div className="flex h-screen bg-gray-50 font-sans text-gray-900">
-            <Sidebar />
+    const statusConfig = getStatusConfig(quotation.status);
 
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden mt-16 md:mt-0">
-                {/* Header with Tabs */}
-                <header className="bg-white border-b border-gray-200 pt-6 px-8 pb-0 z-20">
-                    <div className="flex justify-between items-center mb-6">
-                        <div>
-                            <div className="flex items-center gap-3 text-sm text-gray-500 mb-1">
-                                <span onClick={() => navigate('/quotations')} className="hover:text-indigo-600 cursor-pointer transition">Quotations</span>
-                                <span>/</span>
-                                <span>{quotation.id}</span>
+    return (
+        <div className="min-h-screen bg-[var(--color-bg)]">
+            <Navbar />
+
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Header */}
+                <div className="mb-8 animate-fade-in">
+                    <button
+                        onClick={() => navigate('/quotations')}
+                        className="group flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors mb-6"
+                    >
+                        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+                        Back to Quotations
+                    </button>
+
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                        {/* Left: Title & Status */}
+                        <div className="flex items-start gap-4">
+                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center shadow-sm">
+                                <FileSpreadsheet className="w-7 h-7 text-[var(--color-accent)]" />
                             </div>
-                            <h1 className="text-2xl font-bold text-gray-900">{quotation.title}</h1>
+                            <div>
+                                <div className="flex items-center gap-3 mb-1">
+                                    <h1 className="text-2xl font-bold text-[var(--color-text-primary)] tracking-tight">
+                                        {quotation.title}
+                                    </h1>
+                                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${statusConfig.bg} ${statusConfig.text}`}>
+                                        {quotation.status}
+                                    </span>
+                                </div>
+                                <p className="text-sm text-[var(--color-text-muted)]">
+                                    {quotation.client_name || 'No client'} • Created {new Date(quotation.createdAt).toLocaleDateString()}
+                                </p>
+                            </div>
                         </div>
-                        <div className="text-right">
-                            <p className="text-sm text-gray-500">Total Value</p>
-                            <p className="text-xl font-bold text-indigo-600">
-                                {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(currentSubTotal)}
-                            </p>
+
+                        {/* Right: Total Value Card */}
+                        <div className="flex items-center gap-4 bg-white rounded-2xl px-6 py-4 border border-[var(--color-border)] shadow-sm">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--color-accent)] to-orange-600 flex items-center justify-center">
+                                <IndianRupee className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                                <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wide">Total Value</p>
+                                <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+                                    {formatCurrency(currentSubTotal)}
+                                </p>
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    {/* Navigation Tabs */}
-                    <div className="flex gap-8">
+                {/* Navigation Tabs - Pill Style */}
+                <div className="flex justify-center mb-8 animate-fade-in">
+                    <div className="inline-flex bg-white/80 backdrop-blur-sm p-1.5 rounded-2xl shadow-sm border border-[var(--color-border)]">
                         {[
                             { id: 'overview', label: 'Overview', icon: LayoutDashboard },
                             { id: 'worksheet', label: 'Rooms & Materials', icon: TableProperties },
@@ -158,20 +201,22 @@ const QuotationDetail = () => {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 pb-4 text-sm font-medium border-b-2 transition-all ${activeTab === tab.id
-                                    ? 'border-indigo-600 text-indigo-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    }`}
+                                className={`
+                                    flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                                    ${activeTab === tab.id
+                                        ? 'bg-[var(--color-accent)] text-white shadow-md shadow-orange-200'
+                                        : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-stone-100'}
+                                `}
                             >
                                 <tab.icon className="w-4 h-4" />
                                 {tab.label}
                             </button>
                         ))}
                     </div>
-                </header>
+                </div>
 
-                {/* Main Content Area */}
-                <main className="flex-1 overflow-auto p-6 md:p-8">
+                {/* Main Content */}
+                <div className="animate-fade-in-up">
                     {activeTab === 'overview' && (
                         <OverviewTab
                             quotation={quotation}
@@ -185,7 +230,7 @@ const QuotationDetail = () => {
                         <WorksheetTab
                             quotationId={id}
                             rooms={rooms}
-                            onRoomsUpdate={fetchData} // Refresh all rooms to update totals
+                            onRoomsUpdate={fetchData}
                             activeRoomId={activeRoomId}
                             setActiveRoomId={setActiveRoomId}
                             onAddRoomClick={handleOpenAddRoom}
@@ -196,38 +241,70 @@ const QuotationDetail = () => {
 
                     {activeTab === 'preview' && (
                         <PreviewTab
-                            quotation={{ ...quotation, labor_cost: quotation.labor_cost, design_fee_type: quotation.design_fee_type, design_fee_value: quotation.design_fee_value }} // Ensure latest props
+                            quotation={{ ...quotation, labor_cost: quotation.labor_cost, design_fee_type: quotation.design_fee_type, design_fee_value: quotation.design_fee_value }}
                             setQuotation={setQuotation}
                         />
                     )}
-                </main>
-            </div>
+                </div>
+            </main>
 
-            {/* Shared Room Modal */}
+            {/* Room Modal */}
             {isRoomModalOpen && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-                    <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-lg">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-2xl font-bold text-gray-800">{editingRoom ? 'Edit Room' : 'Add New Room'}</h3>
-                            <button onClick={() => setIsRoomModalOpen(false)}><X className="w-6 h-6 text-gray-400 hover:text-gray-600" /></button>
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in-up">
+                        <div className="px-6 py-5 border-b border-[var(--color-border)] bg-[var(--color-bg-subtle)] flex justify-between items-center">
+                            <h3 className="text-xl font-bold text-[var(--color-text-primary)]">
+                                {editingRoom ? 'Edit Room' : 'Add New Room'}
+                            </h3>
+                            <button onClick={() => setIsRoomModalOpen(false)} className="p-1 hover:bg-stone-200 rounded-lg transition">
+                                <X className="w-5 h-5 text-[var(--color-text-muted)]" />
+                            </button>
                         </div>
-                        <form onSubmit={handleSaveRoom} className="space-y-5">
+                        <form onSubmit={handleSaveRoom} className="p-6 space-y-5">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Room Name</label>
-                                <input type="text" name="name" required value={roomForm.name} onChange={handleRoomFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="e.g. Master Bedroom" />
+                                <label className="block text-sm font-semibold text-[var(--color-text-secondary)] mb-2">Room Name</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    required
+                                    value={roomForm.name}
+                                    onChange={handleRoomFormChange}
+                                    className="input"
+                                    placeholder="e.g. Master Bedroom"
+                                />
                             </div>
                             <div className="grid grid-cols-3 gap-4">
-                                <div><label className="block text-sm font-semibold text-gray-700 mb-1">Length (ft)</label><input type="number" name="length" value={roomForm.length} onChange={handleRoomFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg" /></div>
-                                <div><label className="block text-sm font-semibold text-gray-700 mb-1">Width (ft)</label><input type="number" name="width" value={roomForm.width} onChange={handleRoomFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg" /></div>
-                                <div><label className="block text-sm font-semibold text-gray-700 mb-1">Height (ft)</label><input type="number" name="height" value={roomForm.height} onChange={handleRoomFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg" /></div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-[var(--color-text-secondary)] mb-2">Length (ft)</label>
+                                    <input type="number" name="length" value={roomForm.length} onChange={handleRoomFormChange} className="input" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-[var(--color-text-secondary)] mb-2">Width (ft)</label>
+                                    <input type="number" name="width" value={roomForm.width} onChange={handleRoomFormChange} className="input" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-[var(--color-text-secondary)] mb-2">Height (ft)</label>
+                                    <input type="number" name="height" value={roomForm.height} onChange={handleRoomFormChange} className="input" />
+                                </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Notes (Optional)</label>
-                                <textarea name="notes" rows="3" value={roomForm.notes} onChange={handleRoomFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg resize-none" placeholder="Specific requirements..." />
+                                <label className="block text-sm font-semibold text-[var(--color-text-secondary)] mb-2">Notes (Optional)</label>
+                                <textarea
+                                    name="notes"
+                                    rows="3"
+                                    value={roomForm.notes}
+                                    onChange={handleRoomFormChange}
+                                    className="input resize-none"
+                                    placeholder="Specific requirements..."
+                                />
                             </div>
-                            <div className="pt-4 flex justify-end gap-3">
-                                <button type="button" onClick={() => setIsRoomModalOpen(false)} className="px-5 py-2.5 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition">Cancel</button>
-                                <button type="submit" className="px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition">{editingRoom ? 'Update Room' : 'Create Room'}</button>
+                            <div className="pt-2 flex justify-end gap-3">
+                                <button type="button" onClick={() => setIsRoomModalOpen(false)} className="btn-secondary">
+                                    Cancel
+                                </button>
+                                <button type="submit" className="btn-primary">
+                                    {editingRoom ? 'Update Room' : 'Create Room'}
+                                </button>
                             </div>
                         </form>
                     </div>

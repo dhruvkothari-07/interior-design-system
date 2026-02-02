@@ -7,8 +7,8 @@ const { rateLimit } = require('express-rate-limit');
 
 // Rate limiter for login: 5 attempts per 15 minutes
 const loginLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, 
-    max: 5, 
+    windowMs: 15 * 60 * 1000,
+    max: 5,
     message: { message: 'Too many login attempts, please try again later' }
 });
 
@@ -30,12 +30,11 @@ router.post("/signup", async (req, res) => {
             return res.status(409).json({ message: "User already exists" });
         }
 
-        const hashpass = await bcrypt.hash(password,10);
+        const hashpass = await bcrypt.hash(password, 10);
         const createUser = "INSERT INTO users (username, email, password) VALUES(?,?,?)";
 
         const [result] = await db.query(createUser, [username, email, hashpass]);
 
-        // Generate token for auto-login
         const token = jwt.sign(
             { id: result.insertId, username: username },
             JWT_SECRET,

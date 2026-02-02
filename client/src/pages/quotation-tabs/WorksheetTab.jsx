@@ -49,11 +49,11 @@ const MaterialCard = React.memo(({
     const displayDescription = roomMaterial?.specification || material.description || '';
 
     return (
-        <div className={`group relative bg-white rounded-xl border-2 p-4 transition-all duration-300 hover:shadow-lg flex flex-col justify-between h-full ${isAdded ? 'border-blue-200 bg-blue-50/30' : 'border-slate-200 hover:border-blue-300'
+        <div className={`group relative bg-white rounded-xl border-2 p-4 transition-all duration-300 hover:shadow-lg flex flex-col justify-between h-full ${isAdded ? 'border-orange-200 bg-orange-50/30' : 'border-stone-200 hover:border-orange-300'
             }`}>
             <div className="mb-4">
                 <div className="flex justify-between items-start mb-2">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${isAdded ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${isAdded ? 'bg-orange-100 text-orange-700' : 'bg-stone-100 text-stone-600'
                         }`}>
                         {material.category || 'General'}
                     </span>
@@ -66,8 +66,8 @@ const MaterialCard = React.memo(({
                             >
                                 <Edit2 className="w-3.5 h-3.5" />
                             </button>
-                            <div className="h-5 w-5 bg-blue-100 rounded-full flex items-center justify-center">
-                                <Check className="w-3 h-3 text-blue-600" />
+                            <div className="h-5 w-5 bg-orange-100 rounded-full flex items-center justify-center">
+                                <Check className="w-3 h-3 text-orange-600" />
                             </div>
                         </div>
                     )}
@@ -96,7 +96,7 @@ const MaterialCard = React.memo(({
             <div className="mt-auto">
                 {isAdded ? (
                     <div className="flex items-center gap-2">
-                        <div className="flex-1 flex items-center justify-between bg-white rounded-lg border border-blue-200 p-0.5">
+                        <div className="flex-1 flex items-center justify-between bg-white rounded-lg border border-orange-200 p-0.5">
                             <button
                                 onClick={() => {
                                     if (quantity > 1) {
@@ -128,7 +128,7 @@ const MaterialCard = React.memo(({
                                     setLocalQty(Number(quantity) + 1);
                                     onUpdateQuantity(roomMaterialId, Number(quantity) + 1);
                                 }}
-                                className="w-8 h-8 flex items-center justify-center rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                                className="w-8 h-8 flex items-center justify-center rounded bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-dark)] transition-colors"
                             >
                                 <Plus className="w-3 h-3" />
                             </button>
@@ -138,7 +138,7 @@ const MaterialCard = React.memo(({
                     <button
                         ref={addButtonRef}
                         onClick={() => onAdd(material.id, 1)}
-                        className="w-full py-2 bg-blue-50 text-blue-600 border border-blue-200 font-semibold rounded-lg text-sm hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                        className="w-full py-2 bg-orange-50 text-[var(--color-accent)] border border-orange-200 font-semibold rounded-lg text-sm hover:bg-[var(--color-accent)] hover:text-white transition-all flex items-center justify-center gap-2"
                     >
                         <Plus className="w-4 h-4" /> Add
                     </button>
@@ -350,14 +350,14 @@ const WorksheetTab = ({
 
 
     return (
-        <div className="flex flex-col md:flex-row md:h-[calc(100vh-180px)] h-auto bg-white rounded-xl shadow-sm border border-gray-200 md:overflow-hidden overflow-visible animate-fade-in-up">
+        <div className="flex flex-col md:flex-row md:h-[calc(100vh-180px)] h-auto bg-white rounded-xl shadow-sm border border-[var(--color-border)] md:overflow-hidden overflow-visible animate-fade-in-up">
             {/* Left Sidebar: Room List (Desktop Only) */}
-            <aside className="w-full md:w-72 hidden md:flex flex-none bg-gray-50 border-r border-gray-200 flex-col md:h-full md:max-h-full overflow-hidden transition-all">
+            <aside className="w-full md:w-72 hidden md:flex flex-none bg-[var(--color-bg-subtle)] border-r border-[var(--color-border)] flex-col md:h-full md:max-h-full overflow-hidden transition-all">
                 <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-white sticky top-0 z-10">
                     <h3 className="font-semibold text-gray-700">Rooms</h3>
                     <button
                         onClick={onAddRoomClick}
-                        className="p-1.5 bg-indigo-50 text-indigo-600 rounded-md hover:bg-indigo-100 transition"
+                        className="p-1.5 bg-orange-50 text-[var(--color-accent)] rounded-md hover:bg-orange-100 transition"
                         title="Add Room"
                     >
                         <Plus className="w-4 h-4" />
@@ -372,13 +372,13 @@ const WorksheetTab = ({
                             key={room.id}
                             onClick={() => setActiveRoomId(room.id)}
                             className={`group w-full text-left p-3 rounded-lg text-sm border transition-all cursor-pointer relative ${activeRoomId === room.id
-                                ? 'bg-white border-indigo-500 shadow-sm ring-1 ring-indigo-500 z-10'
-                                : 'bg-white border-gray-200 hover:border-indigo-300 text-gray-600'
+                                ? 'bg-white border-[var(--color-accent)] shadow-sm ring-1 ring-[var(--color-accent)] z-10'
+                                : 'bg-white border-stone-200 hover:border-orange-300 text-stone-600'
                                 }`}
                         >
                             <div className="flex justify-between items-start">
-                                <span className={`font-medium ${activeRoomId === room.id ? 'text-indigo-900' : 'text-gray-900'}`}>{room.name}</span>
-                                {activeRoomId === room.id && <Check className="w-3.5 h-3.5 text-indigo-600" />}
+                                <span className={`font-medium ${activeRoomId === room.id ? 'text-[var(--color-accent-dark)]' : 'text-stone-900'}`}>{room.name}</span>
+                                {activeRoomId === room.id && <Check className="w-3.5 h-3.5 text-[var(--color-accent)]" />}
                             </div>
                             <div className="flex justify-between items-end mt-1">
                                 <span className="text-xs text-gray-500">{room.dimensions || `${room.length}x${room.width}`}</span>
@@ -429,7 +429,7 @@ const WorksheetTab = ({
                     </div>
                     <button
                         onClick={onAddRoomClick}
-                        className="p-2.5 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition flex-shrink-0"
+                        className="p-2.5 bg-[var(--color-accent)] text-white rounded-lg shadow-md hover:bg-[var(--color-accent-dark)] transition flex-shrink-0"
                         title="Add Room"
                     >
                         <Plus className="w-5 h-5" />
@@ -477,11 +477,11 @@ const WorksheetTab = ({
                                         placeholder="Search catalog..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="flex-1 md:w-64 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        className="flex-1 md:w-64 px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
                                     />
                                     <button
                                         onClick={() => setIsCustomModalOpen(true)}
-                                        className="px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition whitespace-nowrap"
+                                        className="px-3 py-2 bg-[var(--color-accent)] text-white text-sm font-medium rounded-lg hover:bg-[var(--color-accent-dark)] transition whitespace-nowrap"
                                     >
                                         + Custom Item
                                     </button>
@@ -496,8 +496,8 @@ const WorksheetTab = ({
                                             key={cat}
                                             onClick={() => setSelectedCategory(cat)}
                                             className={`px-4 py-2 md:px-5 md:py-2.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider border transition-all ${selectedCategory === cat
-                                                ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-200'
-                                                : 'bg-white text-gray-500 border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                                                ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)] shadow-md shadow-orange-200'
+                                                : 'bg-white text-stone-500 border-stone-200 hover:border-orange-300 hover:bg-stone-50'
                                                 }`}
                                         >
                                             {cat}
@@ -580,8 +580,8 @@ const WorksheetTab = ({
                                         className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 font-medium cursor-pointer"
                                     >
                                         <div className={`w-4 h-4 border rounded flex items-center justify-center transition-colors ${filteredMasterMaterials.length > 0 && filteredMasterMaterials.every(m => m.isCustom || activeRoomMaterials.find(rm => Number(rm.material_id) === Number(m.id)))
-                                            ? 'bg-blue-600 border-blue-600'
-                                            : 'border-gray-400 bg-white'
+                                            ? 'bg-[var(--color-accent)] border-[var(--color-accent)]'
+                                            : 'border-stone-400 bg-white'
                                             }`}>
                                             {filteredMasterMaterials.length > 0 && filteredMasterMaterials.every(m => m.isCustom || activeRoomMaterials.find(rm => Number(rm.material_id) === Number(m.id))) &&
                                                 <Check className="w-3 h-3 text-white" />
@@ -597,7 +597,7 @@ const WorksheetTab = ({
                         </div>
 
                         {/* Material Grid */}
-                        <div className="md:flex-1 h-auto md:overflow-y-auto overflow-visible p-4 bg-slate-50">
+                        <div className="md:flex-1 h-auto md:overflow-y-auto overflow-visible p-4 bg-[var(--color-bg-subtle)]">
                             {isLoadingMaterials ? (
                                 <div className="flex justify-center p-8"><span className="text-gray-500 animate-pulse">Loading materials...</span></div>
                             ) : (
@@ -652,7 +652,7 @@ const WorksheetTab = ({
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Specification</label>
                                 <textarea rows="3" value={customItem.specification} onChange={(e) => setCustomItem({ ...customItem, specification: e.target.value })} className="w-full px-3 py-2 border rounded-lg resize-none" placeholder="Details..." />
                             </div>
-                            <button type="submit" className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-bold hover:bg-indigo-700">Add Item</button>
+                            <button type="submit" className="w-full bg-[var(--color-accent)] text-white py-2.5 rounded-lg font-bold hover:bg-[var(--color-accent-dark)]">Add Item</button>
                         </form>
                     </div>
                 </div>
@@ -673,7 +673,7 @@ const WorksheetTab = ({
                                 <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Qty</label><input type="number" required value={editingRoomItem.quantity} onChange={(e) => setEditingRoomItem({ ...editingRoomItem, quantity: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
                             </div>
                             <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Specification</label><textarea rows="3" value={editingRoomItem.specification || ''} onChange={(e) => setEditingRoomItem({ ...editingRoomItem, specification: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
-                            <button type="submit" className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-bold hover:bg-indigo-700">Save Changes</button>
+                            <button type="submit" className="w-full bg-[var(--color-accent)] text-white py-2.5 rounded-lg font-bold hover:bg-[var(--color-accent-dark)]">Save Changes</button>
                         </form>
                     </div>
                 </div>

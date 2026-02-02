@@ -1,25 +1,315 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-    .animate-fade-in-up {
-        animation: fadeInUp 0.6s ease-out forwards;
+/* ============================================
+   ORGANIC MODERN DESIGN SYSTEM
+   Warm, Natural, Premium Interior Design Theme
+   ============================================ */
+
+:root {
+    /* Primary Colors - Terra Cotta / Warm Earth */
+    --color-accent: #C4785A;
+    --color-accent-hover: #B36B4F;
+    --color-accent-light: #E8D5CE;
+
+    /* Background Colors */
+    --color-bg: #FAF9F7;
+    --color-bg-subtle: #F5F3F0;
+    --color-card: #FFFFFF;
+
+    /* Text Colors */
+    --color-text-primary: #2C2825;
+    --color-text-secondary: #5C5650;
+    --color-text-muted: #8C867E;
+
+    /* Border & Divider */
+    --color-border: #E8E4DE;
+    --color-divider: #F0ECE6;
+
+    /* Status Colors */
+    --color-success: #4A7C59;
+    --color-warning: #C9A227;
+    --color-error: #B54A4A;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(44, 40, 37, 0.04);
+    --shadow-md: 0 4px 12px rgba(44, 40, 37, 0.08);
+    --shadow-lg: 0 8px 24px rgba(44, 40, 37, 0.12);
+
+    /* Typography */
+    --font-display: 'Manrope', sans-serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+/* Base Styles */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+/* ============================================
+   COMPONENT CLASSES
+   ============================================ */
+
+/* Cards */
+.card {
+    @apply bg-white rounded-2xl border border-[var(--color-border)] shadow-sm;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+/* Buttons */
+.btn-primary {
+    @apply px-5 py-2.5 bg-[var(--color-accent)] text-white font-semibold rounded-xl;
+    @apply hover:bg-[var(--color-accent-hover)] transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:ring-offset-2;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+    @apply px-5 py-2.5 bg-[var(--color-bg-subtle)] text-[var(--color-text-secondary)] font-medium rounded-xl;
+    @apply border border-[var(--color-border)];
+    @apply hover:bg-[var(--color-border)] hover:text-[var(--color-text-primary)] transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-[var(--color-border)] focus:ring-offset-2;
+}
+
+.btn-ghost {
+    @apply px-4 py-2 text-[var(--color-text-secondary)] font-medium rounded-lg;
+    @apply hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-text-primary)] transition-all duration-200;
+}
+
+/* Form Inputs */
+.input {
+    @apply w-full px-4 py-3 bg-white text-[var(--color-text-primary)] rounded-xl;
+    @apply border border-[var(--color-border)];
+    @apply focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/20 focus:border-[var(--color-accent)];
+    @apply placeholder:text-[var(--color-text-muted)] transition-all duration-200;
+}
+
+.input:disabled {
+    @apply bg-[var(--color-bg-subtle)] cursor-not-allowed opacity-70;
+}
+
+/* Labels */
+.label {
+    @apply block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5;
+}
+
+/* Badge */
+.badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold;
+}
+
+.badge-success {
+    @apply bg-emerald-100 text-emerald-700;
+}
+
+.badge-warning {
+    @apply bg-amber-100 text-amber-700;
+}
+
+.badge-error {
+    @apply bg-rose-100 text-rose-700;
+}
+
+.badge-neutral {
+    @apply bg-stone-100 text-stone-600;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
     }
 
-    .animation-delay-200 {
-        animation-delay: 0.2s;
+    to {
+        opacity: 1;
     }
 }
 
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(10px);
     }
 
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse-subtle {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.animate-slide-in-right {
+    animation: slideInRight 0.3s ease-out forwards;
+}
+
+.animate-scale-in {
+    animation: scaleIn 0.2s ease-out forwards;
+}
+
+.animate-pulse-subtle {
+    animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* Stagger animations for lists */
+.stagger-1 {
+    animation-delay: 0.05s;
+}
+
+.stagger-2 {
+    animation-delay: 0.1s;
+}
+
+.stagger-3 {
+    animation-delay: 0.15s;
+}
+
+.stagger-4 {
+    animation-delay: 0.2s;
+}
+
+.stagger-5 {
+    animation-delay: 0.25s;
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-bg-subtle);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.text-balance {
+    text-wrap: balance;
+}
+
+.glass {
+    @apply bg-white/80 backdrop-blur-md;
+}
+
+.gradient-accent {
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
+}
+
+/* Table Styles */
+.table-row-hover:hover {
+    @apply bg-[var(--color-bg-subtle)];
+}
+
+/* Focus Ring */
+.focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30 focus:ring-offset-2;
+}
+
+/* Transitions */
+.transition-default {
+    @apply transition-all duration-200 ease-out;
+}
+
+/* ============================================
+   RESPONSIVE UTILITIES
+   ============================================ */
+
+@media (max-width: 640px) {
+    .card {
+        @apply rounded-xl;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        @apply px-4 py-2;
     }
 }

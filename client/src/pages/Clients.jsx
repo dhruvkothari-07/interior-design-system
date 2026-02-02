@@ -1,24 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import axios from "axios";
-import Sidebar from './Sidebar';
-import { useNavigate } from 'react-router-dom'; 
+import Navbar from '../components/Navbar';
+import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
+import { Search, Users, Plus, X, ArrowRight, Mail, Phone, MapPin } from 'lucide-react';
 
 const Clients = () => {
     const [clients, setClients] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
-    // State for Add Modal
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [newClient, setNewClient] = useState({
-        name: '',
-        email: '',
-        phone: '',
-        address: ''
-    });
+    const [newClient, setNewClient] = useState({ name: '', email: '', phone: '', address: '' });
 
-    // State for Edit Modal
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingClient, setEditingClient] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -41,15 +35,11 @@ const Clients = () => {
     };
 
     useEffect(() => {
-        const debounceFetch = setTimeout(() => {
-            fetchClients(searchTerm);
-        }, 300); // 300ms debounce
+        const debounceFetch = setTimeout(() => { fetchClients(searchTerm); }, 300);
         return () => clearTimeout(debounceFetch);
     }, [searchTerm]);
 
-    useEffect(() => {
-        fetchClients(''); // Initial fetch
-    }, []);
+    useEffect(() => { fetchClients(''); }, []);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -102,9 +92,7 @@ const Clients = () => {
     };
 
     const handleDeleteClient = async (clientId, clientName) => {
-        if (!window.confirm(`Are you sure you want to delete "${clientName}"? This may affect existing quotations.`)) {
-            return;
-        }
+        if (!window.confirm(`Are you sure you want to delete "${clientName}"?`)) return;
         try {
             const token = localStorage.getItem("token");
             if (!token) return;
@@ -114,143 +102,180 @@ const Clients = () => {
             setClients(clients.filter(client => client.id !== clientId));
         } catch (err) {
             console.error("Error deleting client: ", err);
-            alert("Failed to delete client. They may be linked to existing quotations.");
+            alert("Failed to delete client.");
         }
     };
 
-    const renderClientForm = (handler, clientData, changeHandler) => (
-        <form onSubmit={handler}>
-            <div className="space-y-4">
-                <div><label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label><input type="text" name="name" id="name" value={clientData.name} onChange={changeHandler} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" /></div>
-                <div><label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label><input type="email" name="email" id="email" value={clientData.email} onChange={changeHandler} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" /></div>
-                <div><label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label><input type="tel" name="phone" id="phone" value={clientData.phone} onChange={changeHandler} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" /></div>
-                <div><label htmlFor="address" className="block text-sm font-medium text-gray-700">Address</label><textarea name="address" id="address" value={clientData.address} onChange={changeHandler} rows="3" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" /></div>
+    const ClientFormModal = ({ isOpen, onClose, title, onSubmit, clientData, onChange, submitLabel }) => {
+        if (!isOpen) return null;
+        return (
+            <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="card w-full max-w-md p-6 animate-fade-in">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{title}</h3>
+                        <button onClick={onClose} className="p-2 hover:bg-[var(--color-bg-subtle)] rounded-lg transition">
+                            <X className="w-5 h-5 text-[var(--color-text-muted)]" />
+                        </button>
+                    </div>
+                    <form onSubmit={onSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Name</label>
+                            <input type="text" name="name" value={clientData.name} onChange={onChange} required className="input" placeholder="John Doe" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Email</label>
+                            <input type="email" name="email" value={clientData.email} onChange={onChange} className="input" placeholder="john@example.com" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Phone</label>
+                            <input type="tel" name="phone" value={clientData.phone} onChange={onChange} className="input" placeholder="+91 98765 43210" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Address</label>
+                            <textarea name="address" value={clientData.address} onChange={onChange} rows="2" className="input resize-none" placeholder="123 Main Street, City" />
+                        </div>
+                        <div className="flex justify-end gap-3 pt-4">
+                            <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
+                            <button type="submit" className="btn-primary">{submitLabel}</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div className="mt-8 flex justify-end space-x-4">
-                <button type="button" onClick={() => handler === handleAddClient ? setIsAddModalOpen(false) : setIsEditModalOpen(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">{handler === handleAddClient ? 'Add Client' : 'Save Changes'}</button>
-            </div>
-        </form>
-    );
+        );
+    };
 
     return (
-        <div className="flex h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 text-gray-800">
-            {/* Sidebar */}
-            <Sidebar />
+        <div className="min-h-screen bg-[var(--color-bg)]">
+            <Navbar />
 
-            {/* Main Content */}
-            <main className="flex-1 p-4 md:p-8 overflow-y-auto pt-20 md:pt-8">
-                <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
-                    <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Clients</h1>
-                    <button onClick={() => setIsAddModalOpen(true)} className="bg-indigo-600 text-white px-5 py-2 rounded-lg shadow hover:bg-indigo-700 transition duration-150 ease-in-out">+ New Client</button>
-                </header>
-
-                <header className="mb-4">
-                    <input
-                        type="text"
-                        placeholder="Search by client name..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full sm:w-1/3 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                </header>
-
-                {/* Desktop View: Table */}
-                <section className="hidden md:block bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        {isLoading ? (
-                            <p className="text-center text-gray-500 py-8">Loading clients...</p>
-                        ) : clients.length > 0 ? (
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                                            Name
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Phone</th>
-                                        <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-100">
-                                    {clients.map((client) => (
-                                        <tr key={client.id} className="hover:bg-gray-50 transition duration-150 ease-in-out">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <button onClick={() => navigate(`/clients/${client.id}`)} className="text-sm font-medium text-indigo-600 hover:text-indigo-800 text-left">
-                                                    {client.name}
-                                                </button>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.email || 'N/A'}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.phone || 'N/A'}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
-                                                <button onClick={() => handleEditClick(client)} className="text-indigo-600 hover:text-indigo-800 transition">Edit</button>
-                                                <button onClick={() => handleDeleteClient(client.id, client.name)} className="text-red-600 hover:text-red-800 transition">Delete</button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        ) : (
-                            <p className="text-center text-gray-500 py-8 italic">No clients found. Add one to get started!</p>
-                        )}
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Header */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 animate-fade-in">
+                    <div>
+                        <h1 className="text-3xl font-bold text-[var(--color-text-primary)] tracking-tight">Clients</h1>
+                        <p className="text-[var(--color-text-secondary)] mt-1">Manage client relationships and contact details</p>
                     </div>
-                </section>
+                    <button onClick={() => setIsAddModalOpen(true)} className="btn-primary flex items-center gap-2">
+                        <Plus className="w-4 h-4" />
+                        Add Client
+                    </button>
+                </div>
 
-                {/* Mobile View: Cards */}
-                <section className="md:hidden space-y-4">
-                    {isLoading ? (
-                        <p className="text-center text-gray-500 py-8">Loading clients...</p>
-                    ) : clients.length > 0 ? (
-                        clients.map((client) => (
-                            <div key={client.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-3">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 
-                                            className="font-semibold text-gray-900 text-lg"
-                                            onClick={() => navigate(`/clients/${client.id}`)}
-                                        >
-                                            {client.name}
-                                        </h3>
-                                        <p className="text-sm text-gray-500">{client.email || 'No email'}</p>
+                {/* Search */}
+                <div className="mb-8 animate-fade-in animation-delay-100">
+                    <div className="relative max-w-md">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-muted)]" />
+                        <input
+                            type="text"
+                            placeholder="Search clients by name..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="input pl-12"
+                        />
+                    </div>
+                </div>
+
+                {/* Client Grid */}
+                {isLoading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <div key={i} className="card p-6 animate-pulse">
+                                <div className="h-5 bg-gray-200 rounded w-3/4 mb-4" />
+                                <div className="h-3 bg-gray-100 rounded w-1/2 mb-2" />
+                                <div className="h-3 bg-gray-100 rounded w-1/3" />
+                            </div>
+                        ))}
+                    </div>
+                ) : clients.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {clients.map((client, index) => (
+                            <div
+                                key={client.id}
+                                className="card-hover group p-6 animate-fade-in-up"
+                                style={{ animationDelay: `${index * 50}ms` }}
+                            >
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center text-[var(--color-accent)] font-bold text-lg">
+                                            {client.name?.charAt(0) || 'C'}
+                                        </div>
+                                        <div>
+                                            <h3
+                                                className="font-semibold text-lg text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors cursor-pointer"
+                                                onClick={() => navigate(`/clients/${client.id}`)}
+                                            >
+                                                {client.name}
+                                            </h3>
+                                            <p className="text-sm text-[var(--color-text-muted)]">Client #{client.id}</p>
+                                        </div>
                                     </div>
                                 </div>
-                                
-                                <div className="text-sm text-gray-600">
-                                    <span className="font-medium">Phone:</span> {client.phone || 'N/A'}
+
+                                <div className="space-y-2 mb-6 text-sm text-[var(--color-text-secondary)]">
+                                    {client.email && (
+                                        <div className="flex items-center gap-2">
+                                            <Mail className="w-4 h-4 text-[var(--color-text-muted)]" />
+                                            <span>{client.email}</span>
+                                        </div>
+                                    )}
+                                    {client.phone && (
+                                        <div className="flex items-center gap-2">
+                                            <Phone className="w-4 h-4 text-[var(--color-text-muted)]" />
+                                            <span>{client.phone}</span>
+                                        </div>
+                                    )}
+                                    {!client.email && !client.phone && (
+                                        <p className="text-[var(--color-text-muted)] italic">No contact info</p>
+                                    )}
                                 </div>
 
-                                <div className="pt-3 border-t border-gray-100 flex justify-end space-x-4 mt-1">
-                                    <button onClick={() => handleEditClick(client)} className="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition">Edit</button>
-                                    <button onClick={() => handleDeleteClient(client.id, client.name)} className="text-sm font-medium text-red-600 hover:text-red-800 transition">Delete</button>
-                                    <button onClick={() => navigate(`/clients/${client.id}`)} className="text-sm font-medium text-gray-600 hover:text-gray-800 transition">View Details →</button>
+                                <div className="flex items-center justify-between pt-4 border-t border-[var(--color-border)]">
+                                    <button
+                                        onClick={() => navigate(`/clients/${client.id}`)}
+                                        className="text-sm font-medium text-[var(--color-accent)] flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        View Details <ArrowRight className="w-4 h-4" />
+                                    </button>
+                                    <div className="flex gap-3 text-sm">
+                                        <button onClick={() => handleEditClick(client)} className="text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition">Edit</button>
+                                        <button onClick={() => handleDeleteClient(client.id, client.name)} className="text-rose-500 hover:text-rose-600 transition">Delete</button>
+                                    </div>
                                 </div>
                             </div>
-                        ))
-                    ) : (
-                        <p className="text-center text-gray-500 py-8 italic">No clients found. Add one to get started!</p>
-                    )}
-                </section>
-
-                {/* Add Client Modal */}
-                {isAddModalOpen && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                        <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
-                            <h3 className="text-2xl font-semibold mb-6">Add New Client</h3>
-                            {renderClientForm(handleAddClient, newClient, handleInputChange)}
-                        </div>
+                        ))}
                     </div>
-                )}
-
-                {/* Edit Client Modal */}
-                {isEditModalOpen && editingClient && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                        <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
-                            <h3 className="text-2xl font-semibold mb-6">Edit Client</h3>
-                            {renderClientForm(handleUpdateClient, editingClient, handleEditInputChange)}
+                ) : (
+                    <div className="card p-12 text-center animate-fade-in">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[var(--color-bg-subtle)] flex items-center justify-center">
+                            <Users className="w-8 h-8 text-[var(--color-text-muted)]" />
                         </div>
+                        <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">No clients found</h3>
+                        <p className="text-[var(--color-text-secondary)]">
+                            {searchTerm ? `No results for "${searchTerm}"` : 'Add your first client to get started'}
+                        </p>
                     </div>
                 )}
             </main>
+
+            {/* Modals */}
+            <ClientFormModal
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                title="Add Client"
+                onSubmit={handleAddClient}
+                clientData={newClient}
+                onChange={handleInputChange}
+                submitLabel="Add Client"
+            />
+            <ClientFormModal
+                isOpen={isEditModalOpen && !!editingClient}
+                onClose={() => { setIsEditModalOpen(false); setEditingClient(null); }}
+                title="Edit Client"
+                onSubmit={handleUpdateClient}
+                clientData={editingClient || {}}
+                onChange={handleEditInputChange}
+                submitLabel="Save Changes"
+            />
         </div>
     );
 };

@@ -1,43 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import axios from "axios";
-import Sidebar from './Sidebar';
+import Navbar from '../components/Navbar';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
+import { Search, FileText, Plus, X, Edit3, Trash2, ArrowRight, User } from 'lucide-react';
 
 const Quotations = () => {
     const [quotations, setQuotations] = useState([]);
-    const [isLoading, setIsLoading] = useState(true); // Add loading state
+    const [isLoading, setIsLoading] = useState(true);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [newQuotation, setNewQuotation] = useState({
-        title: '',
-        client_name: '',
-        client_email: '',
-        client_phone: '',
-        client_address: ''
-    });
-    const [clients, setClients] = useState([]); // State to store existing clients
-    const [useExistingClient, setUseExistingClient] = useState(false); // Toggle for new/existing client
-    const [selectedClientId, setSelectedClientId] = useState(''); // State for selected existing client
+    const [newQuotation, setNewQuotation] = useState({ title: '', client_name: '', client_email: '', client_phone: '', client_address: '' });
+    const [clients, setClients] = useState([]);
+    const [useExistingClient, setUseExistingClient] = useState(false);
+    const [selectedClientId, setSelectedClientId] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
-
     const navigate = useNavigate();
-
 
     const fetchQuotations = async (search = '') => {
         try {
-            setIsLoading(true); // Start loading
+            setIsLoading(true);
             const token = localStorage.getItem("token");
             if (!token) return;
-
-            const res = await axios.get(`${API_URL}/quotations`, {
-                headers: { Authorization: `Bearer ${token}` },
-                params: { search }
-            });
+            const res = await axios.get(`${API_URL}/quotations`, { headers: { Authorization: `Bearer ${token}` }, params: { search } });
             setQuotations(res.data);
         } catch (err) {
             console.error("Error fetching Quotations:", err);
         } finally {
-            setIsLoading(false); // Stop loading
+            setIsLoading(false);
         }
     };
 
@@ -45,9 +34,7 @@ const Quotations = () => {
         try {
             const token = localStorage.getItem("token");
             if (!token) return;
-            const res = await axios.get(`${API_URL}/clients`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await axios.get(`${API_URL}/clients`, { headers: { Authorization: `Bearer ${token}` } });
             setClients(res.data);
         } catch (err) {
             console.error("Error fetching clients:", err);
@@ -55,29 +42,20 @@ const Quotations = () => {
     };
 
     useEffect(() => {
-        const debounceFetch = setTimeout(() => {
-            fetchQuotations(searchTerm);
-        }, 300); // 300ms debounce
-
+        const debounceFetch = setTimeout(() => { fetchQuotations(searchTerm); }, 300);
         return () => clearTimeout(debounceFetch);
     }, [searchTerm]);
 
-    useEffect(() => {
-        fetchQuotations(''); // Initial fetch
-    }, []);
+    useEffect(() => { fetchQuotations(''); }, []);
 
-
-    const getStatusBadge = (status) => {
-        switch (status?.toLowerCase()) {
-            case 'approved':
-                return 'bg-green-100 text-green-800';
-            case 'pending':
-                return 'bg-yellow-100 text-yellow-800';
-            case 'rejected':
-                return 'bg-red-100 text-red-800';
-            default: // Draft
-                return 'bg-gray-100 text-gray-800';
-        }
+    const getStatusConfig = (status) => {
+        const configs = {
+            'Approved': { class: 'badge-success', label: 'Approved' },
+            'Pending': { class: 'badge-warning', label: 'Pending' },
+            'Rejected': { class: 'badge-danger', label: 'Rejected' },
+            'Draft': { class: 'badge-neutral', label: 'Draft' }
+        };
+        return configs[status] || configs['Draft'];
     };
 
     const handleInputChange = (e) => {
@@ -87,14 +65,14 @@ const Quotations = () => {
 
     const handleAddModalOpen = () => {
         setIsAddModalOpen(true);
-        fetchClients(); // Fetch clients when modal opens
+        fetchClients();
     };
 
     const handleAddModalClose = () => {
         setIsAddModalOpen(false);
-        setUseExistingClient(false); // Reset toggle
-        setSelectedClientId(''); // Reset selected client
-        setNewQuotation({ title: '', client_name: '', client_email: '', client_phone: '', client_address: '' }); // Reset new client form
+        setUseExistingClient(false);
+        setSelectedClientId('');
+        setNewQuotation({ title: '', client_name: '', client_email: '', client_phone: '', client_address: '' });
     };
 
     const handleAddQuotation = async (e) => {
@@ -102,7 +80,6 @@ const Quotations = () => {
         try {
             const token = localStorage.getItem("token");
             if (!token) return;
-
             const postData = {
                 title: newQuotation.title,
                 ...(useExistingClient && selectedClientId ? { client_id: selectedClientId } : {
@@ -112,246 +89,194 @@ const Quotations = () => {
                     client_address: newQuotation.client_address,
                 })
             };
-
-            const res = await axios.post(`${API_URL}/quotations`, postData, {
-                headers: { Authorization: `Bearer ${token}` } });
-
-            // Add new quotation to the top of the list and close modal
+            const res = await axios.post(`${API_URL}/quotations`, postData, { headers: { Authorization: `Bearer ${token}` } });
             setQuotations([res.data, ...quotations]);
-            setIsAddModalOpen(false);
-
-            // Reset form
-            setNewQuotation({
-                title: '',
-                client_name: '',
-                client_email: '',
-                client_phone: '',
-                client_address: ''
-            });
-
+            handleAddModalClose();
         } catch (err) {
-            console.error("Error adding quotation: ", err);
-            alert("Failed to add quotation. Please check the console for details.");
+            console.error("Error adding quotation:", err);
+            alert("Failed to add quotation.");
         }
     };
 
-    const handleViewEdit = (quotationId) => {
-        navigate(`/quotations/${quotationId}`);
-    };
-
-    const handleDeleteQuotation = async (quotationId, quotationTitle) => {
-        if (!window.confirm(`Are you sure you want to delete the quotation "${quotationTitle}"? This action cannot be undone.`)) {
-            return;
-        }
-
+    const handleDeleteQuotation = async (id, title) => {
+        if (!window.confirm(`Delete "${title}"?`)) return;
         try {
             const token = localStorage.getItem("token");
             if (!token) return;
-
-            await axios.delete(`${API_URL}/quotations/${quotationId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            setQuotations(currentQuotations => currentQuotations.filter(q => q.id !== quotationId));
+            await axios.delete(`${API_URL}/quotations/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+            setQuotations(current => current.filter(q => q.id !== id));
         } catch (err) {
             console.error("Error deleting quotation:", err);
-            alert("Failed to delete quotation. It might be associated with other data.");
+            alert("Failed to delete quotation.");
         }
     };
 
+    const formatCurrency = (amt) => amt ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amt) : '—';
 
     return (
-        <div className="flex h-screen bg-gray-100 text-gray-800">
-            {/* Sidebar */}
-            <Sidebar />
+        <div className="min-h-screen bg-[var(--color-bg)]">
+            <Navbar />
 
-            {/* Main Content */}
-            <main className="flex-1 p-4 md:p-8 overflow-y-auto pt-20 md:pt-8">
-                <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
-                    <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Quotations</h1>
-                    <button
-                        onClick={handleAddModalOpen}
-                        className="bg-indigo-600 text-white px-5 py-2 rounded-lg shadow hover:bg-indigo-700 transition duration-150 ease-in-out"
-                    >
-                        + New Quotation
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Header */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 animate-fade-in">
+                    <div>
+                        <h1 className="text-3xl font-bold text-[var(--color-text-primary)] tracking-tight">Quotations</h1>
+                        <p className="text-[var(--color-text-secondary)] mt-1">Manage client quotations and proposals</p>
+                    </div>
+                    <button onClick={handleAddModalOpen} className="btn-primary flex items-center gap-2">
+                        <Plus className="w-4 h-4" />
+                        New Quotation
                     </button>
-                </header>
+                </div>
 
-                <header className="mb-4">
-                    <input
-                        type="text"
-                        placeholder="Search by title or client..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full sm:w-1/3 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                </header>
+                {/* Search */}
+                <div className="mb-8 animate-fade-in animation-delay-100">
+                    <div className="relative max-w-md">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-muted)]" />
+                        <input
+                            type="text"
+                            placeholder="Search quotations..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="input pl-12"
+                        />
+                    </div>
+                </div>
 
-                {/* Desktop View: Table */}
-                <section className="hidden md:block bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        {isLoading ? (
-                            <p className="text-center text-gray-500 py-8">Loading quotations...</p>
-                        ) : quotations.length > 0 ? (
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Title</th>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Client</th>
-                                        <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Total Amount</th>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                                        <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                {/* Table */}
+                {isLoading ? (
+                    <div className="card p-8 animate-pulse">
+                        <div className="h-4 bg-gray-200 rounded w-1/4 mb-4" />
+                        <div className="space-y-3">
+                            {[1, 2, 3].map(i => <div key={i} className="h-12 bg-gray-100 rounded" />)}
+                        </div>
+                    </div>
+                ) : quotations.length > 0 ? (
+                    <div className="card overflow-hidden animate-fade-in-up">
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="bg-[var(--color-bg-subtle)]">
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Title</th>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Client</th>
+                                        <th className="px-6 py-4 text-right text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Amount</th>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Status</th>
+                                        <th className="px-6 py-4 text-right text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-100">
-                                    {quotations.map((item) => (
-                                        <tr key={item.id} className="hover:bg-gray-50 transition duration-150 ease-in-out">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.title}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.client_name || 'N/A'}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right">{item.total_amount ? `₹${Number(item.total_amount).toLocaleString('en-IN')}` : 'N/A'}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(item.status)}`}>
-                                                    {item.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
-                                                <button onClick={() => handleViewEdit(item.id)} className="text-indigo-600 hover:text-indigo-800 transition">View/Edit</button>
-                                                <button onClick={() => handleDeleteQuotation(item.id, item.title)} className="text-red-600 hover:text-red-800 transition">Delete</button>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                <tbody className="divide-y divide-[var(--color-border)]">
+                                    {quotations.map((item, index) => {
+                                        const statusConfig = getStatusConfig(item.status);
+                                        return (
+                                            <tr key={item.id} className="hover:bg-[var(--color-bg-subtle)]/50 transition-colors animate-fade-in-up" style={{ animationDelay: `${index * 30}ms` }}>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center text-[var(--color-accent)] text-xs font-bold">
+                                                            <FileText className="w-4 h-4" />
+                                                        </div>
+                                                        <span className="font-medium text-[var(--color-text-primary)]">{item.title}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-[var(--color-text-secondary)]">{item.client_name || <span className="italic text-[var(--color-text-muted)]">No client</span>}</td>
+                                                <td className="px-6 py-4 text-right font-medium text-[var(--color-text-primary)]">{formatCurrency(item.total_amount)}</td>
+                                                <td className="px-6 py-4"><span className={statusConfig.class}>{statusConfig.label}</span></td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <div className="flex justify-end gap-2">
+                                                        <button onClick={() => navigate(`/quotations/${item.id}`)} className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-bg-subtle)] rounded-lg transition">
+                                                            <Edit3 className="w-4 h-4" />
+                                                        </button>
+                                                        <button onClick={() => handleDeleteQuotation(item.id, item.title)} className="p-2 text-[var(--color-text-muted)] hover:text-rose-500 hover:bg-rose-50 rounded-lg transition">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
-                        ) : (
-                            <p className="text-center text-gray-500 py-8 italic">No quotations found.</p>
-                        )}
-                    </div>
-                </section>
-
-                {/* Mobile View: Cards */}
-                <section className="md:hidden space-y-4">
-                    {isLoading ? (
-                        <p className="text-center text-gray-500 py-8">Loading quotations...</p>
-                    ) : quotations.length > 0 ? (
-                        quotations.map((item) => (
-                            <div key={item.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-3">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900">{item.title}</h3>
-                                        <p className="text-sm text-gray-500">{item.client_name || 'N/A'}</p>
-                                    </div>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(item.status)}`}>
-                                        {item.status}
-                                    </span>
-                                </div>
-                                
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm text-gray-500">Total Amount</span>
-                                    <span className="font-medium text-gray-900">{item.total_amount ? `₹${Number(item.total_amount).toLocaleString('en-IN')}` : 'N/A'}</span>
-                                </div>
-
-                                <div className="pt-3 border-t border-gray-100 flex justify-end space-x-4 mt-1">
-                                    <button onClick={() => handleDeleteQuotation(item.id, item.title)} className="text-sm font-medium text-red-600 hover:text-red-800 transition">Delete</button>
-                                    <button onClick={() => handleViewEdit(item.id)} className="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition">View/Edit →</button>
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <p className="text-center text-gray-500 py-8 italic">No quotations found.</p>
-                    )}
-                </section>
-
-                {/* Add Quotation Modal */}
-                {isAddModalOpen && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                        <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
-                            <h3 className="text-2xl font-semibold mb-4">New Quotation</h3>
-                            <form onSubmit={handleAddQuotation}>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
-                                        <input type="text" name="title" id="title" value={newQuotation.title} onChange={handleInputChange} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
-                                    </div>
-
-                                    {/* Client Selection Toggle */}
-                                    <div className="flex items-center justify-between mt-4">
-                                        <span className="text-sm font-medium text-gray-700">Client:</span>
-                                        <div className="flex space-x-4">
-                                            <label className="inline-flex items-center">
-                                                <input
-                                                    type="radio"
-                                                    className="form-radio"
-                                                    name="clientOption"
-                                                    value="new"
-                                                    checked={!useExistingClient}
-                                                    onChange={() => { setUseExistingClient(false); setSelectedClientId(''); }}
-                                                />
-                                                <span className="ml-2 text-sm text-gray-700">New Client</span>
-                                            </label>
-                                            <label className="inline-flex items-center">
-                                                <input
-                                                    type="radio"
-                                                    className="form-radio"
-                                                    name="clientOption"
-                                                    value="existing"
-                                                    checked={useExistingClient}
-                                                    onChange={() => setUseExistingClient(true)}
-                                                />
-                                                <span className="ml-2 text-sm text-gray-700">Existing Client</span>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    {/* Conditional Client Fields */}
-                                    {useExistingClient ? (
-                                        <div>
-                                            <label htmlFor="client_id" className="block text-sm font-medium text-gray-700">Select Client</label>
-                                            <select
-                                                name="client_id"
-                                                id="client_id"
-                                                value={selectedClientId}
-                                                onChange={(e) => setSelectedClientId(e.target.value)}
-                                                required
-                                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                            >
-                                                <option value="" disabled>Select an existing client</option>
-                                                {clients.map(client => (
-                                                    <option key={client.id} value={client.id}>{client.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <div>
-                                                <label htmlFor="client_name" className="block text-sm font-medium text-gray-700">Client Name</label>
-                                                <input type="text" name="client_name" id="client_name" value={newQuotation.client_name} onChange={handleInputChange} required={!useExistingClient} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
-                                            </div>
-                                            <div><label htmlFor="client_email" className="block text-sm font-medium text-gray-700">Client Email</label><input type="email" name="client_email" id="client_email" value={newQuotation.client_email} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" /></div>
-                                            <div><label htmlFor="client_phone" className="block text-sm font-medium text-gray-700">Client Phone</label><input type="tel" name="client_phone" id="client_phone" value={newQuotation.client_phone} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" /></div>
-                                            <div><label htmlFor="client_address" className="block text-sm font-medium text-gray-700">Client Address</label><textarea name="client_address" id="client_address" value={newQuotation.client_address} onChange={handleInputChange} rows="3" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" /></div>
-                                        </>
-                                    )}
-                                </div>
-                                <div className="mt-8 flex justify-end space-x-4">
-                                    <button
-                                        type="button"
-                                        onClick={handleAddModalClose}
-                                        className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition"
-                                    >
-                                        Create Quotation
-                                    </button>
-                                </div>
-                            </form>
                         </div>
+                    </div>
+                ) : (
+                    <div className="card p-12 text-center animate-fade-in">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[var(--color-bg-subtle)] flex items-center justify-center">
+                            <FileText className="w-8 h-8 text-[var(--color-text-muted)]" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">No quotations found</h3>
+                        <p className="text-[var(--color-text-secondary)]">
+                            {searchTerm ? `No results for "${searchTerm}"` : 'Create your first quotation to get started'}
+                        </p>
                     </div>
                 )}
             </main>
+
+            {/* Add Modal */}
+            {isAddModalOpen && (
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="card w-full max-w-md p-6 animate-fade-in">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">New Quotation</h3>
+                            <button onClick={handleAddModalClose} className="p-2 hover:bg-[var(--color-bg-subtle)] rounded-lg transition">
+                                <X className="w-5 h-5 text-[var(--color-text-muted)]" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleAddQuotation} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Title *</label>
+                                <input type="text" name="title" value={newQuotation.title} onChange={handleInputChange} required className="input" placeholder="Quotation title" />
+                            </div>
+
+                            {/* Client Toggle */}
+                            <div className="flex items-center gap-4 p-3 bg-[var(--color-bg-subtle)] rounded-xl">
+                                <span className="text-sm font-medium text-[var(--color-text-secondary)]">Client:</span>
+                                <div className="flex gap-4">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="clientOption" checked={!useExistingClient} onChange={() => { setUseExistingClient(false); setSelectedClientId(''); }} className="text-[var(--color-accent)]" />
+                                        <span className="text-sm text-[var(--color-text-primary)]">New</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="clientOption" checked={useExistingClient} onChange={() => setUseExistingClient(true)} className="text-[var(--color-accent)]" />
+                                        <span className="text-sm text-[var(--color-text-primary)]">Existing</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            {useExistingClient ? (
+                                <div>
+                                    <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Select Client *</label>
+                                    <select value={selectedClientId} onChange={(e) => setSelectedClientId(e.target.value)} required className="input">
+                                        <option value="" disabled>Choose a client</option>
+                                        {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+                                </div>
+                            ) : (
+                                <>
+                                    <div>
+                                        <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Client Name *</label>
+                                        <input type="text" name="client_name" value={newQuotation.client_name} onChange={handleInputChange} required={!useExistingClient} className="input" placeholder="John Doe" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Email</label>
+                                            <input type="email" name="client_email" value={newQuotation.client_email} onChange={handleInputChange} className="input" placeholder="john@example.com" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Phone</label>
+                                            <input type="tel" name="client_phone" value={newQuotation.client_phone} onChange={handleInputChange} className="input" placeholder="+91..." />
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            <div className="flex justify-end gap-3 pt-4">
+                                <button type="button" onClick={handleAddModalClose} className="btn-secondary">Cancel</button>
+                                <button type="submit" className="btn-primary">Create Quotation</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

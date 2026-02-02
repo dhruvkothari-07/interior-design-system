@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-import Sidebar from './Sidebar';
+import Navbar from '../components/Navbar';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
+import { ArrowLeft, Mail, Phone, MapPin, FileText, FolderKanban } from 'lucide-react';
 
 const ClientDetail = () => {
     const { id } = useParams();
@@ -35,138 +36,146 @@ const ClientDetail = () => {
 
     const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
 
-    const getStatusBadge = (status) => {
-        const s = status?.toLowerCase();
-        if (s === 'approved' || s === 'completed') return 'bg-green-100 text-green-700';
-        if (s === 'pending' || s === 'in progress') return 'bg-yellow-100 text-yellow-700';
-        if (s === 'rejected' || s === 'on hold') return 'bg-red-100 text-red-700';
-        return 'bg-gray-100 text-gray-600';
+    const getStatusConfig = (status) => {
+        const configs = {
+            'Approved': 'badge-success',
+            'Completed': 'badge-success',
+            'Pending': 'badge-warning',
+            'In Progress': 'badge-warning',
+            'Rejected': 'badge-danger',
+            'On Hold': 'badge-danger',
+            'Draft': 'badge-neutral',
+            'Not Started': 'badge-neutral'
+        };
+        return configs[status] || 'badge-neutral';
     };
 
-    if (isLoading) return <div className="flex h-screen bg-gray-100 justify-center items-center"><p>Loading client details...</p></div>;
-    if (error) return <div className="flex h-screen bg-gray-100 justify-center items-center"><p className="text-red-500">{error}</p></div>;
-    if (!clientData) return <div className="flex h-screen bg-gray-100 justify-center items-center"><p>Client not found.</p></div>;
+    if (isLoading) return <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center text-[var(--color-text-muted)]">Loading client details...</div>;
+    if (error) return <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center text-rose-500">{error}</div>;
+    if (!clientData) return <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center text-[var(--color-text-muted)]">Client not found.</div>;
 
     return (
-        <div className="flex h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 text-gray-800">
-            <Sidebar />
-            <main className="flex-1 p-4 md:p-8 overflow-y-auto pt-20 md:pt-8">
-                <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
-                    <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Client Hub: {clientData.name}</h1>
-                    <button onClick={() => navigate('/clients')} className="bg-gray-600 text-white px-5 py-2 rounded-lg shadow hover:bg-gray-700 transition">
-                        Back to Clients List
+        <div className="min-h-screen bg-[var(--color-bg)]">
+            <Navbar />
+
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Header */}
+                <div className="mb-8 animate-fade-in">
+                    <button onClick={() => navigate('/clients')} className="group flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors mb-4">
+                        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+                        Back to Clients
                     </button>
-                </header>
 
-                {/* Client Contact Info */}
-                <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 mb-8">
-                    <h3 className="text-xl font-semibold mb-4">Contact Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <p><strong>Email:</strong> {clientData.email || 'N/A'}</p>
-                        <p><strong>Phone:</strong> {clientData.phone || 'N/A'}</p>
-                        <p className="md:col-span-2"><strong>Address:</strong> {clientData.address || 'N/A'}</p>
+                    <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center text-[var(--color-accent)] font-bold text-2xl">
+                            {clientData.name?.charAt(0) || 'C'}
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold text-[var(--color-text-primary)] tracking-tight">{clientData.name}</h1>
+                            <p className="text-[var(--color-text-secondary)] mt-1">Client Overview & Activity</p>
+                        </div>
                     </div>
-                </section>
+                </div>
 
+                {/* Contact Card */}
+                <div className="card p-6 mb-8 animate-fade-in-up">
+                    <h3 className="font-semibold text-lg text-[var(--color-text-primary)] mb-4">Contact Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="flex items-start gap-3">
+                            <div className="p-2 bg-[var(--color-bg-subtle)] rounded-lg">
+                                <Mail className="w-5 h-5 text-[var(--color-text-muted)]" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-[var(--color-text-muted)]">Email</p>
+                                <p className="font-medium text-[var(--color-text-primary)]">{clientData.email || 'Not provided'}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <div className="p-2 bg-[var(--color-bg-subtle)] rounded-lg">
+                                <Phone className="w-5 h-5 text-[var(--color-text-muted)]" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-[var(--color-text-muted)]">Phone</p>
+                                <p className="font-medium text-[var(--color-text-primary)]">{clientData.phone || 'Not provided'}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <div className="p-2 bg-[var(--color-bg-subtle)] rounded-lg">
+                                <MapPin className="w-5 h-5 text-[var(--color-text-muted)]" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-[var(--color-text-muted)]">Address</p>
+                                <p className="font-medium text-[var(--color-text-primary)]">{clientData.address || 'Not provided'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Activity Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Quotations Section */}
-                    <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                        <h3 className="text-xl font-semibold mb-4">Quotations</h3>
-                        {/* Desktop Table */}
-                        <div className="hidden md:block overflow-x-auto max-h-96">
-                            {clientData.quotations && clientData.quotations.length > 0 ? (
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50 sticky top-0">
-                                        <tr>
-                                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Title</th>
-                                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                                            <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600 uppercase">Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-100">
-                                        {clientData.quotations.map(q => (
-                                            <tr key={q.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/quotations/${q.id}`)}>
-                                                <td className="px-4 py-3 font-medium text-indigo-600">{q.title}</td>
-                                                <td className="px-4 py-3"><span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(q.status)}`}>{q.status}</span></td>
-                                                <td className="px-4 py-3 text-right">{q.total_amount ? formatCurrency(q.total_amount) : 'N/A'}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            ) : (
-                                <p className="text-center text-gray-400 italic py-4">No quotations found for this client.</p>
-                            )}
+                    {/* Quotations */}
+                    <div className="card p-6 animate-fade-in-up animation-delay-100">
+                        <div className="flex items-center gap-2 mb-5">
+                            <FileText className="w-5 h-5 text-[var(--color-accent)]" />
+                            <h3 className="font-semibold text-lg text-[var(--color-text-primary)]">Quotations</h3>
                         </div>
 
-                        {/* Mobile Cards */}
-                        <div className="md:hidden space-y-3">
-                            {clientData.quotations && clientData.quotations.length > 0 ? (
-                                clientData.quotations.map(q => (
-                                    <div key={q.id} onClick={() => navigate(`/quotations/${q.id}`)} className="bg-gray-50 p-4 rounded-lg border border-gray-100 active:bg-gray-100 transition-colors">
+                        {clientData.quotations?.length ? (
+                            <div className="space-y-3">
+                                {clientData.quotations.map((q) => (
+                                    <div
+                                        key={q.id}
+                                        onClick={() => navigate(`/quotations/${q.id}`)}
+                                        className="p-4 rounded-xl border border-[var(--color-border)] hover:border-[var(--color-accent)]/30 hover:bg-[var(--color-bg-subtle)] cursor-pointer transition-all group"
+                                    >
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="font-medium text-indigo-600 text-sm">{q.title}</span>
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getStatusBadge(q.status)}`}>{q.status}</span>
+                                            <p className="font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors">
+                                                {q.title}
+                                            </p>
+                                            <span className={getStatusConfig(q.status)}>{q.status}</span>
                                         </div>
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-500 text-xs">Amount</span>
-                                            <span className="font-semibold text-gray-700">{q.total_amount ? formatCurrency(q.total_amount) : 'N/A'}</span>
-                                        </div>
+                                        <p className="text-sm text-[var(--color-text-muted)]">
+                                            Amount: <span className="font-medium text-[var(--color-text-primary)]">{q.total_amount ? formatCurrency(q.total_amount) : '—'}</span>
+                                        </p>
                                     </div>
-                                ))
-                            ) : (
-                                <p className="text-center text-gray-400 italic py-4 text-sm">No quotations found.</p>
-                            )}
-                        </div>
-                    </section>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-[var(--color-text-muted)] italic text-center py-8">No quotations available.</p>
+                        )}
+                    </div>
 
-                    {/* Projects Section */}
-                    <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                        <h3 className="text-xl font-semibold mb-4">Projects</h3>
-                        <div className="hidden md:block overflow-x-auto max-h-96">
-                            {clientData.projects && clientData.projects.length > 0 ? (
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50 sticky top-0">
-                                        <tr>
-                                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
-                                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                                            <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600 uppercase">Budget</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-100">
-                                        {clientData.projects.map(p => (
-                                            <tr key={p.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/projects/${p.id}`)}>
-                                                <td className="px-4 py-3 font-medium text-indigo-600">{p.name}</td>
-                                                <td className="px-4 py-3"><span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(p.status)}`}>{p.status}</span></td>
-                                                <td className="px-4 py-3 text-right">{p.budget ? formatCurrency(p.budget) : 'N/A'}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            ) : (
-                                <p className="text-center text-gray-400 italic py-4">No projects found for this client.</p>
-                            )}
+                    {/* Projects */}
+                    <div className="card p-6 animate-fade-in-up animation-delay-200">
+                        <div className="flex items-center gap-2 mb-5">
+                            <FolderKanban className="w-5 h-5 text-[var(--color-accent)]" />
+                            <h3 className="font-semibold text-lg text-[var(--color-text-primary)]">Projects</h3>
                         </div>
 
-                        {/* Mobile Cards */}
-                        <div className="md:hidden space-y-3">
-                            {clientData.projects && clientData.projects.length > 0 ? (
-                                clientData.projects.map(p => (
-                                    <div key={p.id} onClick={() => navigate(`/projects/${p.id}`)} className="bg-gray-50 p-4 rounded-lg border border-gray-100 active:bg-gray-100 transition-colors">
+                        {clientData.projects?.length ? (
+                            <div className="space-y-3">
+                                {clientData.projects.map((p) => (
+                                    <div
+                                        key={p.id}
+                                        onClick={() => navigate(`/projects/${p.id}`)}
+                                        className="p-4 rounded-xl border border-[var(--color-border)] hover:border-[var(--color-accent)]/30 hover:bg-[var(--color-bg-subtle)] cursor-pointer transition-all group"
+                                    >
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="font-medium text-indigo-600 text-sm">{p.name}</span>
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getStatusBadge(p.status)}`}>{p.status}</span>
+                                            <p className="font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors">
+                                                {p.name}
+                                            </p>
+                                            <span className={getStatusConfig(p.status)}>{p.status}</span>
                                         </div>
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-500 text-xs">Budget</span>
-                                            <span className="font-semibold text-gray-700">{p.budget ? formatCurrency(p.budget) : 'N/A'}</span>
-                                        </div>
+                                        <p className="text-sm text-[var(--color-text-muted)]">
+                                            Budget: <span className="font-medium text-[var(--color-text-primary)]">{p.budget ? formatCurrency(p.budget) : '—'}</span>
+                                        </p>
                                     </div>
-                                ))
-                            ) : (
-                                <p className="text-center text-gray-400 italic py-4 text-sm">No projects found.</p>
-                            )}
-                        </div>
-                    </section>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-[var(--color-text-muted)] italic text-center py-8">No projects found.</p>
+                        )}
+                    </div>
                 </div>
             </main>
         </div>
