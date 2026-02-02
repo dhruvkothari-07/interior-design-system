@@ -1,9 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import axios from "axios";
 import Navbar from '../components/Navbar';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { API_URL } from '../config';
-import { Search, Users, Plus, X, ArrowRight, Mail, Phone, MapPin } from 'lucide-react';
+import {
+    Search,
+    Users,
+    Plus,
+    X,
+    ArrowRight,
+    Mail,
+    Phone,
+    MapPin,
+    Edit2,
+    Trash2,
+    TrendingUp,
+    FileText,
+    FolderKanban,
+    IndianRupee,
+    UserPlus,
+    Filter
+} from 'lucide-react';
 
 const Clients = () => {
     const [clients, setClients] = useState([]);
@@ -62,13 +80,15 @@ const Clients = () => {
             setClients([res.data, ...clients]);
             setIsAddModalOpen(false);
             setNewClient({ name: '', email: '', phone: '', address: '' });
+            toast.success('Client added successfully!');
         } catch (err) {
             console.error("Error adding client: ", err);
-            alert("Failed to add client.");
+            toast.error('Failed to add client');
         }
     };
 
-    const handleEditClick = (client) => {
+    const handleEditClick = (client, e) => {
+        e.stopPropagation();
         setEditingClient(client);
         setIsEditModalOpen(true);
     };
@@ -85,63 +105,62 @@ const Clients = () => {
             setClients(clients.map(client => client.id === editingClient.id ? res.data : client));
             setIsEditModalOpen(false);
             setEditingClient(null);
+            toast.success('Client updated!');
         } catch (err) {
             console.error("Error updating client: ", err);
-            alert("Failed to update client.");
+            toast.error('Failed to update client');
         }
     };
 
-    const handleDeleteClient = async (clientId, clientName) => {
-        if (!window.confirm(`Are you sure you want to delete "${clientName}"?`)) return;
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) return;
-            await axios.delete(`${API_URL}/clients/${clientId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setClients(clients.filter(client => client.id !== clientId));
-        } catch (err) {
-            console.error("Error deleting client: ", err);
-            alert("Failed to delete client.");
-        }
-    };
-
-    const ClientFormModal = ({ isOpen, onClose, title, onSubmit, clientData, onChange, submitLabel }) => {
-        if (!isOpen) return null;
-        return (
-            <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div className="card w-full max-w-md p-6 animate-fade-in">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{title}</h3>
-                        <button onClick={onClose} className="p-2 hover:bg-[var(--color-bg-subtle)] rounded-lg transition">
-                            <X className="w-5 h-5 text-[var(--color-text-muted)]" />
-                        </button>
-                    </div>
-                    <form onSubmit={onSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Name</label>
-                            <input type="text" name="name" value={clientData.name} onChange={onChange} required className="input" placeholder="John Doe" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Email</label>
-                            <input type="email" name="email" value={clientData.email} onChange={onChange} className="input" placeholder="john@example.com" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Phone</label>
-                            <input type="tel" name="phone" value={clientData.phone} onChange={onChange} className="input" placeholder="+91 98765 43210" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Address</label>
-                            <textarea name="address" value={clientData.address} onChange={onChange} rows="2" className="input resize-none" placeholder="123 Main Street, City" />
-                        </div>
-                        <div className="flex justify-end gap-3 pt-4">
-                            <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
-                            <button type="submit" className="btn-primary">{submitLabel}</button>
-                        </div>
-                    </form>
+    const handleDeleteClient = async (clientId, clientName, e) => {
+        e.stopPropagation();
+        toast((t) => (
+            <div className="flex flex-col gap-2">
+                <p className="font-medium text-sm">Delete "{clientName}"?</p>
+                <div className="flex gap-2">
+                    <button onClick={() => toast.dismiss(t.id)} className="px-3 py-1 text-xs bg-stone-100 rounded-lg">Cancel</button>
+                    <button
+                        onClick={async () => {
+                            toast.dismiss(t.id);
+                            try {
+                                const token = localStorage.getItem("token");
+                                await axios.delete(`${API_URL}/clients/${clientId}`, { headers: { Authorization: `Bearer ${token}` } });
+                                setClients(clients.filter(c => c.id !== clientId));
+                                toast.success('Client deleted');
+                            } catch (err) {
+                                toast.error('Failed to delete');
+                            }
+                        }}
+                        className="px-3 py-1 text-xs bg-rose-500 text-white rounded-lg"
+                    >
+                        Delete
+                    </button>
                 </div>
             </div>
-        );
+        ), { duration: 8000 });
+    };
+
+    const formatCurrency = (amt) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amt || 0);
+
+    // Stats
+    const stats = useMemo(() => ({
+        total: clients.length,
+        withProjects: clients.filter(c => c.project_count > 0).length,
+        totalRevenue: clients.reduce((sum, c) => sum + (Number(c.total_revenue) || 0), 0)
+    }), [clients]);
+
+    // Avatar colors
+    const getAvatarColor = (name) => {
+        const colors = [
+            'from-[var(--color-accent)] to-amber-500',
+            'from-emerald-500 to-teal-500',
+            'from-violet-500 to-purple-500',
+            'from-rose-500 to-pink-500',
+            'from-blue-500 to-cyan-500',
+            'from-orange-500 to-yellow-500'
+        ];
+        const index = name ? name.charCodeAt(0) % colors.length : 0;
+        return colors[index];
     };
 
     return (
@@ -149,133 +168,238 @@ const Clients = () => {
             <Navbar />
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 animate-fade-in">
-                    <div>
-                        <h1 className="text-3xl font-bold text-[var(--color-text-primary)] tracking-tight">Clients</h1>
-                        <p className="text-[var(--color-text-secondary)] mt-1">Manage client relationships and contact details</p>
+                {/* Hero Header */}
+                <div className="bg-gradient-to-br from-[var(--color-accent)]/10 via-amber-50/50 to-orange-50/30 rounded-3xl p-4 lg:p-8 mb-2 animate-fade-in">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                        <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center shadow-lg">
+                                    <Users className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl lg:text-3xl font-bold text-[var(--color-text-primary)]">Clients</h1>
+                                    <p className="text-sm text-[var(--color-text-muted)]">Manage your client relationships</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Stats Pills */}
+
                     </div>
-                    <button onClick={() => setIsAddModalOpen(true)} className="btn-primary flex items-center gap-2">
-                        <Plus className="w-4 h-4" />
+                </div>
+
+                {/* Search & Add */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-8 animate-fade-in-up">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-muted)]" />
+                        <input
+                            type="text"
+                            placeholder="Search clients..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-12 pr-4 py-3 bg-white border border-[var(--color-border)] rounded-xl text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/20 focus:border-[var(--color-accent)] transition-all"
+                        />
+                    </div>
+                    <button onClick={() => setIsAddModalOpen(true)} className="btn-primary flex items-center justify-center gap-2 whitespace-nowrap">
+                        <UserPlus className="w-4 h-4" />
                         Add Client
                     </button>
                 </div>
 
-                {/* Search */}
-                <div className="mb-8 animate-fade-in animation-delay-100">
-                    <div className="relative max-w-md">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-muted)]" />
-                        <input
-                            type="text"
-                            placeholder="Search clients by name..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="input pl-12"
-                        />
-                    </div>
-                </div>
-
                 {/* Client Grid */}
                 {isLoading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                         {[1, 2, 3, 4, 5, 6].map((i) => (
-                            <div key={i} className="card p-6 animate-pulse">
-                                <div className="h-5 bg-gray-200 rounded w-3/4 mb-4" />
-                                <div className="h-3 bg-gray-100 rounded w-1/2 mb-2" />
-                                <div className="h-3 bg-gray-100 rounded w-1/3" />
+                            <div key={i} className="bg-white rounded-2xl border border-[var(--color-border)] p-6 animate-pulse">
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="w-14 h-14 rounded-2xl bg-stone-200" />
+                                    <div className="flex-1">
+                                        <div className="h-5 bg-stone-200 rounded w-3/4 mb-2" />
+                                        <div className="h-3 bg-stone-100 rounded w-1/2" />
+                                    </div>
+                                </div>
+                                <div className="h-3 bg-stone-100 rounded w-full mb-2" />
+                                <div className="h-3 bg-stone-100 rounded w-2/3" />
                             </div>
                         ))}
                     </div>
                 ) : clients.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                         {clients.map((client, index) => (
                             <div
                                 key={client.id}
-                                className="card-hover group p-6 animate-fade-in-up"
+                                onClick={() => navigate(`/clients/${client.id}`)}
+                                className="group bg-white rounded-2xl border border-[var(--color-border)] p-6 hover:shadow-xl hover:border-[var(--color-accent)]/30 hover:-translate-y-1 transition-all duration-300 cursor-pointer animate-fade-in-up"
                                 style={{ animationDelay: `${index * 50}ms` }}
                             >
+                                {/* Header */}
                                 <div className="flex items-start justify-between mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center text-[var(--color-accent)] font-bold text-lg">
-                                            {client.name?.charAt(0) || 'C'}
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${getAvatarColor(client.name)} flex items-center justify-center text-white font-bold text-xl shadow-lg`}>
+                                            {client.name?.charAt(0)?.toUpperCase() || 'C'}
                                         </div>
                                         <div>
-                                            <h3
-                                                className="font-semibold text-lg text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors cursor-pointer"
-                                                onClick={() => navigate(`/clients/${client.id}`)}
-                                            >
+                                            <h3 className="font-semibold text-lg text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors">
                                                 {client.name}
                                             </h3>
-                                            <p className="text-sm text-[var(--color-text-muted)]">Client #{client.id}</p>
+                                            <p className="text-xs text-[var(--color-text-muted)]">
+                                                Added {new Date(client.created_at).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}
+                                            </p>
                                         </div>
+                                    </div>
+                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button onClick={(e) => handleEditClick(client, e)} className="p-2 hover:bg-[var(--color-accent)]/10 rounded-lg transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-accent)]">
+                                            <Edit2 className="w-4 h-4" />
+                                        </button>
+                                        <button onClick={(e) => handleDeleteClient(client.id, client.name, e)} className="p-2 hover:bg-rose-50 rounded-lg transition-colors text-[var(--color-text-muted)] hover:text-rose-500">
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
                                     </div>
                                 </div>
 
-                                <div className="space-y-2 mb-6 text-sm text-[var(--color-text-secondary)]">
+                                {/* Contact Info */}
+                                <div className="space-y-2 mb-5">
                                     {client.email && (
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                                             <Mail className="w-4 h-4 text-[var(--color-text-muted)]" />
-                                            <span>{client.email}</span>
+                                            <span className="truncate">{client.email}</span>
                                         </div>
                                     )}
                                     {client.phone && (
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                                             <Phone className="w-4 h-4 text-[var(--color-text-muted)]" />
                                             <span>{client.phone}</span>
                                         </div>
                                     )}
-                                    {!client.email && !client.phone && (
-                                        <p className="text-[var(--color-text-muted)] italic">No contact info</p>
+                                    {client.address && (
+                                        <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
+                                            <MapPin className="w-4 h-4 text-[var(--color-text-muted)]" />
+                                            <span className="truncate">{client.address}</span>
+                                        </div>
+                                    )}
+                                    {!client.email && !client.phone && !client.address && (
+                                        <p className="text-sm text-[var(--color-text-muted)] italic">No contact info added</p>
                                     )}
                                 </div>
 
-                                <div className="flex items-center justify-between pt-4 border-t border-[var(--color-border)]">
-                                    <button
-                                        onClick={() => navigate(`/clients/${client.id}`)}
-                                        className="text-sm font-medium text-[var(--color-accent)] flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                        View Details <ArrowRight className="w-4 h-4" />
-                                    </button>
-                                    <div className="flex gap-3 text-sm">
-                                        <button onClick={() => handleEditClick(client)} className="text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition">Edit</button>
-                                        <button onClick={() => handleDeleteClient(client.id, client.name)} className="text-rose-500 hover:text-rose-600 transition">Delete</button>
+                                {/* Stats Footer */}
+                                <div className="flex items-center gap-4 pt-4 border-t border-[var(--color-border)]">
+                                    <div className="flex items-center gap-1.5 text-sm">
+                                        <FolderKanban className="w-4 h-4 text-blue-500" />
+                                        <span className="font-medium text-[var(--color-text-primary)]">{client.project_count || 0}</span>
+                                        <span className="text-[var(--color-text-muted)]">Projects</span>
                                     </div>
+                                    <div className="flex items-center gap-1.5 text-sm">
+                                        <FileText className="w-4 h-4 text-[var(--color-accent)]" />
+                                        <span className="font-medium text-[var(--color-text-primary)]">{client.quotation_count || 0}</span>
+                                        <span className="text-[var(--color-text-muted)]">Quotes</span>
+                                    </div>
+                                    {client.total_revenue > 0 && (
+                                        <div className="ml-auto flex items-center gap-1 text-sm font-medium text-emerald-600">
+                                            <IndianRupee className="w-3.5 h-3.5" />
+                                            {new Intl.NumberFormat('en-IN', { notation: 'compact' }).format(client.total_revenue)}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <div className="card p-12 text-center animate-fade-in">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[var(--color-bg-subtle)] flex items-center justify-center">
-                            <Users className="w-8 h-8 text-[var(--color-text-muted)]" />
+                    <div className="bg-white rounded-2xl border border-[var(--color-border)] p-12 text-center animate-fade-in">
+                        <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-[var(--color-accent)]/10 to-amber-50 flex items-center justify-center">
+                            <Users className="w-10 h-10 text-[var(--color-accent)]" />
                         </div>
-                        <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">No clients found</h3>
-                        <p className="text-[var(--color-text-secondary)]">
+                        <h3 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">No clients found</h3>
+                        <p className="text-[var(--color-text-secondary)] mb-6">
                             {searchTerm ? `No results for "${searchTerm}"` : 'Add your first client to get started'}
                         </p>
+                        {!searchTerm && (
+                            <button onClick={() => setIsAddModalOpen(true)} className="btn-primary inline-flex items-center gap-2">
+                                <UserPlus className="w-4 h-4" />
+                                Add Your First Client
+                            </button>
+                        )}
                     </div>
                 )}
             </main>
 
-            {/* Modals */}
-            <ClientFormModal
-                isOpen={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
-                title="Add Client"
-                onSubmit={handleAddClient}
-                clientData={newClient}
-                onChange={handleInputChange}
-                submitLabel="Add Client"
-            />
-            <ClientFormModal
-                isOpen={isEditModalOpen && !!editingClient}
-                onClose={() => { setIsEditModalOpen(false); setEditingClient(null); }}
-                title="Edit Client"
-                onSubmit={handleUpdateClient}
-                clientData={editingClient || {}}
-                onChange={handleEditInputChange}
-                submitLabel="Save Changes"
-            />
+            {/* Add Modal */}
+            {isAddModalOpen && (
+                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
+                        <div className="px-6 py-5 border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-accent)]/5 to-amber-50 flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center gap-2">
+                                <UserPlus className="w-5 h-5 text-[var(--color-accent)]" />
+                                Add New Client
+                            </h3>
+                            <button onClick={() => setIsAddModalOpen(false)} className="p-1.5 hover:bg-white rounded-lg transition">
+                                <X className="w-5 h-5 text-[var(--color-text-muted)]" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleAddClient} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Full Name *</label>
+                                <input type="text" name="name" value={newClient.name} onChange={handleInputChange} required className="input" placeholder="John Doe" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Email</label>
+                                <input type="email" name="email" value={newClient.email} onChange={handleInputChange} className="input" placeholder="john@example.com" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Phone</label>
+                                <input type="tel" name="phone" value={newClient.phone} onChange={handleInputChange} className="input" placeholder="+91 98765 43210" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Address</label>
+                                <textarea name="address" value={newClient.address} onChange={handleInputChange} rows="2" className="input resize-none" placeholder="123 Main Street, City" />
+                            </div>
+                            <div className="flex gap-3 pt-2">
+                                <button type="button" onClick={() => setIsAddModalOpen(false)} className="flex-1 btn-secondary">Cancel</button>
+                                <button type="submit" className="flex-1 btn-primary">Add Client</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Modal */}
+            {isEditModalOpen && editingClient && (
+                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
+                        <div className="px-6 py-5 border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-accent)]/5 to-amber-50 flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center gap-2">
+                                <Edit2 className="w-5 h-5 text-[var(--color-accent)]" />
+                                Edit Client
+                            </h3>
+                            <button onClick={() => { setIsEditModalOpen(false); setEditingClient(null); }} className="p-1.5 hover:bg-white rounded-lg transition">
+                                <X className="w-5 h-5 text-[var(--color-text-muted)]" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleUpdateClient} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Full Name *</label>
+                                <input type="text" name="name" value={editingClient.name} onChange={handleEditInputChange} required className="input" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Email</label>
+                                <input type="email" name="email" value={editingClient.email || ''} onChange={handleEditInputChange} className="input" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Phone</label>
+                                <input type="tel" name="phone" value={editingClient.phone || ''} onChange={handleEditInputChange} className="input" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Address</label>
+                                <textarea name="address" value={editingClient.address || ''} onChange={handleEditInputChange} rows="2" className="input resize-none" />
+                            </div>
+                            <div className="flex gap-3 pt-2">
+                                <button type="button" onClick={() => { setIsEditModalOpen(false); setEditingClient(null); }} className="flex-1 btn-secondary">Cancel</button>
+                                <button type="submit" className="flex-1 btn-primary">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
