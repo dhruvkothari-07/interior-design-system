@@ -2,8 +2,34 @@ import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import { useParams, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { API_URL } from '../config';
-import { LayoutDashboard, TableProperties, FileText, Plus, X, ArrowLeft, FileSpreadsheet, IndianRupee } from 'lucide-react';
+import {
+    LayoutDashboard,
+    TableProperties,
+    FileText,
+    Plus,
+    X,
+    ArrowLeft,
+    FileSpreadsheet,
+    IndianRupee,
+    CheckCircle2,
+    Clock,
+    XCircle,
+    FileEdit,
+    User,
+    Mail,
+    Phone,
+    Calendar,
+    Sparkles,
+    ArrowRight,
+    Edit3,
+    Send,
+    Download,
+    MoreHorizontal,
+    Home,
+    Layers
+} from 'lucide-react';
 
 import OverviewTab from './quotation-tabs/OverviewTab';
 import WorksheetTab from './quotation-tabs/WorksheetTab';
@@ -38,7 +64,6 @@ const QuotationDetail = () => {
             setQuotation(qRes.data);
             setRooms(rRes.data);
 
-            // Set first room active if none selected and in worksheet mode
             if (activeTab === 'worksheet' && !activeRoomId && rRes.data.length > 0) {
                 setActiveRoomId(rRes.data[0].id);
             }
@@ -50,16 +75,14 @@ const QuotationDetail = () => {
         }
     };
 
-    useEffect(() => {
-        fetchData();
-    }, [id]);
+    useEffect(() => { fetchData(); }, [id]);
 
     // --- Computed Values ---
     const currentSubTotal = useMemo(() => {
         return rooms.reduce((sum, room) => sum + (parseFloat(room.room_total) || 0), 0);
     }, [rooms]);
 
-    const formatCurrency = (amt) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amt);
+    const formatCurrency = (amt) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amt || 0);
 
     // --- Room Management Handlers ---
     const handleRoomFormChange = (e) => {
@@ -100,116 +123,186 @@ const QuotationDetail = () => {
             }
             setIsRoomModalOpen(false);
             fetchData();
+            toast.success(editingRoom ? 'Room updated!' : 'Room created!');
         } catch (err) {
             console.error("Error saving room:", err);
-            alert("Failed to save room.");
+            toast.error('Failed to save room');
         }
     };
 
     const handleDeleteRoom = async (room) => {
-        if (!window.confirm(`Delete room "${room.name}"? All items in it will be removed.`)) return;
-        try {
-            const token = localStorage.getItem("token");
-            await axios.delete(`${API_URL}/rooms/${room.id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (activeRoomId === room.id) setActiveRoomId(null);
-            fetchData();
-        } catch (err) {
-            alert("Failed to delete room.");
-        }
+        toast((t) => (
+            <div className="flex flex-col gap-3">
+                <p className="font-medium">Delete room "{room.name}"?</p>
+                <p className="text-sm text-stone-500">All items in it will be removed.</p>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => toast.dismiss(t.id)}
+                        className="px-3 py-1.5 text-sm bg-stone-100 hover:bg-stone-200 rounded-lg transition"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={async () => {
+                            toast.dismiss(t.id);
+                            try {
+                                const token = localStorage.getItem("token");
+                                await axios.delete(`${API_URL}/rooms/${room.id}`, {
+                                    headers: { Authorization: `Bearer ${token}` }
+                                });
+                                if (activeRoomId === room.id) setActiveRoomId(null);
+                                fetchData();
+                                toast.success('Room deleted');
+                            } catch (err) {
+                                toast.error('Failed to delete room');
+                            }
+                        }}
+                        className="px-3 py-1.5 text-sm bg-rose-500 hover:bg-rose-600 text-white rounded-lg transition"
+                    >
+                        Delete
+                    </button>
+                </div>
+            </div>
+        ), { duration: 10000 });
     };
 
     const getStatusConfig = (status) => {
         const configs = {
-            'Approved': { bg: 'bg-emerald-100', text: 'text-emerald-700' },
-            'Pending': { bg: 'bg-amber-100', text: 'text-amber-700' },
-            'Rejected': { bg: 'bg-rose-100', text: 'text-rose-700' },
-            'Draft': { bg: 'bg-stone-100', text: 'text-stone-600' }
+            'Approved': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: CheckCircle2, gradient: 'from-emerald-500 to-teal-500' },
+            'Pending': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: Clock, gradient: 'from-amber-500 to-orange-500' },
+            'Rejected': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', icon: XCircle, gradient: 'from-rose-500 to-rose-600' },
+            'Draft': { bg: 'bg-stone-50', text: 'text-stone-600', border: 'border-stone-200', icon: FileEdit, gradient: 'from-stone-400 to-stone-500' }
         };
         return configs[status] || configs['Draft'];
     };
 
     if (isLoading) return (
         <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center">
-            <div className="animate-pulse text-[var(--color-text-muted)]">Loading quotation...</div>
+            <div className="flex flex-col items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center animate-pulse">
+                    <FileSpreadsheet className="w-7 h-7 text-white" />
+                </div>
+                <p className="text-[var(--color-text-muted)]">Loading quotation...</p>
+            </div>
         </div>
     );
     if (!quotation) return null;
 
     const statusConfig = getStatusConfig(quotation.status);
+    const StatusIcon = statusConfig.icon;
+
+    const tabs = [
+        { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+        { id: 'worksheet', label: 'Rooms & Materials', icon: Layers, badge: rooms.length },
+        { id: 'preview', label: 'Preview & Export', icon: FileText }
+    ];
 
     return (
         <div className="min-h-screen bg-[var(--color-bg)]">
             <Navbar />
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Header */}
-                <div className="mb-8 animate-fade-in">
-                    <button
-                        onClick={() => navigate('/quotations')}
-                        className="group flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors mb-6"
-                    >
-                        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-                        Back to Quotations
-                    </button>
+                {/* Back Button */}
+                <button
+                    onClick={() => navigate('/quotations')}
+                    className="group flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors mb-6 animate-fade-in"
+                >
+                    <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+                    Back to Quotations
+                </button>
 
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        {/* Left: Title & Status */}
-                        <div className="flex items-start gap-4">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center shadow-sm">
-                                <FileSpreadsheet className="w-7 h-7 text-[var(--color-accent)]" />
-                            </div>
-                            <div>
-                                <div className="flex items-center gap-3 mb-1">
-                                    <h1 className="text-2xl font-bold text-[var(--color-text-primary)] tracking-tight">
-                                        {quotation.title}
-                                    </h1>
-                                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${statusConfig.bg} ${statusConfig.text}`}>
-                                        {quotation.status}
-                                    </span>
+                {/* Hero Header */}
+                <div className="relative mb-8 animate-fade-in">
+                    <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-accent)]/5 via-transparent to-amber-500/5 rounded-3xl" />
+
+                    <div className="relative card p-6 lg:p-8 border-none shadow-lg">
+                        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                            {/* Left: Quotation Info */}
+                            <div className="flex items-start gap-4">
+                                <div className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${statusConfig.gradient} flex items-center justify-center shadow-lg`}>
+                                    <FileSpreadsheet className="w-8 h-8 text-white" />
+                                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-lg flex items-center justify-center shadow-md border border-stone-100">
+                                        <StatusIcon className={`w-3.5 h-3.5 ${statusConfig.text}`} />
+                                    </div>
                                 </div>
-                                <p className="text-sm text-[var(--color-text-muted)]">
-                                    {quotation.client_name || 'No client'} • Created {new Date(quotation.createdAt).toLocaleDateString()}
-                                </p>
+                                <div>
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <h1 className="text-2xl lg:text-3xl font-bold text-[var(--color-text-primary)] tracking-tight">
+                                            {quotation.title}
+                                        </h1>
+                                        <span className={`px-3 py-1.5 rounded-xl text-xs font-semibold ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border} border flex items-center gap-1.5`}>
+                                            <StatusIcon className="w-3 h-3" />
+                                            {quotation.status}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--color-text-muted)]">
+                                        <span className="flex items-center gap-1.5">
+                                            <User className="w-4 h-4" />
+                                            {quotation.client_name || 'No client'}
+                                        </span>
+                                        <span className="flex items-center gap-1.5">
+                                            <Calendar className="w-4 h-4" />
+                                            {quotation.createdAt ? new Date(quotation.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'No date'}
+                                        </span>
+                                        <span className="flex items-center gap-1.5">
+                                            <Home className="w-4 h-4" />
+                                            {rooms.length} rooms
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Right: Total Value Card */}
-                        <div className="flex items-center gap-4 bg-white rounded-2xl px-6 py-4 border border-[var(--color-border)] shadow-sm">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--color-accent)] to-orange-600 flex items-center justify-center">
-                                <IndianRupee className="w-6 h-6 text-white" />
-                            </div>
-                            <div>
-                                <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wide">Total Value</p>
-                                <p className="text-2xl font-bold text-[var(--color-text-primary)]">
-                                    {formatCurrency(currentSubTotal)}
-                                </p>
+                            {/* Right: Actions & Total */}
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                {/* Total Value Card */}
+                                <div className="flex items-center gap-3 bg-gradient-to-br from-[var(--color-accent)] to-amber-600 text-white rounded-2xl px-5 py-4 shadow-lg">
+                                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                                        <IndianRupee className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-white/70 uppercase tracking-wide">Total Value</p>
+                                        <p className="text-xl font-bold">{formatCurrency(currentSubTotal)}</p>
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex items-center gap-2">
+                                    <button className="p-2.5 rounded-xl bg-white border border-[var(--color-border)] hover:shadow-md transition-all">
+                                        <Send className="w-5 h-5 text-[var(--color-text-muted)]" />
+                                    </button>
+                                    <button className="p-2.5 rounded-xl bg-white border border-[var(--color-border)] hover:shadow-md transition-all">
+                                        <Download className="w-5 h-5 text-[var(--color-text-muted)]" />
+                                    </button>
+                                    <button className="p-2.5 rounded-xl bg-white border border-[var(--color-border)] hover:shadow-md transition-all">
+                                        <MoreHorizontal className="w-5 h-5 text-[var(--color-text-muted)]" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Navigation Tabs - Pill Style */}
-                <div className="flex justify-center mb-8 animate-fade-in">
-                    <div className="inline-flex bg-white/80 backdrop-blur-sm p-1.5 rounded-2xl shadow-sm border border-[var(--color-border)]">
-                        {[
-                            { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-                            { id: 'worksheet', label: 'Rooms & Materials', icon: TableProperties },
-                            { id: 'preview', label: 'Preview & Export', icon: FileText },
-                        ].map(tab => (
+                {/* Navigation Tabs */}
+                <div className="flex justify-center mb-8 animate-fade-in-up">
+                    <div className="inline-flex bg-white p-1.5 rounded-2xl shadow-sm border border-[var(--color-border)]">
+                        {tabs.map(tab => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`
                                     flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
                                     ${activeTab === tab.id
-                                        ? 'bg-[var(--color-accent)] text-white shadow-md shadow-orange-200'
-                                        : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-stone-100'}
+                                        ? 'bg-[var(--color-accent)] text-white shadow-md'
+                                        : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-stone-50'}
                                 `}
                             >
                                 <tab.icon className="w-4 h-4" />
                                 {tab.label}
+                                {tab.badge > 0 && activeTab !== tab.id && (
+                                    <span className="ml-1 px-1.5 py-0.5 bg-[var(--color-accent)]/10 text-[var(--color-accent)] rounded text-[10px] font-semibold">
+                                        {tab.badge}
+                                    </span>
+                                )}
                             </button>
                         ))}
                     </div>
@@ -250,19 +343,20 @@ const QuotationDetail = () => {
 
             {/* Room Modal */}
             {isRoomModalOpen && (
-                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fade-in">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in-up">
-                        <div className="px-6 py-5 border-b border-[var(--color-border)] bg-[var(--color-bg-subtle)] flex justify-between items-center">
-                            <h3 className="text-xl font-bold text-[var(--color-text-primary)]">
+                        <div className="px-6 py-5 border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-accent)]/5 to-amber-50 flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center gap-2">
+                                <Home className="w-5 h-5 text-[var(--color-accent)]" />
                                 {editingRoom ? 'Edit Room' : 'Add New Room'}
                             </h3>
-                            <button onClick={() => setIsRoomModalOpen(false)} className="p-1 hover:bg-stone-200 rounded-lg transition">
+                            <button onClick={() => setIsRoomModalOpen(false)} className="p-1.5 hover:bg-white rounded-lg transition">
                                 <X className="w-5 h-5 text-[var(--color-text-muted)]" />
                             </button>
                         </div>
-                        <form onSubmit={handleSaveRoom} className="p-6 space-y-5">
+                        <form onSubmit={handleSaveRoom} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-semibold text-[var(--color-text-secondary)] mb-2">Room Name</label>
+                                <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Room Name *</label>
                                 <input
                                     type="text"
                                     name="name"
@@ -275,30 +369,30 @@ const QuotationDetail = () => {
                             </div>
                             <div className="grid grid-cols-3 gap-4">
                                 <div>
-                                    <label className="block text-sm font-semibold text-[var(--color-text-secondary)] mb-2">Length (ft)</label>
-                                    <input type="number" name="length" value={roomForm.length} onChange={handleRoomFormChange} className="input" />
+                                    <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Length (ft)</label>
+                                    <input type="number" name="length" value={roomForm.length} onChange={handleRoomFormChange} className="input" placeholder="12" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-[var(--color-text-secondary)] mb-2">Width (ft)</label>
-                                    <input type="number" name="width" value={roomForm.width} onChange={handleRoomFormChange} className="input" />
+                                    <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Width (ft)</label>
+                                    <input type="number" name="width" value={roomForm.width} onChange={handleRoomFormChange} className="input" placeholder="10" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-[var(--color-text-secondary)] mb-2">Height (ft)</label>
-                                    <input type="number" name="height" value={roomForm.height} onChange={handleRoomFormChange} className="input" />
+                                    <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Height (ft)</label>
+                                    <input type="number" name="height" value={roomForm.height} onChange={handleRoomFormChange} className="input" placeholder="10" />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-[var(--color-text-secondary)] mb-2">Notes (Optional)</label>
+                                <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Notes (Optional)</label>
                                 <textarea
                                     name="notes"
-                                    rows="3"
+                                    rows="2"
                                     value={roomForm.notes}
                                     onChange={handleRoomFormChange}
                                     className="input resize-none"
                                     placeholder="Specific requirements..."
                                 />
                             </div>
-                            <div className="pt-2 flex justify-end gap-3">
+                            <div className="flex justify-end gap-3 pt-2">
                                 <button type="button" onClick={() => setIsRoomModalOpen(false)} className="btn-secondary">
                                     Cancel
                                 </button>

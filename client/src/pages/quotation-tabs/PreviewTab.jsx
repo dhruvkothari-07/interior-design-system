@@ -2,11 +2,35 @@ import React, { useEffect, useState, useMemo, useRef } from 'react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import toast from 'react-hot-toast';
 import { API_URL } from '../../config';
+import {
+    Download,
+    Save,
+    FileText,
+    Printer,
+    Mail,
+    Share2,
+    IndianRupee,
+    Home,
+    Calculator,
+    Percent,
+    FileCheck,
+    AlertCircle,
+    CheckCircle2,
+    Sparkles,
+    Calendar,
+    Building2,
+    User,
+    Phone,
+    MapPin,
+    ChevronRight
+} from 'lucide-react';
 
 const PreviewTab = ({ quotation, setQuotation }) => {
     const [rooms, setRooms] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
     const [settings] = useState({
         company_name: 'My Interior Design Co.',
         company_address: '123 Design Street, Creative City',
@@ -28,12 +52,10 @@ const PreviewTab = ({ quotation, setQuotation }) => {
             const token = localStorage.getItem("token");
             setIsLoading(true);
             try {
-                // Initialize calculation fields from prop if available (or refetch if safer)
                 setLaborCost(Number(quotation.labor_cost) || 0);
                 setDesignFeeType(quotation.design_fee_type || 'percentage');
                 setDesignFeeValue(Number(quotation.design_fee_value) || 0);
 
-                // Fetch rooms and their materials
                 const resRooms = await axios.get(`${API_URL}/quotations/${quotation.id}/rooms`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
@@ -51,12 +73,13 @@ const PreviewTab = ({ quotation, setQuotation }) => {
             }
         };
         fetchDeepData();
-    }, [quotation.id, quotation.labor_cost]); // Re-fetch if ID or prop labor cost changes
+    }, [quotation.id, quotation.labor_cost]);
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-IN', {
             style: 'currency',
             currency: 'INR',
+            maximumFractionDigits: 0
         }).format(amount);
     };
 
@@ -67,6 +90,10 @@ const PreviewTab = ({ quotation, setQuotation }) => {
             }, 0);
             return total + roomTotal;
         }, 0);
+    }, [rooms]);
+
+    const totalMaterialsCount = useMemo(() => {
+        return rooms.reduce((count, room) => count + (room.materials?.length || 0), 0);
     }, [rooms]);
 
     const calculatedDesignFee = useMemo(() => {
@@ -92,6 +119,7 @@ const PreviewTab = ({ quotation, setQuotation }) => {
     }, [taxableAmount, taxAmount]);
 
     const handleSaveFinalTotal = async () => {
+        setIsSaving(true);
         try {
             const token = localStorage.getItem("token");
             await axios.put(`${API_URL}/quotations/${quotation.id}/total`,
@@ -103,10 +131,12 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            alert("Saved successfully!");
             setQuotation(prev => ({ ...prev, total_amount: finalTotal, labor_cost: laborCost, design_fee_type: designFeeType, design_fee_value: designFeeValue }));
+            toast.success('Saved successfully!');
         } catch (err) {
-            alert("Failed to save.");
+            toast.error('Failed to save.');
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -114,7 +144,6 @@ const PreviewTab = ({ quotation, setQuotation }) => {
 
     const handleDownloadPdf = async () => {
         setIsPrinting(true);
-        // Wait for render cycle
         setTimeout(async () => {
             const element = printRef.current;
             if (!element) return;
@@ -135,107 +164,318 @@ const PreviewTab = ({ quotation, setQuotation }) => {
         }, 100);
     };
 
-    if (isLoading) return <div className="p-8 text-center text-gray-500">Loading preview...</div>;
+    if (isLoading) return (
+        <div className="flex items-center justify-center py-16">
+            <div className="flex flex-col items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center animate-pulse">
+                    <FileText className="w-7 h-7 text-white" />
+                </div>
+                <p className="text-[var(--color-text-muted)]">Loading preview...</p>
+            </div>
+        </div>
+    );
 
     return (
-        <div className="flex flex-col gap-6 animate-fade-in-up">
-            {/* Toolbar */}
-            <div className="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl border border-gray-200 gap-4">
-                <h3 className="font-semibold text-gray-700">Preview & Export</h3>
-                <div className="flex gap-3">
-                    <button onClick={handleSaveFinalTotal} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm transition shadow-sm">
-                        Save Totals
-                    </button>
-                    <button onClick={handleDownloadPdf} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm transition shadow-sm">
-                        Download PDF
-                    </button>
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 animate-fade-in-up">
+            {/* Left Sidebar - Controls */}
+            <div className="xl:col-span-1 space-y-5">
+                {/* Summary Card */}
+                <div className="card p-5">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Calculator className="w-5 h-5 text-[var(--color-accent)]" />
+                        <h3 className="font-semibold text-[var(--color-text-primary)]">Calculation</h3>
+                    </div>
+
+                    <div className="space-y-3">
+                        {/* Materials Cost */}
+                        <div className="flex justify-between items-center py-2">
+                            <span className="text-sm text-[var(--color-text-muted)]">Materials ({totalMaterialsCount})</span>
+                            <span className="font-medium text-[var(--color-text-primary)]">{formatCurrency(materialsTotal)}</span>
+                        </div>
+
+                        {/* Labor Cost */}
+                        <div className="flex justify-between items-center py-2 border-t border-[var(--color-border)]">
+                            <span className="text-sm text-[var(--color-text-muted)]">Labor Cost</span>
+                            <input
+                                type="number"
+                                value={laborCost}
+                                onChange={(e) => setLaborCost(e.target.value)}
+                                className="w-28 text-right bg-[var(--color-bg-subtle)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/20 focus:border-[var(--color-accent)]"
+                            />
+                        </div>
+
+                        {/* Design Fee */}
+                        <div className="py-2 border-t border-[var(--color-border)]">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm text-[var(--color-text-muted)]">Design Fee</span>
+                                <div className="flex items-center gap-1 bg-[var(--color-bg-subtle)] rounded-lg p-0.5">
+                                    <button
+                                        onClick={() => setDesignFeeType('percentage')}
+                                        className={`px-2 py-1 rounded text-xs font-medium transition-all ${designFeeType === 'percentage' ? 'bg-[var(--color-accent)] text-white' : 'text-[var(--color-text-muted)]'}`}
+                                    >
+                                        <Percent className="w-3 h-3" />
+                                    </button>
+                                    <button
+                                        onClick={() => setDesignFeeType('flat')}
+                                        className={`px-2 py-1 rounded text-xs font-medium transition-all ${designFeeType === 'flat' ? 'bg-[var(--color-accent)] text-white' : 'text-[var(--color-text-muted)]'}`}
+                                    >
+                                        <IndianRupee className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <input
+                                    type="number"
+                                    value={designFeeValue}
+                                    onChange={(e) => setDesignFeeValue(e.target.value)}
+                                    className="w-20 bg-[var(--color-bg-subtle)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/20 focus:border-[var(--color-accent)]"
+                                    placeholder={designFeeType === 'percentage' ? '%' : '₹'}
+                                />
+                                <span className="font-medium text-[var(--color-text-primary)]">{formatCurrency(calculatedDesignFee)}</span>
+                            </div>
+                        </div>
+
+                        {/* Subtotal */}
+                        <div className="flex justify-between items-center py-2 border-t border-[var(--color-border)]">
+                            <span className="text-sm font-medium text-[var(--color-text-secondary)]">Subtotal</span>
+                            <span className="font-semibold text-[var(--color-text-primary)]">{formatCurrency(taxableAmount)}</span>
+                        </div>
+
+                        {/* Tax */}
+                        <div className="flex justify-between items-center py-2">
+                            <span className="text-sm text-[var(--color-text-muted)]">Tax ({taxPercentage}%)</span>
+                            <span className="font-medium text-[var(--color-text-primary)]">{formatCurrency(taxAmount)}</span>
+                        </div>
+
+                        {/* Final Total */}
+                        <div className="flex justify-between items-center py-3 border-t-2 border-[var(--color-accent)] bg-gradient-to-r from-[var(--color-accent)]/5 to-amber-50 -mx-5 px-5 mt-2">
+                            <span className="font-bold text-[var(--color-text-primary)]">Grand Total</span>
+                            <span className="text-xl font-bold text-[var(--color-accent)]">{formatCurrency(finalTotal)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Actions Card */}
+                <div className="card p-5">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Sparkles className="w-5 h-5 text-[var(--color-accent)]" />
+                        <h3 className="font-semibold text-[var(--color-text-primary)]">Actions</h3>
+                    </div>
+
+                    <div className="space-y-3">
+                        <button
+                            onClick={handleSaveFinalTotal}
+                            disabled={isSaving}
+                            className="w-full btn-primary flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                            {isSaving ? (
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                                <Save className="w-4 h-4" />
+                            )}
+                            {isSaving ? 'Saving...' : 'Save Totals'}
+                        </button>
+
+                        <button
+                            onClick={handleDownloadPdf}
+                            disabled={isPrinting}
+                            className="w-full btn-secondary flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                            {isPrinting ? (
+                                <div className="w-4 h-4 border-2 border-[var(--color-accent)]/30 border-t-[var(--color-accent)] rounded-full animate-spin" />
+                            ) : (
+                                <Download className="w-4 h-4" />
+                            )}
+                            {isPrinting ? 'Generating...' : 'Download PDF'}
+                        </button>
+
+                        <div className="grid grid-cols-2 gap-2 pt-2">
+                            <button className="btn-secondary flex items-center justify-center gap-1.5 text-xs py-2.5">
+                                <Printer className="w-3.5 h-3.5" />
+                                Print
+                            </button>
+                            <button className="btn-secondary flex items-center justify-center gap-1.5 text-xs py-2.5">
+                                <Mail className="w-3.5 h-3.5" />
+                                Email
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Status Card */}
+                <div className="card p-4 bg-gradient-to-br from-emerald-50 to-white border-emerald-100">
+                    <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                            <FileCheck className="w-5 h-5 text-emerald-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-emerald-800">Ready to Export</p>
+                            <p className="text-xs text-emerald-600 mt-0.5">{rooms.length} rooms • {totalMaterialsCount} materials</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* Print Area */}
-            <div className="flex justify-center bg-gray-100 p-4 rounded-xl overflow-x-auto">
-                <div ref={printRef} className="bg-white p-8 shadow-lg w-[210mm] min-h-[297mm] text-gray-800 text-sm"> {/* A4 Dimensions approx */}
-                    {/* Header */}
-                    <div className="flex justify-between items-start mb-8 border-b pb-6">
-                        <div className="w-1/2">
-                            {settings.logo_url && <img src={settings.logo_url} alt="Logo" className="h-16 mb-4 object-contain" />}
-                            <h1 className="text-2xl font-bold text-gray-900">{settings.company_name}</h1>
-                            <p className="text-gray-500 whitespace-pre-line mt-1">{settings.company_address}</p>
-                            <p className="text-gray-500 mt-1">{settings.company_email} • {settings.company_phone}</p>
-                        </div>
-                        <div className="w-1/2 text-right">
-                            <h2 className="text-3xl font-light text-gray-400 mb-2">QUOTATION</h2>
-                            <p className="text-lg font-semibold">{quotation.client_name}</p>
-                            <p className="text-gray-500">{quotation.client_address}</p>
-                            <div className="mt-4 text-gray-500">
-                                <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
-                                <p><strong>Ref:</strong> QT-{quotation.id}</p>
+            {/* Right - Preview Area */}
+            <div className="xl:col-span-3">
+                <div className="bg-stone-100 rounded-2xl p-6 overflow-x-auto">
+                    <div ref={printRef} className="bg-white rounded-lg shadow-xl w-[210mm] min-h-[297mm] p-10 mx-auto text-stone-800 text-sm print:shadow-none">
+
+                        {/* Document Header */}
+                        <div className="flex justify-between items-start mb-10 pb-8 border-b-2 border-stone-100">
+                            <div>
+                                {settings.logo_url && <img src={settings.logo_url} alt="Logo" className="h-14 mb-4 object-contain" />}
+                                <h1 className="text-2xl font-bold text-stone-900 tracking-tight">{settings.company_name}</h1>
+                                <p className="text-stone-500 mt-2 flex items-center gap-1.5">
+                                    <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                                    {settings.company_address}
+                                </p>
+                                <p className="text-stone-500 mt-1 flex items-center gap-1.5">
+                                    <Phone className="w-3.5 h-3.5 flex-shrink-0" />
+                                    {settings.company_phone}
+                                </p>
+                            </div>
+                            <div className="text-right">
+                                <div className="inline-block px-4 py-2 bg-gradient-to-r from-[#A65D38] to-amber-600 text-white rounded-xl text-lg font-semibold tracking-wide mb-4">
+                                    QUOTATION
+                                </div>
+                                <div className="space-y-1 text-stone-600">
+                                    <p className="flex items-center justify-end gap-2">
+                                        <span className="text-stone-400">Date:</span>
+                                        <span className="font-medium">{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                                    </p>
+                                    <p className="flex items-center justify-end gap-2">
+                                        <span className="text-stone-400">Ref:</span>
+                                        <span className="font-medium font-mono">QT-{String(quotation.id).padStart(4, '0')}</span>
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Content */}
-                    <div className="mb-8">
-                        {rooms.map(room => {
-                            const roomTotal = (room.materials || []).reduce((s, m) => s + (m.price * m.quantity), 0);
-                            return (
-                                <div key={room.id} className="mb-6 break-inside-avoid">
-                                    <div className="flex justify-between bg-gray-50 p-2 border-y border-gray-200 font-bold mb-2">
-                                        <span>{room.name}</span>
-                                        <span>{formatCurrency(roomTotal)}</span>
-                                    </div>
-                                    <table className="w-full text-left">
-                                        <thead><tr className="text-xs text-gray-500 border-b"><th className="pb-1 pl-2 font-normal">Description</th><th className="pb-1 px-4 text-right font-normal">Rate</th><th className="pb-1 px-4 text-right font-normal">Qty</th><th className="pb-1 pl-4 text-right font-normal">Amount</th></tr></thead>
-                                        <tbody className="text-gray-700">
-                                            {room.materials && room.materials.map(m => (
-                                                <tr key={m.id} className="border-b border-gray-100 last:border-0">
-                                                    <td className="py-2 pl-2 pr-2">
-                                                        <div className="font-medium">{m.name}</div>
-                                                        {m.specification && <div className="text-xs text-gray-500">{m.specification}</div>}
-                                                    </td>
-                                                    <td className="py-2 px-4 text-right whitespace-nowrap">{formatCurrency(m.price)}</td>
-                                                    <td className="py-2 px-4 text-right">{m.quantity} <span className="text-gray-500 text-xs">{m.unit}</span></td>
-                                                    <td className="py-2 pl-4 text-right font-medium whitespace-nowrap">{formatCurrency(m.price * m.quantity)}</td>
-                                                </tr>
-                                            ))}
-                                            {(!room.materials || room.materials.length === 0) && <tr><td colSpan="4" className="py-2 text-center text-gray-400 italic">No items</td></tr>}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    {/* Footer / Totals */}
-                    <div className="flex flex-col md:flex-row break-inside-avoid">
-                        <div className="w-full md:w-1/2 mb-6 md:mb-0 md:pr-8">
-                            <h4 className="font-bold text-gray-800 mb-2 text-xs uppercase tracking-wide">Terms & Conditions</h4>
-                            <p className="text-xs text-gray-500 whitespace-pre-line leading-relaxed">{settings.terms_and_conditions}</p>
+                        {/* Client Info */}
+                        <div className="mb-10 p-5 bg-stone-50 rounded-xl">
+                            <p className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">Bill To</p>
+                            <p className="text-lg font-bold text-stone-900 flex items-center gap-2">
+                                <User className="w-4 h-4 text-[#A65D38]" />
+                                {quotation.client_name || 'Client Name'}
+                            </p>
+                            {quotation.client_address && (
+                                <p className="text-stone-600 mt-1 ml-6">{quotation.client_address}</p>
+                            )}
                         </div>
-                        <div className="w-full md:w-1/2 md:pl-8 border-t md:border-t-0 md:border-l pt-6 md:pt-0">
-                            <div className="space-y-2 text-right">
-                                <div className="flex justify-between"><span>Material Cost</span><span>{formatCurrency(materialsTotal)}</span></div>
-                                <div className="flex justify-between items-center text-gray-600">
-                                    <span>Labor Cost</span>
-                                    {isPrinting ? (
-                                        <span className="font-medium">{formatCurrency(laborCost)}</span>
-                                    ) : (
-                                        <input type="number" value={laborCost} onChange={(e) => setLaborCost(e.target.value)} className="w-24 text-right border-b border-gray-300 focus:outline-none focus:border-blue-500 text-sm py-0.5" />
-                                    )}
+
+                        {/* Room Sections with Material Tables */}
+                        <div className="mb-10">
+                            <h3 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-4">Project Details</h3>
+
+                            {rooms.map((room, roomIndex) => {
+                                const roomTotal = (room.materials || []).reduce((s, m) => s + (m.price * m.quantity), 0);
+                                return (
+                                    <div key={room.id} className="mb-6 break-inside-avoid">
+                                        {/* Room Header */}
+                                        <div className="flex justify-between items-center bg-gradient-to-r from-stone-100 to-stone-50 px-4 py-3 rounded-t-lg border border-stone-200 border-b-0">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-7 h-7 rounded-lg bg-[#A65D38] text-white flex items-center justify-center text-xs font-bold">
+                                                    {roomIndex + 1}
+                                                </div>
+                                                <span className="font-semibold text-stone-800">{room.name}</span>
+                                            </div>
+                                            <span className="font-bold text-[#A65D38]">{formatCurrency(roomTotal)}</span>
+                                        </div>
+
+                                        {/* Materials Table */}
+                                        <table className="w-full border border-stone-200 rounded-b-lg overflow-hidden">
+                                            <thead>
+                                                <tr className="bg-stone-50 text-xs text-stone-500 uppercase tracking-wide">
+                                                    <th className="py-2.5 px-4 text-left font-medium">Description</th>
+                                                    <th className="py-2.5 px-4 text-right font-medium">Rate</th>
+                                                    <th className="py-2.5 px-4 text-center font-medium">Qty</th>
+                                                    <th className="py-2.5 px-4 text-right font-medium">Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {room.materials && room.materials.map((m, idx) => (
+                                                    <tr key={m.id} className={`border-t border-stone-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-stone-50/50'}`}>
+                                                        <td className="py-3 px-4">
+                                                            <div className="font-medium text-stone-800">{m.name}</div>
+                                                            {m.specification && <div className="text-xs text-stone-500 mt-0.5">{m.specification}</div>}
+                                                        </td>
+                                                        <td className="py-3 px-4 text-right text-stone-700 whitespace-nowrap">{formatCurrency(m.price)}</td>
+                                                        <td className="py-3 px-4 text-center text-stone-700">
+                                                            {m.quantity} <span className="text-xs text-stone-400">{m.unit}</span>
+                                                        </td>
+                                                        <td className="py-3 px-4 text-right font-medium text-stone-800 whitespace-nowrap">{formatCurrency(m.price * m.quantity)}</td>
+                                                    </tr>
+                                                ))}
+                                                {(!room.materials || room.materials.length === 0) && (
+                                                    <tr>
+                                                        <td colSpan="4" className="py-6 text-center text-stone-400 italic">No materials added</td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                );
+                            })}
+
+                            {rooms.length === 0 && (
+                                <div className="text-center py-12 text-stone-400">
+                                    <Home className="w-10 h-10 mx-auto mb-3 opacity-40" />
+                                    <p>No rooms added to this quotation</p>
                                 </div>
-                                <div className="flex justify-between items-center text-gray-600">
-                                    <span>Design Fee ({designFeeType === 'percentage' ? `${designFeeValue}%` : 'Flat'})</span>
-                                    <div className="flex items-center gap-1 justify-end">
-                                        {isPrinting ? (
+                            )}
+                        </div>
+
+                        {/* Footer - Totals & Terms */}
+                        <div className="flex gap-8 break-inside-avoid pt-6 border-t-2 border-stone-200">
+                            {/* Terms */}
+                            <div className="flex-1">
+                                <h4 className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-3">Terms & Conditions</h4>
+                                <p className="text-[11px] text-stone-500 whitespace-pre-line leading-relaxed">{settings.terms_and_conditions}</p>
+                            </div>
+
+                            {/* Totals */}
+                            <div className="w-72">
+                                <div className="bg-stone-50 rounded-xl p-5 border border-stone-200">
+                                    <div className="space-y-2.5">
+                                        <div className="flex justify-between text-stone-600">
+                                            <span>Material Cost</span>
+                                            <span className="font-medium">{formatCurrency(materialsTotal)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-stone-600">
+                                            <span>Labor Cost</span>
+                                            <span className="font-medium">{formatCurrency(laborCost)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-stone-600">
+                                            <span>Design Fee {designFeeType === 'percentage' && <span className="text-stone-400">({designFeeValue}%)</span>}</span>
                                             <span className="font-medium">{formatCurrency(calculatedDesignFee)}</span>
-                                        ) : (
-                                            <input type="number" value={designFeeValue} onChange={(e) => setDesignFeeValue(e.target.value)} className="w-16 text-right border-b border-gray-300 focus:outline-none focus:border-blue-500 text-sm py-0.5" />
-                                        )}
+                                        </div>
+                                        <div className="flex justify-between pt-2 border-t border-stone-200 font-medium text-stone-800">
+                                            <span>Subtotal</span>
+                                            <span>{formatCurrency(taxableAmount)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-stone-600">
+                                            <span>Tax ({taxPercentage}%)</span>
+                                            <span className="font-medium">{formatCurrency(taxAmount)}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between pt-4 mt-4 border-t-2 border-[#A65D38]">
+                                        <span className="text-lg font-bold text-stone-900">Total</span>
+                                        <span className="text-xl font-bold text-[#A65D38]">{formatCurrency(finalTotal)}</span>
                                     </div>
                                 </div>
-                                <div className="flex justify-between pt-2 border-t font-semibold"><span>Subtotal</span><span>{formatCurrency(taxableAmount)}</span></div>
-                                <div className="flex justify-between text-gray-600"><span>Tax ({taxPercentage}%)</span><span>{formatCurrency(taxAmount)}</span></div>
-                                <div className="flex justify-between pt-2 border-t-2 border-gray-800 text-xl font-bold mt-2"><span>Total</span><span>{formatCurrency(finalTotal)}</span></div>
+                            </div>
+                        </div>
+
+                        {/* Signature Area */}
+                        <div className="mt-12 pt-8 border-t border-stone-200 flex justify-between">
+                            <div className="text-center">
+                                <div className="w-40 h-px bg-stone-300 mb-2" />
+                                <p className="text-xs text-stone-400">Client Signature</p>
+                            </div>
+                            <div className="text-center">
+                                <div className="w-40 h-px bg-stone-300 mb-2" />
+                                <p className="text-xs text-stone-400">Authorized Signature</p>
                             </div>
                         </div>
                     </div>
