@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from "axios";
-import Navbar from '../components/Navbar';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
 import {
@@ -105,7 +104,6 @@ const Projects = () => {
 
     return (
         <div className="min-h-screen bg-[var(--color-bg)]">
-            <Navbar />
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Hero Header */}
@@ -249,8 +247,8 @@ const Projects = () => {
                             >
                                 {tab.label}
                                 <span className={`ml-1.5 px-1.5 py-0.5 rounded text-xs font-semibold ${statusFilter === tab.value
-                                        ? 'bg-white/20'
-                                        : 'bg-stone-100'
+                                    ? 'bg-white/20'
+                                    : 'bg-stone-100'
                                     }`}>
                                     {tab.count}
                                 </span>

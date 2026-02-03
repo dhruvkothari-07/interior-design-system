@@ -1,14 +1,13 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import axios from 'axios';
-import Navbar from '../components/Navbar';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { API_URL } from '../config';
 import {
-    Check, Plus, Minus, X, Edit2, ArrowLeft, Search, Package,
-    ChevronRight, Home, Tag, Sparkles, ShoppingBag, Trash2,
-    ChevronDown, Layers, IndianRupee, Grid3X3, LayoutList, Filter
+    ArrowLeft, ChevronRight, Home, ChevronDown, Package, X
 } from 'lucide-react';
+import MaterialsCatalog from '../components/materials/MaterialsCatalog';
+import RoomCart from '../components/materials/RoomCart';
 
 const RoomMaterials = () => {
     const { quotationId, roomId } = useParams();
@@ -49,6 +48,7 @@ const RoomMaterials = () => {
             setActiveRoomMaterials(activeRoomMaterialsRes.data);
         } catch (err) {
             console.error("Error:", err);
+            toast.error("Failed to load data");
         } finally {
             if (showLoading) setIsLoading(false);
         }
@@ -69,7 +69,7 @@ const RoomMaterials = () => {
             setActiveRoomMaterials(prev => [...prev, res.data]);
             toast.success('Added to room');
         } catch (err) {
-            toast.error('Already added');
+            toast.error(err.response?.data?.message || 'Failed to add item');
         }
     }, [activeRoomId]);
 
@@ -80,6 +80,7 @@ const RoomMaterials = () => {
             await axios.put(`${API_URL}/room-materials/${roomMaterialId}`, { quantity: newQuantity }, { headers: { Authorization: `Bearer ${token}` } });
         } catch (err) {
             fetchData(false);
+            toast.error('Failed to update quantity');
         }
     }, [fetchData]);
 
@@ -91,6 +92,7 @@ const RoomMaterials = () => {
             toast.success('Removed');
         } catch (err) {
             fetchData(false);
+            toast.error('Failed to remove item');
         }
     }, [fetchData]);
 
@@ -104,7 +106,7 @@ const RoomMaterials = () => {
             setCustomItem({ description: '', unit: 'nos', rate: '', quantity: 1, specification: '' });
             toast.success('Custom item added');
         } catch (err) {
-            toast.error('Failed to add');
+            toast.error(err.response?.data?.message || 'Failed to add custom item');
         }
     };
 
@@ -150,7 +152,6 @@ const RoomMaterials = () => {
 
     return (
         <div className="min-h-screen bg-stone-100">
-            <Navbar />
 
             {/* Sticky Header */}
             <header className="sticky top-0 z-40 bg-white border-b border-[var(--color-border)] shadow-sm">
@@ -183,13 +184,6 @@ const RoomMaterials = () => {
 
                         {/* Right - Cart Summary */}
                         <div className="flex items-center gap-4">
-                            <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-stone-50 rounded-xl">
-                                <ShoppingBag className="w-5 h-5 text-[var(--color-accent)]" />
-                                <div className="text-right">
-                                    <p className="text-xs text-[var(--color-text-muted)]">{activeRoomMaterials.length} items</p>
-                                    <p className="font-bold text-[var(--color-text-primary)]">{formatCurrency(roomSubtotal)}</p>
-                                </div>
-                            </div>
                             <button onClick={() => navigate(`/quotations/${quotationId}`)} className="btn-primary text-sm px-4 py-2">
                                 Done
                             </button>
@@ -201,172 +195,35 @@ const RoomMaterials = () => {
             <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                    {/* Left Panel - Materials Catalog */}
-                    <div className="lg:col-span-2">
-                        {/* Search & Filters Card */}
-                        <div className="bg-white rounded-2xl border border-[var(--color-border)] p-5 mb-5">
-                            <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                                <div className="relative flex-1">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search materials..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full pl-12 pr-4 py-3 bg-stone-50 border-0 rounded-xl text-[var(--color-text-primary)] placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/20"
-                                    />
-                                </div>
-                                <div className="flex gap-2">
-                                    <button onClick={() => setViewMode('grid')} className={`p-3 rounded-xl transition-colors ${viewMode === 'grid' ? 'bg-[var(--color-accent)] text-white' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'}`}>
-                                        <Grid3X3 className="w-5 h-5" />
-                                    </button>
-                                    <button onClick={() => setViewMode('list')} className={`p-3 rounded-xl transition-colors ${viewMode === 'list' ? 'bg-[var(--color-accent)] text-white' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'}`}>
-                                        <LayoutList className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            </div>
+                    <MaterialsCatalog
+                        searchTerm={searchTerm}
+                        setSearchTerm={setSearchTerm}
+                        viewMode={viewMode}
+                        setViewMode={setViewMode}
+                        selectedCategory={selectedCategory}
+                        setSelectedCategory={setSelectedCategory}
+                        categories={categories}
+                        filteredMaterials={filteredMaterials}
+                        activeRoomMaterials={activeRoomMaterials}
+                        handleAddMaterialToRoom={handleAddMaterialToRoom}
+                        handleUpdateMaterialQuantity={handleUpdateMaterialQuantity}
+                        handleDeleteMaterialFromRoom={handleDeleteMaterialFromRoom}
+                        setEditingRoomItem={setEditingRoomItem}
+                        setIsEditModalOpen={setIsEditModalOpen}
+                        setIsCustomModalOpen={setIsCustomModalOpen}
+                        formatCurrency={formatCurrency}
+                    />
 
-                            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                                <Filter className="w-4 h-4 text-stone-400 flex-shrink-0" />
-                                {categories.map(cat => (
-                                    <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${selectedCategory === cat ? 'bg-[var(--color-accent)] text-white shadow-sm' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}>
-                                        {cat}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                    <RoomCart
+                        activeRoom={activeRoom}
+                        activeRoomMaterials={activeRoomMaterials}
+                        roomSubtotal={roomSubtotal}
+                        quotationId={quotationId}
+                        navigate={navigate}
+                        handleDeleteMaterialFromRoom={handleDeleteMaterialFromRoom}
+                        formatCurrency={formatCurrency}
+                    />
 
-                        {/* Materials Grid/List */}
-                        {viewMode === 'grid' ? (
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {/* Add Custom Card */}
-                                <div onClick={() => setIsCustomModalOpen(true)} className="group bg-white rounded-2xl border-2 border-dashed border-[var(--color-accent)]/30 p-6 flex flex-col items-center justify-center text-center hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/5 transition-all cursor-pointer min-h-[180px]">
-                                    <div className="w-12 h-12 rounded-2xl bg-[var(--color-accent)]/10 flex items-center justify-center mb-3 group-hover:bg-[var(--color-accent)] group-hover:text-white transition-all">
-                                        <Plus className="w-6 h-6 text-[var(--color-accent)] group-hover:text-white" />
-                                    </div>
-                                    <p className="font-semibold text-sm text-[var(--color-text-primary)]">Custom Item</p>
-                                    <p className="text-xs text-stone-400 mt-1">Add unlisted item</p>
-                                </div>
-
-                                {filteredMaterials.map(material => {
-                                    const roomMat = activeRoomMaterials.find(m => Number(m.material_id) === Number(material.id));
-                                    const isAdded = !!roomMat;
-                                    return (
-                                        <div key={material.id} className={`group bg-white rounded-2xl border p-4 transition-all hover:shadow-lg cursor-pointer ${isAdded ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/5' : 'border-[var(--color-border)] hover:border-[var(--color-accent)]/40'}`} onClick={() => !isAdded && handleAddMaterialToRoom(material.id, 1)}>
-                                            <div className="flex items-start justify-between mb-3">
-                                                <span className="px-2 py-0.5 rounded bg-stone-100 text-[10px] font-medium text-stone-500 uppercase">{material.category || 'General'}</span>
-                                                {isAdded && <div className="w-6 h-6 rounded-full bg-[var(--color-accent)] flex items-center justify-center"><Check className="w-3.5 h-3.5 text-white" /></div>}
-                                            </div>
-                                            <h3 className="font-semibold text-sm text-[var(--color-text-primary)] mb-2 line-clamp-2">{material.name}</h3>
-                                            <div className="flex items-baseline gap-1">
-                                                <span className="text-lg font-bold text-[var(--color-text-primary)]">{formatCurrency(material.price)}</span>
-                                                <span className="text-xs text-stone-400">/{material.unit}</span>
-                                            </div>
-                                            {isAdded && (
-                                                <div className="mt-3 pt-3 border-t border-[var(--color-border)] flex items-center justify-between" onClick={e => e.stopPropagation()}>
-                                                    <div className="flex items-center gap-1 bg-stone-100 rounded-lg p-1">
-                                                        <button onClick={() => roomMat.quantity > 1 ? handleUpdateMaterialQuantity(roomMat.id, roomMat.quantity - 1) : handleDeleteMaterialFromRoom(roomMat.id, material.name)} className="w-7 h-7 flex items-center justify-center rounded hover:bg-white transition-colors"><Minus className="w-4 h-4" /></button>
-                                                        <span className="w-8 text-center font-bold text-sm">{roomMat.quantity}</span>
-                                                        <button onClick={() => handleUpdateMaterialQuantity(roomMat.id, roomMat.quantity + 1)} className="w-7 h-7 flex items-center justify-center rounded bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-hover)] transition-colors"><Plus className="w-4 h-4" /></button>
-                                                    </div>
-                                                    <button onClick={() => { setEditingRoomItem(roomMat); setIsEditModalOpen(true); }} className="p-1.5 text-stone-400 hover:text-[var(--color-accent)] transition-colors"><Edit2 className="w-4 h-4" /></button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <div className="bg-white rounded-2xl border border-[var(--color-border)] divide-y divide-[var(--color-border)]">
-                                <div onClick={() => setIsCustomModalOpen(true)} className="p-4 flex items-center gap-4 hover:bg-stone-50 cursor-pointer transition-colors">
-                                    <div className="w-12 h-12 rounded-xl bg-[var(--color-accent)]/10 flex items-center justify-center"><Plus className="w-6 h-6 text-[var(--color-accent)]" /></div>
-                                    <div><p className="font-semibold text-[var(--color-text-primary)]">Add Custom Item</p><p className="text-xs text-stone-400">Create unlisted material</p></div>
-                                </div>
-                                {filteredMaterials.map(material => {
-                                    const roomMat = activeRoomMaterials.find(m => Number(m.material_id) === Number(material.id));
-                                    const isAdded = !!roomMat;
-                                    return (
-                                        <div key={material.id} className={`p-4 flex items-center gap-4 transition-colors cursor-pointer ${isAdded ? 'bg-[var(--color-accent)]/5' : 'hover:bg-stone-50'}`} onClick={() => !isAdded && handleAddMaterialToRoom(material.id, 1)}>
-                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isAdded ? 'bg-[var(--color-accent)] text-white' : 'bg-stone-100 text-stone-400'}`}><Package className="w-6 h-6" /></div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2"><p className="font-semibold text-[var(--color-text-primary)] truncate">{material.name}</p><span className="px-2 py-0.5 rounded bg-stone-100 text-[10px] font-medium text-stone-500 uppercase">{material.category}</span></div>
-                                                <p className="text-sm text-stone-500">{formatCurrency(material.price)} / {material.unit}</p>
-                                            </div>
-                                            {isAdded ? (
-                                                <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
-                                                    <div className="flex items-center gap-1 bg-stone-100 rounded-lg p-1">
-                                                        <button onClick={() => roomMat.quantity > 1 ? handleUpdateMaterialQuantity(roomMat.id, roomMat.quantity - 1) : handleDeleteMaterialFromRoom(roomMat.id, material.name)} className="w-7 h-7 flex items-center justify-center rounded hover:bg-white transition-colors"><Minus className="w-4 h-4" /></button>
-                                                        <span className="w-8 text-center font-bold text-sm">{roomMat.quantity}</span>
-                                                        <button onClick={() => handleUpdateMaterialQuantity(roomMat.id, roomMat.quantity + 1)} className="w-7 h-7 flex items-center justify-center rounded bg-[var(--color-accent)] text-white"><Plus className="w-4 h-4" /></button>
-                                                    </div>
-                                                    <button onClick={() => { setEditingRoomItem(roomMat); setIsEditModalOpen(true); }} className="p-2 text-stone-400 hover:text-[var(--color-accent)]"><Edit2 className="w-4 h-4" /></button>
-                                                </div>
-                                            ) : (
-                                                <button className="p-2 text-stone-400"><Plus className="w-5 h-5" /></button>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                        {filteredMaterials.length === 0 && (
-                            <div className="bg-white rounded-2xl border border-[var(--color-border)] p-12 text-center">
-                                <Package className="w-12 h-12 mx-auto text-stone-300 mb-3" />
-                                <p className="text-stone-500">No materials found</p>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Right Panel - Room Cart */}
-                    <div className="lg:col-span-1">
-                        <div className="sticky top-24 bg-white rounded-2xl border border-[var(--color-border)] overflow-hidden">
-                            {/* Cart Header */}
-                            <div className="p-5 bg-gradient-to-r from-[var(--color-accent)]/10 to-amber-50 border-b border-[var(--color-border)]">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-[var(--color-accent)] flex items-center justify-center"><ShoppingBag className="w-5 h-5 text-white" /></div>
-                                    <div>
-                                        <h2 className="font-bold text-[var(--color-text-primary)]">{activeRoom?.name}</h2>
-                                        <p className="text-xs text-[var(--color-text-muted)]">{activeRoomMaterials.length} items selected</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Cart Items */}
-                            <div className="max-h-[50vh] overflow-y-auto p-4 space-y-3">
-                                {activeRoomMaterials.length > 0 ? activeRoomMaterials.map(item => (
-                                    <div key={item.id} className="group bg-stone-50 rounded-xl p-3 hover:bg-stone-100 transition-colors">
-                                        <div className="flex justify-between items-start gap-2">
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-sm text-[var(--color-text-primary)] truncate">{item.name}</p>
-                                                <p className="text-xs text-stone-500 mt-0.5">{item.quantity} × {formatCurrency(item.price)}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="font-bold text-sm text-[var(--color-text-primary)]">{formatCurrency(item.price * item.quantity)}</p>
-                                                <button onClick={() => handleDeleteMaterialFromRoom(item.id, item.name)} className="text-xs text-rose-500 hover:underline opacity-0 group-hover:opacity-100 transition-opacity">Remove</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )) : (
-                                    <div className="text-center py-8">
-                                        <Package className="w-10 h-10 mx-auto text-stone-300 mb-2" />
-                                        <p className="text-sm text-stone-400">No items added</p>
-                                        <p className="text-xs text-stone-400">Click materials to add them</p>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Cart Footer */}
-                            <div className="p-5 border-t border-[var(--color-border)] bg-stone-50">
-                                <div className="flex justify-between items-center mb-4">
-                                    <span className="text-sm text-[var(--color-text-muted)]">Room Subtotal</span>
-                                    <span className="text-2xl font-bold text-[var(--color-accent)]">{formatCurrency(roomSubtotal)}</span>
-                                </div>
-                                <button onClick={() => navigate(`/quotations/${quotationId}`)} className="w-full btn-primary flex items-center justify-center gap-2">
-                                    Save & Continue <ChevronRight className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 

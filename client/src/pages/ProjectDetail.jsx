@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
-import Navbar from '../components/Navbar';
 import { useParams, useNavigate } from "react-router-dom";
 import {
     LayoutDashboard,
@@ -144,7 +143,6 @@ const ProjectDetail = () => {
 
     return (
         <div className="min-h-screen bg-[var(--color-bg)]">
-            <Navbar />
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Back Button */}

@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-import Navbar from '../components/Navbar';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
-import { ArrowLeft, Mail, Phone, MapPin, FileText, FolderKanban } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MapPin, FileText, FolderKanban, User } from 'lucide-react';
 
 const ClientDetail = () => {
     const { id } = useParams();
@@ -56,7 +55,6 @@ const ClientDetail = () => {
 
     return (
         <div className="min-h-screen bg-[var(--color-bg)]">
-            <Navbar />
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
@@ -67,12 +65,12 @@ const ClientDetail = () => {
                     </button>
 
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center text-[var(--color-accent)] font-bold text-2xl">
-                            {clientData.name?.charAt(0) || 'C'}
+                        <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-500 flex items-center justify-center text-white shadow-lg shrink-0">
+                            <User className="w-7 h-7 md:w-8 md:h-8" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-bold text-[var(--color-text-primary)] tracking-tight">{clientData.name}</h1>
-                            <p className="text-[var(--color-text-secondary)] mt-1">Client Overview & Activity</p>
+                            <h1 className="text-2xl md:text-3xl font-bold text-[var(--color-text-primary)] tracking-tight">{clientData.name}</h1>
+                            <p className="text-sm md:text-base text-[var(--color-text-secondary)] mt-1">Client Overview & Activity</p>
                         </div>
                     </div>
                 </div>

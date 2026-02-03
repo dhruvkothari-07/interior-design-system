@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import axios from "axios";
-import Navbar from '../components/Navbar';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { API_URL } from '../config';
 import {
     Search,
     Users,
+    User, // Added User icon
     Plus,
     X,
     ArrowRight,
@@ -149,23 +149,9 @@ const Clients = () => {
         totalRevenue: clients.reduce((sum, c) => sum + (Number(c.total_revenue) || 0), 0)
     }), [clients]);
 
-    // Avatar colors
-    const getAvatarColor = (name) => {
-        const colors = [
-            'from-[var(--color-accent)] to-amber-500',
-            'from-emerald-500 to-teal-500',
-            'from-violet-500 to-purple-500',
-            'from-rose-500 to-pink-500',
-            'from-blue-500 to-cyan-500',
-            'from-orange-500 to-yellow-500'
-        ];
-        const index = name ? name.charCodeAt(0) % colors.length : 0;
-        return colors[index];
-    };
 
     return (
         <div className="min-h-screen bg-[var(--color-bg)]">
-            <Navbar />
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Hero Header */}
@@ -178,13 +164,9 @@ const Clients = () => {
                                 </div>
                                 <div>
                                     <h1 className="text-2xl lg:text-3xl font-bold text-[var(--color-text-primary)]">Clients</h1>
-                                    <p className="text-sm text-[var(--color-text-muted)]">Manage your client relationships</p>
                                 </div>
                             </div>
                         </div>
-
-                        {/* Stats Pills */}
-
                     </div>
                 </div>
 
@@ -235,11 +217,11 @@ const Clients = () => {
                                 {/* Header */}
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-center gap-4">
-                                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${getAvatarColor(client.name)} flex items-center justify-center text-white font-bold text-xl shadow-lg`}>
-                                            {client.name?.charAt(0)?.toUpperCase() || 'C'}
+                                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-500 flex items-center justify-center text-white shadow-lg shrink-0">
+                                            <User className="w-6 h-6 md:w-7 md:h-7" />
                                         </div>
-                                        <div>
-                                            <h3 className="font-semibold text-lg text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors">
+                                        <div className="min-w-0">
+                                            <h3 className="font-semibold text-base md:text-lg text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors truncate">
                                                 {client.name}
                                             </h3>
                                             <p className="text-xs text-[var(--color-text-muted)]">

@@ -6,7 +6,6 @@ import { toast } from "react-hot-toast";
 import { z } from "zod";
 import { API_URL } from '../config';
 
-// Zod validation schema
 const signupSchema = z.object({
     username: z.string()
         .min(3, "Username must be at least 3 characters")
@@ -157,86 +156,21 @@ const Signup = () => {
         signupData.password === signupData.confirmPassword;
 
     return (
-        <div className="min-h-screen flex bg-[var(--color-bg)]">
-            {/* Left Panel - Decorative */}
-            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-amber-500 via-[var(--color-accent)] to-orange-600 relative overflow-hidden">
-                {/* Decorative Elements */}
-                <div className="absolute inset-0">
-                    <div className="absolute top-32 right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
-                    <div className="absolute bottom-20 left-20 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
-                    <div className="absolute top-1/3 right-1/3 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
-                </div>
-
-                {/* Content */}
-                <div className="relative z-10 flex flex-col justify-center px-16 text-white">
-                    <div className="flex items-center gap-3 mb-8">
-                        <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                            <Sparkles className="w-6 h-6" />
-                        </div>
-                        <span className="text-2xl font-bold tracking-tight">DesignFlow</span>
-                    </div>
-
-                    <h1 className="text-5xl font-bold leading-tight mb-6">
-                        Start creating<br />
-                        beautiful spaces<br />
-                        today
-                    </h1>
-
-                    <p className="text-xl text-white/80 max-w-md mb-12">
-                        Join thousands of interior designers who trust DesignFlow to manage their projects.
-                    </p>
-
-                    {/* Features List */}
-                    <div className="space-y-4">
-                        {[
-                            'Unlimited projects & quotations',
-                            'Material library with 500+ items',
-                            'Client portal access',
-                            'Export to PDF & Excel'
-                        ].map((feature) => (
-                            <div key={feature} className="flex items-center gap-3">
-                                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                                    <Check className="w-4 h-4" />
-                                </div>
-                                <span className="text-white/90">{feature}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Bottom Wave */}
-                <div className="absolute bottom-0 left-0 right-0">
-                    <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="white" fillOpacity="0.1" />
-                    </svg>
-                </div>
-            </div>
-
+        <div className="h-screen flex bg-[var(--color-bg)]">
             {/* Right Panel - Form */}
-            <div className="flex-1 flex items-center justify-center px-8 py-12">
+            <div className="flex-1 flex items-center justify-center px-6 py-4">
                 <div className="w-full max-w-md">
-                    {/* Mobile Logo */}
-                    <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-                        <div className="w-10 h-10 bg-[var(--color-accent)] rounded-xl flex items-center justify-center">
-                            <Sparkles className="w-5 h-5 text-white" />
-                        </div>
-                        <span className="text-xl font-bold text-[var(--color-text-primary)]">DesignFlow</span>
-                    </div>
-
                     {/* Header */}
-                    <div className="mb-8">
-                        <h2 className="text-3xl font-bold text-[var(--color-text-primary)] tracking-tight">
+                    <div className="mb-2 text-center">
+                        <h2 className="text-2xl font-bold text-[var(--color-text-primary)] tracking-tight">
                             Create account
                         </h2>
-                        <p className="text-[var(--color-text-secondary)] mt-2">
-                            Get started with your free account
-                        </p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-3">
                         {/* Username */}
                         <div>
-                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
+                            <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">
                                 Username
                             </label>
                             <input
@@ -247,7 +181,7 @@ const Signup = () => {
                                 onBlur={handleBlur}
                                 disabled={isLoading}
                                 required
-                                className={`input ${errors.username ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200' : ''}`}
+                                className={`input py-2 ${errors.username ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200' : ''}`}
                                 placeholder="Choose a username"
                             />
                             {errors.username && (
@@ -257,7 +191,7 @@ const Signup = () => {
 
                         {/* Email */}
                         <div>
-                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
+                            <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">
                                 Email address
                             </label>
                             <input
@@ -268,7 +202,7 @@ const Signup = () => {
                                 onBlur={handleBlur}
                                 disabled={isLoading}
                                 required
-                                className={`input ${errors.email ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200' : ''}`}
+                                className={`input py-2 ${errors.email ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200' : ''}`}
                                 placeholder="you@example.com"
                             />
                             {errors.email && (
@@ -278,7 +212,7 @@ const Signup = () => {
 
                         {/* Password */}
                         <div>
-                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
+                            <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">
                                 Password
                             </label>
                             <div className="relative">
@@ -290,7 +224,7 @@ const Signup = () => {
                                     onBlur={handleBlur}
                                     disabled={isLoading}
                                     required
-                                    className={`input pr-12 ${errors.password ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200' : ''}`}
+                                    className={`input py-2 pr-12 ${errors.password ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200' : ''}`}
                                     placeholder="Create a password"
                                 />
                                 <button
@@ -298,7 +232,7 @@ const Signup = () => {
                                     onClick={() => setShowPassword(!showPassword)}
                                     className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors"
                                 >
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </button>
                             </div>
                             {errors.password && (
@@ -307,15 +241,15 @@ const Signup = () => {
 
                             {/* Password Strength */}
                             {signupData.password && !errors.password && (
-                                <div className="flex items-center gap-3 mt-2">
-                                    <div className="flex-1 h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                                <div className="flex items-center gap-3 mt-1.5">
+                                    <div className="flex-1 h-1 bg-stone-200 rounded-full overflow-hidden">
                                         <div
                                             className={`h-full ${getStrengthColor()} transition-all duration-300`}
                                             style={{ width: `${(Math.min(passwordStrength, 5) / 5) * 100}%` }}
                                         />
                                     </div>
-                                    <span className={`text-xs font-medium min-w-[50px] ${passwordStrength <= 2 ? 'text-rose-600' :
-                                            passwordStrength <= 3 ? 'text-amber-600' : 'text-emerald-600'
+                                    <span className={`text-[10px] font-medium min-w-[50px] ${passwordStrength <= 2 ? 'text-rose-600' :
+                                        passwordStrength <= 3 ? 'text-amber-600' : 'text-emerald-600'
                                         }`}>
                                         {getStrengthText()}
                                     </span>
@@ -325,7 +259,7 @@ const Signup = () => {
 
                         {/* Confirm Password */}
                         <div>
-                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
+                            <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">
                                 Confirm password
                             </label>
                             <div className="relative">
@@ -336,9 +270,9 @@ const Signup = () => {
                                     onChange={handleChange}
                                     disabled={isLoading}
                                     required
-                                    className={`input pr-12 ${errors.confirmPassword || (signupData.confirmPassword && !passwordsMatch)
-                                            ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200'
-                                            : ''
+                                    className={`input py-2 pr-12 ${errors.confirmPassword || (signupData.confirmPassword && !passwordsMatch)
+                                        ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200'
+                                        : ''
                                         }`}
                                     placeholder="Confirm your password"
                                 />
@@ -347,7 +281,7 @@ const Signup = () => {
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                     className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors"
                                 >
-                                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </button>
                             </div>
                             {errors.confirmPassword && (
@@ -364,17 +298,17 @@ const Signup = () => {
                         </div>
 
                         {/* Password Requirements Hint */}
-                        <div className="text-xs text-[var(--color-text-muted)] bg-[var(--color-bg-subtle)] p-3 rounded-lg">
+                        <div className="text-[10px] text-[var(--color-text-muted)] bg-[var(--color-bg-subtle)] p-2 rounded-lg">
                             <p className="font-medium mb-1">Password must contain:</p>
-                            <ul className="space-y-0.5">
+                            <ul className="space-y-0.5 grid grid-cols-2 gap-x-2">
                                 <li className={signupData.password.length >= 6 ? 'text-emerald-600' : ''}>
                                     • At least 6 characters
                                 </li>
                                 <li className={/[A-Z]/.test(signupData.password) ? 'text-emerald-600' : ''}>
-                                    • One uppercase letter
+                                    • One uppercase
                                 </li>
                                 <li className={/[a-z]/.test(signupData.password) ? 'text-emerald-600' : ''}>
-                                    • One lowercase letter
+                                    • One lowercase
                                 </li>
                                 <li className={/[0-9]/.test(signupData.password) ? 'text-emerald-600' : ''}>
                                     • One number
@@ -386,7 +320,7 @@ const Signup = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="btn-primary w-full flex items-center justify-center gap-2 py-3 mt-2"
+                            className="btn-primary w-full flex items-center justify-center gap-2 py-2.5 mt-2 text-sm"
                         >
                             {isLoading ? (
                                 "Creating account..."
@@ -400,11 +334,11 @@ const Signup = () => {
                     </form>
 
                     {/* Divider */}
-                    <div className="relative my-6">
+                    <div className="relative my-4">
                         <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-[var(--color-border)]"></div>
                         </div>
-                        <div className="relative flex justify-center text-sm">
+                        <div className="relative flex justify-center text-xs">
                             <span className="px-4 bg-[var(--color-bg)] text-[var(--color-text-muted)]">
                                 Already have an account?
                             </span>
@@ -414,22 +348,13 @@ const Signup = () => {
                     {/* Sign In Link */}
                     <Link
                         to="/signin"
-                        className="block w-full text-center py-3 px-4 rounded-xl border-2 border-[var(--color-border)] text-[var(--color-text-primary)] font-medium hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-all"
+                        className="block w-full text-center py-2.5 px-4 rounded-xl border-2 border-[var(--color-border)] text-[var(--color-text-primary)] font-medium text-sm hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-all"
                     >
                         Sign in instead
                     </Link>
-
-                    {/* Footer */}
-                    <p className="text-center text-xs text-[var(--color-text-muted)] mt-6">
-                        By creating an account, you agree to our{" "}
-                        <a href="#" className="text-[var(--color-accent)] hover:underline">Terms</a>
-                        {" "}and{" "}
-                        <a href="#" className="text-[var(--color-accent)] hover:underline">Privacy Policy</a>
-                    </p>
                 </div>
             </div>
         </div>
     );
 };
-
 export default Signup;
