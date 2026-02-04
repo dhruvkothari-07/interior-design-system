@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-import Sidebar from './Sidebar';
+import Layout from './Layout';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
 
@@ -48,128 +48,128 @@ const ClientDetail = () => {
     if (!clientData) return <div className="flex h-screen bg-gray-100 justify-center items-center"><p>Client not found.</p></div>;
 
     return (
-        <div className="flex h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 text-gray-800">
-            <Sidebar />
-            <main className="flex-1 p-4 md:p-8 overflow-y-auto pt-20 md:pt-8">
-                <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
-                    <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Client Hub: {clientData.name}</h1>
-                    <button onClick={() => navigate('/clients')} className="bg-gray-600 text-white px-5 py-2 rounded-lg shadow hover:bg-gray-700 transition">
-                        Back to Clients List
-                    </button>
-                </header>
+        <Layout>
+            <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">Client Hub: {clientData.name}</h1>
+                    <p className="text-gray-500 mt-1">View client quotations and projects</p>
+                </div>
+                <button onClick={() => navigate('/clients')} className="flex items-center gap-2 px-6 py-2.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors">
+                    Back to Clients
+                </button>
+            </header>
 
-                {/* Client Contact Info */}
-                <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 mb-8">
-                    <h3 className="text-xl font-semibold mb-4">Contact Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <p><strong>Email:</strong> {clientData.email || 'N/A'}</p>
-                        <p><strong>Phone:</strong> {clientData.phone || 'N/A'}</p>
-                        <p className="md:col-span-2"><strong>Address:</strong> {clientData.address || 'N/A'}</p>
+            {/* Client Contact Info */}
+            <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 mb-8">
+                <h3 className="text-xl font-semibold mb-4">Contact Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <p><strong>Email:</strong> {clientData.email || 'N/A'}</p>
+                    <p><strong>Phone:</strong> {clientData.phone || 'N/A'}</p>
+                    <p className="md:col-span-2"><strong>Address:</strong> {clientData.address || 'N/A'}</p>
+                </div>
+            </section>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Quotations Section */}
+                <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                    <h3 className="text-xl font-semibold mb-4">Quotations</h3>
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto max-h-96">
+                        {clientData.quotations && clientData.quotations.length > 0 ? (
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50 sticky top-0">
+                                    <tr>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Title</th>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
+                                        <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600 uppercase">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-100">
+                                    {clientData.quotations.map(q => (
+                                        <tr key={q.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/quotations/${q.id}`)}>
+                                            <td className="px-4 py-3 font-medium text-indigo-600">{q.title}</td>
+                                            <td className="px-4 py-3"><span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(q.status)}`}>{q.status}</span></td>
+                                            <td className="px-4 py-3 text-right">{q.total_amount ? formatCurrency(q.total_amount) : 'N/A'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <p className="text-center text-gray-400 italic py-4">No quotations found for this client.</p>
+                        )}
+                    </div>
+
+                    {/* Mobile Cards */}
+                    <div className="md:hidden space-y-3">
+                        {clientData.quotations && clientData.quotations.length > 0 ? (
+                            clientData.quotations.map(q => (
+                                <div key={q.id} onClick={() => navigate(`/quotations/${q.id}`)} className="bg-gray-50 p-4 rounded-lg border border-gray-100 active:bg-gray-100 transition-colors">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <span className="font-medium text-indigo-600 text-sm">{q.title}</span>
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getStatusBadge(q.status)}`}>{q.status}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-gray-500 text-xs">Amount</span>
+                                        <span className="font-semibold text-gray-700">{q.total_amount ? formatCurrency(q.total_amount) : 'N/A'}</span>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-center text-gray-400 italic py-4 text-sm">No quotations found.</p>
+                        )}
                     </div>
                 </section>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Quotations Section */}
-                    <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                        <h3 className="text-xl font-semibold mb-4">Quotations</h3>
-                        {/* Desktop Table */}
-                        <div className="hidden md:block overflow-x-auto max-h-96">
-                            {clientData.quotations && clientData.quotations.length > 0 ? (
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50 sticky top-0">
-                                        <tr>
-                                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Title</th>
-                                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                                            <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600 uppercase">Amount</th>
+                {/* Projects Section */}
+                <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                    <h3 className="text-xl font-semibold mb-4">Projects</h3>
+                    <div className="hidden md:block overflow-x-auto max-h-96">
+                        {clientData.projects && clientData.projects.length > 0 ? (
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50 sticky top-0">
+                                    <tr>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
+                                        <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600 uppercase">Budget</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-100">
+                                    {clientData.projects.map(p => (
+                                        <tr key={p.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/projects/${p.id}`)}>
+                                            <td className="px-4 py-3 font-medium text-indigo-600">{p.name}</td>
+                                            <td className="px-4 py-3"><span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(p.status)}`}>{p.status}</span></td>
+                                            <td className="px-4 py-3 text-right">{p.budget ? formatCurrency(p.budget) : 'N/A'}</td>
                                         </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-100">
-                                        {clientData.quotations.map(q => (
-                                            <tr key={q.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/quotations/${q.id}`)}>
-                                                <td className="px-4 py-3 font-medium text-indigo-600">{q.title}</td>
-                                                <td className="px-4 py-3"><span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(q.status)}`}>{q.status}</span></td>
-                                                <td className="px-4 py-3 text-right">{q.total_amount ? formatCurrency(q.total_amount) : 'N/A'}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            ) : (
-                                <p className="text-center text-gray-400 italic py-4">No quotations found for this client.</p>
-                            )}
-                        </div>
+                                    ))}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <p className="text-center text-gray-400 italic py-4">No projects found for this client.</p>
+                        )}
+                    </div>
 
-                        {/* Mobile Cards */}
-                        <div className="md:hidden space-y-3">
-                            {clientData.quotations && clientData.quotations.length > 0 ? (
-                                clientData.quotations.map(q => (
-                                    <div key={q.id} onClick={() => navigate(`/quotations/${q.id}`)} className="bg-gray-50 p-4 rounded-lg border border-gray-100 active:bg-gray-100 transition-colors">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <span className="font-medium text-indigo-600 text-sm">{q.title}</span>
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getStatusBadge(q.status)}`}>{q.status}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-500 text-xs">Amount</span>
-                                            <span className="font-semibold text-gray-700">{q.total_amount ? formatCurrency(q.total_amount) : 'N/A'}</span>
-                                        </div>
+                    {/* Mobile Cards */}
+                    <div className="md:hidden space-y-3">
+                        {clientData.projects && clientData.projects.length > 0 ? (
+                            clientData.projects.map(p => (
+                                <div key={p.id} onClick={() => navigate(`/projects/${p.id}`)} className="bg-gray-50 p-4 rounded-lg border border-gray-100 active:bg-gray-100 transition-colors">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <span className="font-medium text-indigo-600 text-sm">{p.name}</span>
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getStatusBadge(p.status)}`}>{p.status}</span>
                                     </div>
-                                ))
-                            ) : (
-                                <p className="text-center text-gray-400 italic py-4 text-sm">No quotations found.</p>
-                            )}
-                        </div>
-                    </section>
-
-                    {/* Projects Section */}
-                    <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                        <h3 className="text-xl font-semibold mb-4">Projects</h3>
-                        <div className="hidden md:block overflow-x-auto max-h-96">
-                            {clientData.projects && clientData.projects.length > 0 ? (
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50 sticky top-0">
-                                        <tr>
-                                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
-                                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                                            <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600 uppercase">Budget</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-100">
-                                        {clientData.projects.map(p => (
-                                            <tr key={p.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/projects/${p.id}`)}>
-                                                <td className="px-4 py-3 font-medium text-indigo-600">{p.name}</td>
-                                                <td className="px-4 py-3"><span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(p.status)}`}>{p.status}</span></td>
-                                                <td className="px-4 py-3 text-right">{p.budget ? formatCurrency(p.budget) : 'N/A'}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            ) : (
-                                <p className="text-center text-gray-400 italic py-4">No projects found for this client.</p>
-                            )}
-                        </div>
-
-                        {/* Mobile Cards */}
-                        <div className="md:hidden space-y-3">
-                            {clientData.projects && clientData.projects.length > 0 ? (
-                                clientData.projects.map(p => (
-                                    <div key={p.id} onClick={() => navigate(`/projects/${p.id}`)} className="bg-gray-50 p-4 rounded-lg border border-gray-100 active:bg-gray-100 transition-colors">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <span className="font-medium text-indigo-600 text-sm">{p.name}</span>
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getStatusBadge(p.status)}`}>{p.status}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-500 text-xs">Budget</span>
-                                            <span className="font-semibold text-gray-700">{p.budget ? formatCurrency(p.budget) : 'N/A'}</span>
-                                        </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-gray-500 text-xs">Budget</span>
+                                        <span className="font-semibold text-gray-700">{p.budget ? formatCurrency(p.budget) : 'N/A'}</span>
                                     </div>
-                                ))
-                            ) : (
-                                <p className="text-center text-gray-400 italic py-4 text-sm">No projects found.</p>
-                            )}
-                        </div>
-                    </section>
-                </div>
-            </main>
-        </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-center text-gray-400 italic py-4 text-sm">No projects found.</p>
+                        )}
+                    </div>
+                </section>
+            </div>
+        </Layout>
     );
 };
 

@@ -3,6 +3,7 @@ import axios from 'axios';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { API_URL } from '../../config';
+import { Download, Save } from 'lucide-react';
 
 const PreviewTab = ({ quotation, setQuotation }) => {
     const [rooms, setRooms] = useState([]);
@@ -53,12 +54,10 @@ const PreviewTab = ({ quotation, setQuotation }) => {
             const token = localStorage.getItem("token");
             setIsLoading(true);
             try {
-                // Initialize calculation fields from prop if available (or refetch if safer)
                 setLaborCost(Number(quotation.labor_cost) || 0);
                 setDesignFeeType(quotation.design_fee_type || 'percentage');
                 setDesignFeeValue(Number(quotation.design_fee_value) || 0);
 
-                // Fetch rooms and their materials
                 const resRooms = await axios.get(`${API_URL}/quotations/${quotation.id}/rooms`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
@@ -76,7 +75,7 @@ const PreviewTab = ({ quotation, setQuotation }) => {
             }
         };
         fetchDeepData();
-    }, [quotation.id, quotation.labor_cost]); // Re-fetch if ID or prop labor cost changes
+    }, [quotation.id, quotation.labor_cost]);
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-IN', {
@@ -146,7 +145,6 @@ const PreviewTab = ({ quotation, setQuotation }) => {
 
     const handleDownloadPdf = async () => {
         setIsPrinting(true);
-        // Wait for render cycle
         setTimeout(async () => {
             const element = printRef.current;
             if (!element) return;
@@ -172,23 +170,25 @@ const PreviewTab = ({ quotation, setQuotation }) => {
     return (
         <div className="flex flex-col gap-6 animate-fade-in-up">
             {/* Toolbar */}
-            <div className="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl border border-gray-200 gap-4">
-                <h3 className="font-semibold text-gray-700">Preview & Export</h3>
+            <div className="flex flex-col md:flex-row justify-between items-center bg-white p-5 rounded-2xl border border-gray-100 shadow-sm gap-4">
+                <h3 className="font-bold text-gray-900 text-lg">Preview & Export</h3>
                 <div className="flex gap-3">
-                    <button onClick={handleSaveFinalTotal} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm transition shadow-sm">
+                    <button onClick={handleSaveFinalTotal} className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 font-medium text-sm transition shadow-lg shadow-emerald-200">
+                        <Save className="w-4 h-4" />
                         Save Totals
                     </button>
-                    <button onClick={handleDownloadPdf} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium text-sm transition shadow-sm">
+                    <button onClick={handleDownloadPdf} className="flex items-center gap-2 px-5 py-2.5 bg-theme-orange text-white rounded-xl hover:bg-orange-700 font-medium text-sm transition shadow-lg shadow-orange-200">
+                        <Download className="w-4 h-4" />
                         Download PDF
                     </button>
                 </div>
             </div>
 
             {/* Print Area */}
-            <div className="flex justify-center bg-gray-100 p-4 rounded-xl overflow-x-auto">
-                <div ref={printRef} className="bg-white p-4 md:p-8 shadow-lg w-full md:w-[210mm] min-h-[297mm] text-gray-800 text-sm"> {/* A4 Dimensions approx */}
+            <div className="flex justify-center bg-gray-100 p-4 rounded-2xl overflow-x-auto border border-gray-200">
+                <div ref={printRef} className="bg-white p-4 md:p-8 shadow-lg w-full md:w-[210mm] min-h-[297mm] text-gray-800 text-sm">
                     {/* Header */}
-                    <div className="flex justify-between items-start mb-8 border-b pb-6">
+                    <div className="flex justify-between items-start mb-8 border-b pb-6 border-gray-200">
                         <div className="w-1/2">
                             {settings.logo_url && <img src={getImageUrl(settings.logo_url)} alt="Logo" className="h-16 mb-4 object-contain" />}
                             <h1 className="text-2xl font-bold text-gray-900">{settings.company_name}</h1>
@@ -212,17 +212,17 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                             const roomTotal = (room.materials || []).reduce((s, m) => s + (m.price * m.quantity), 0);
                             return (
                                 <div key={room.id} className="mb-6 break-inside-avoid">
-                                    <div className="flex justify-between bg-gray-50 p-2 border-y border-gray-200 font-bold mb-2">
-                                        <span>{room.name}</span>
-                                        <span>{formatCurrency(roomTotal)}</span>
+                                    <div className="flex justify-between bg-gradient-to-r from-orange-50 to-amber-50 p-3 border-y border-orange-100 font-bold mb-2 rounded-lg">
+                                        <span className="text-gray-900">{room.name}</span>
+                                        <span className="text-theme-orange">{formatCurrency(roomTotal)}</span>
                                     </div>
                                     <table className="w-full text-left table-fixed md:table-auto">
-                                        <thead><tr className="text-[10px] md:text-xs text-gray-500 border-b"><th className="pb-1 pl-1 md:pl-2 font-normal w-[40%] md:w-auto">Description</th><th className="pb-1 px-1 md:px-4 text-right font-normal">Rate</th><th className="pb-1 px-1 md:px-4 text-right font-normal">Qty</th><th className="pb-1 pl-1 md:pl-4 text-right font-normal">Amount</th></tr></thead>
+                                        <thead><tr className="text-[10px] md:text-xs text-gray-500 border-b border-gray-100"><th className="pb-2 pl-1 md:pl-2 font-medium w-[40%] md:w-auto">Description</th><th className="pb-2 px-1 md:px-4 text-right font-medium">Rate</th><th className="pb-2 px-1 md:px-4 text-right font-medium">Qty</th><th className="pb-2 pl-1 md:pl-4 text-right font-medium">Amount</th></tr></thead>
                                         <tbody className="text-gray-700">
                                             {room.materials && room.materials.map(m => (
-                                                <tr key={m.id} className="border-b border-gray-100 last:border-0 text-xs md:text-sm">
+                                                <tr key={m.id} className="border-b border-gray-50 last:border-0 text-xs md:text-sm">
                                                     <td className="py-2 pl-1 md:pl-2 pr-1 md:pr-2 break-words">
-                                                        <div className="font-medium">{m.name}</div>
+                                                        <div className="font-medium text-gray-900">{m.name}</div>
                                                         {m.specification && <div className="text-[10px] md:text-xs text-gray-500">{m.specification}</div>}
                                                     </td>
                                                     <td className="py-2 px-1 md:px-4 text-right whitespace-nowrap">{formatCurrency(m.price)}</td>
@@ -244,15 +244,15 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                             <h4 className="font-bold text-gray-800 mb-2 text-xs uppercase tracking-wide">Terms & Conditions</h4>
                             <p className="text-xs text-gray-500 whitespace-pre-line leading-relaxed">{settings.terms_and_conditions}</p>
                         </div>
-                        <div className="w-full md:w-1/2 md:pl-8 md:border-l">
+                        <div className="w-full md:w-1/2 md:pl-8 md:border-l border-gray-200">
                             <div className="space-y-2 text-right">
-                                <div className="flex justify-between"><span>Material Cost</span><span>{formatCurrency(materialsTotal)}</span></div>
+                                <div className="flex justify-between"><span className="text-gray-600">Material Cost</span><span className="font-medium">{formatCurrency(materialsTotal)}</span></div>
                                 <div className="flex justify-between items-center text-gray-600">
                                     <span>Labor Cost</span>
                                     {isPrinting ? (
                                         <span className="font-medium">{formatCurrency(laborCost)}</span>
                                     ) : (
-                                        <input type="number" value={laborCost} onChange={(e) => setLaborCost(e.target.value)} className="w-24 text-right border-b border-gray-300 focus:outline-none focus:border-indigo-500 text-sm py-0.5" />
+                                        <input type="number" value={laborCost} onChange={(e) => setLaborCost(e.target.value)} className="w-24 text-right border-b-2 border-orange-200 focus:outline-none focus:border-theme-orange text-sm py-0.5 bg-transparent" />
                                     )}
                                 </div>
                                 <div className="flex justify-between items-center text-gray-600">
@@ -261,13 +261,13 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                                         {isPrinting ? (
                                             <span className="font-medium">{formatCurrency(calculatedDesignFee)}</span>
                                         ) : (
-                                            <input type="number" value={designFeeValue} onChange={(e) => setDesignFeeValue(e.target.value)} className="w-16 text-right border-b border-gray-300 focus:outline-none focus:border-indigo-500 text-sm py-0.5" />
+                                            <input type="number" value={designFeeValue} onChange={(e) => setDesignFeeValue(e.target.value)} className="w-16 text-right border-b-2 border-orange-200 focus:outline-none focus:border-theme-orange text-sm py-0.5 bg-transparent" />
                                         )}
                                     </div>
                                 </div>
-                                <div className="flex justify-between pt-2 border-t font-semibold"><span>Subtotal</span><span>{formatCurrency(taxableAmount)}</span></div>
+                                <div className="flex justify-between pt-2 border-t border-gray-200 font-semibold"><span>Subtotal</span><span>{formatCurrency(taxableAmount)}</span></div>
                                 <div className="flex justify-between text-gray-600"><span>Tax ({taxPercentage}%)</span><span>{formatCurrency(taxAmount)}</span></div>
-                                <div className="flex justify-between pt-2 border-t-2 border-gray-800 text-xl font-bold mt-2"><span>Total</span><span>{formatCurrency(finalTotal)}</span></div>
+                                <div className="flex justify-between pt-3 border-t-2 border-theme-orange text-xl font-bold mt-2 text-theme-orange"><span>Total</span><span>{formatCurrency(finalTotal)}</span></div>
                             </div>
                         </div>
                     </div>

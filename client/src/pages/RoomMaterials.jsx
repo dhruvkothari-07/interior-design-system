@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
-import Sidebar from './Sidebar';
+import Layout from './Layout';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
 import { Check, Plus, Minus, X, Edit2 } from 'lucide-react';
@@ -420,9 +420,8 @@ const RoomMaterials = () => {
     if (!quotation) return <div className="flex h-screen bg-gray-100 justify-center items-center"><p>Quotation not found.</p></div>;
 
     return (
-        <div className="flex h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 text-gray-800">
-            <Sidebar />
-            <div className="flex flex-1 overflow-hidden flex-col md:flex-row pt-16 md:pt-0">
+        <Layout>
+            <div className="flex flex-1 overflow-hidden flex-col md:flex-row pt-6 md:pt-0 h-[calc(100vh-64px)]">
                 {/* Mobile Room Selector */}
                 <div className="md:hidden bg-white border-b p-4 flex-shrink-0">
                     <label className="block text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">Current Room</label>
@@ -771,7 +770,7 @@ const RoomMaterials = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </Layout>
     );
 };
 

@@ -17,12 +17,23 @@ function authMiddleware(req, res, next) {
 
     jwt.verify(token, JWT_SECRET, (err, decodedUser) => {
         if (err) {
-            console.error("JWT Verification Error:", err.message); // Add this line
+            console.error("JWT Verification Error:", err.message);
             return res.status(403).json({ message: "Invalid or expired token." });
         }
         req.user = decodedUser;
         next();
     });
 }
+
+const requireRole = (role) => {
+    return (req, res, next) => {
+        if (!req.user || req.user.role !== role) {
+            return res.status(403).json({ message: "Access denied. Insufficient permissions." });
+        }
+        next();
+    };
+};
+
+authMiddleware.requireRole = requireRole;
 
 module.exports = authMiddleware;

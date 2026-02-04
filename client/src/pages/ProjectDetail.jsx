@@ -6,7 +6,7 @@ import React, {
   useRef
 } from "react";
 import axios from "axios";
-import Sidebar from "./Sidebar";
+import Layout from "./Layout";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -45,9 +45,9 @@ const StatCard = ({ label, value, subLabel, progress, className = "" }) => (
     )}
     {progress !== undefined && (
       <div className="mt-3 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-        <div 
-          className={`h-full rounded-full ${progress > 100 ? 'bg-red-500' : 'bg-emerald-600'}`} 
-          style={{ width: `${Math.min(progress, 100)}%` }} 
+        <div
+          className={`h-full rounded-full ${progress > 100 ? 'bg-red-500' : 'bg-emerald-600'}`}
+          style={{ width: `${Math.min(progress, 100)}%` }}
         />
       </div>
     )}
@@ -56,7 +56,7 @@ const StatCard = ({ label, value, subLabel, progress, className = "" }) => (
 
 const PhaseStepper = ({ currentStatus }) => {
   const phases = ["Concept", "Design", "Procurement", "Execution", "Handover"];
-  
+
   // Map backend status to a visual phase index
   const statusMap = {
     "Not Started": 0,
@@ -64,7 +64,7 @@ const PhaseStepper = ({ currentStatus }) => {
     "In Progress": 3, // Assuming execution is the main active state
     "Completed": 4
   };
-  
+
   const activeIndex = statusMap[currentStatus] ?? 0;
 
   return (
@@ -72,17 +72,16 @@ const PhaseStepper = ({ currentStatus }) => {
       <div className="flex items-center justify-between relative">
         {/* Connecting Line */}
         <div className="absolute left-0 top-4 transform w-full h-0.5 bg-slate-100 -z-10" />
-        
+
         {phases.map((phase, index) => {
           const isCompleted = index <= activeIndex;
           const isCurrent = index === activeIndex;
-          
+
           return (
             <div key={phase} className="flex flex-col items-center gap-3 bg-white px-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                isCurrent ? "bg-slate-800 text-white ring-4 ring-slate-100 scale-110" :
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${isCurrent ? "bg-slate-800 text-white ring-4 ring-slate-100 scale-110" :
                 isCompleted ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-400"
-              }`}>
+                }`}>
                 {index + 1}
               </div>
               <span className={`text-xs font-medium uppercase tracking-wide ${isCurrent ? "text-slate-800" : "text-slate-400"}`}>
@@ -113,7 +112,7 @@ const TaskModal = ({ isOpen, onClose, onSubmit, newTaskData, setNewTaskData }) =
             <X className="w-5 h-5" />
           </button>
         </div>
-        
+
         <form onSubmit={onSubmit} className="p-6 space-y-4">
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1">Task Title <span className="text-red-500">*</span></label>
@@ -223,9 +222,9 @@ const TasksPanel = ({
       {activeFilter && (
         <div className="bg-indigo-50 border border-indigo-100 text-indigo-700 px-4 py-3 rounded-lg mb-4 flex justify-between items-center text-sm shadow-sm">
           <span className="flex items-center gap-2">
-             <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-             Filtering by: <strong>{activeFilter === 'high' ? 'High Priority' : 'Overdue Tasks'}</strong>
-             <span className="text-indigo-400">({tasks.length} found)</span>
+            <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+            Filtering by: <strong>{activeFilter === 'high' ? 'High Priority' : 'Overdue Tasks'}</strong>
+            <span className="text-indigo-400">({tasks.length} found)</span>
           </span>
           <button onClick={onClearFilter} className="text-indigo-800 hover:text-indigo-950 font-medium hover:underline">
             Clear Filter
@@ -260,14 +259,13 @@ const TasksPanel = ({
                     )}
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex gap-1">
-                         <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">
-                           {task.trade_category || 'General'}
-                         </span>
-                         <span className={`text-[10px] px-2 py-0.5 rounded border ${
-                           (task.priority || 'Medium') === 'High' ? 'bg-red-50 text-red-600 border-red-100' :
-                           (task.priority || 'Medium') === 'Medium' ? 'bg-orange-50 text-orange-600 border-orange-100' :
-                           'bg-slate-50 text-slate-500 border-slate-200'
-                         }`}>{task.priority || 'Medium'}</span>
+                        <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">
+                          {task.trade_category || 'General'}
+                        </span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded border ${(task.priority || 'Medium') === 'High' ? 'bg-red-50 text-red-600 border-red-100' :
+                          (task.priority || 'Medium') === 'Medium' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                            'bg-slate-50 text-slate-500 border-slate-200'
+                          }`}>{task.priority || 'Medium'}</span>
                       </div>
                       {task.due_date && (
                         <div className={`flex items-center gap-1 text-[10px] ${new Date(task.due_date) < new Date() && task.status !== 'Done' ? 'text-red-500 font-medium' : 'text-slate-400'}`}>
@@ -299,53 +297,53 @@ const MaterialsPanel = ({ rooms = [] }) => {
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-serif text-slate-800">Scope of Work & Materials</h3>
       </div>
-      
+
       {rooms.length > 0 ? (
         rooms.map(room => (
           <div key={room.id} className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-             <div className="bg-slate-50 px-6 py-3 border-b border-slate-100 flex justify-between items-center">
-                <h4 className="font-semibold text-slate-700">{room.name}</h4>
-                <span className="text-xs font-medium bg-white border border-slate-200 px-2 py-1 rounded text-slate-500">
-                  {room.items?.length || 0} Items
-                </span>
-             </div>
-             <div className="divide-y divide-slate-100">
-                {room.items && room.items.length > 0 ? (
-                   room.items.map(item => (
-                      <div key={item.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
-                         <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider border border-slate-200 px-1.5 rounded">
-                                    {item.unit}
-                                </span>
-                                <p className="font-medium text-slate-800">{item.name}</p>
-                            </div>
-                            {item.specification && (
-                                <p className="text-sm text-slate-500 leading-relaxed">{item.specification}</p>
-                            )}
-                         </div>
-                         <div className="flex items-center gap-6 text-sm">
-                            <div className="text-right">
-                                <p className="text-xs text-slate-400 uppercase">Quantity</p>
-                                <p className="font-semibold text-slate-700">{item.quantity}</p>
-                            </div>
-                            <div className="text-right min-w-[80px]">
-                                <p className="text-xs text-slate-400 uppercase">Status</p>
-                                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1"></span>
-                                <span className="text-slate-700">Approved</span>
-                            </div>
-                         </div>
+            <div className="bg-slate-50 px-6 py-3 border-b border-slate-100 flex justify-between items-center">
+              <h4 className="font-semibold text-slate-700">{room.name}</h4>
+              <span className="text-xs font-medium bg-white border border-slate-200 px-2 py-1 rounded text-slate-500">
+                {room.items?.length || 0} Items
+              </span>
+            </div>
+            <div className="divide-y divide-slate-100">
+              {room.items && room.items.length > 0 ? (
+                room.items.map(item => (
+                  <div key={item.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider border border-slate-200 px-1.5 rounded">
+                          {item.unit}
+                        </span>
+                        <p className="font-medium text-slate-800">{item.name}</p>
                       </div>
-                   ))
-                ) : (
-                   <p className="p-6 text-center text-slate-400 italic text-sm">No items in this room.</p>
-                )}
-             </div>
+                      {item.specification && (
+                        <p className="text-sm text-slate-500 leading-relaxed">{item.specification}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-6 text-sm">
+                      <div className="text-right">
+                        <p className="text-xs text-slate-400 uppercase">Quantity</p>
+                        <p className="font-semibold text-slate-700">{item.quantity}</p>
+                      </div>
+                      <div className="text-right min-w-[80px]">
+                        <p className="text-xs text-slate-400 uppercase">Status</p>
+                        <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1"></span>
+                        <span className="text-slate-700">Approved</span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="p-6 text-center text-slate-400 italic text-sm">No items in this room.</p>
+              )}
+            </div>
           </div>
         ))
       ) : (
         <div className="text-center py-12 bg-white rounded-xl border border-dashed border-slate-200">
-            <p className="text-slate-400">No materials found linked to this project's quotation.</p>
+          <p className="text-slate-400">No materials found linked to this project's quotation.</p>
         </div>
       )}
     </div>
@@ -364,7 +362,7 @@ const ExpensePanel = ({
   totalExpenses
 }) => {
   const fileInputRef = useRef(null);
-  
+
   const remaining = (Number(budget) || 0) - totalExpenses;
   const isOverBudget = remaining < 0;
 
@@ -376,12 +374,12 @@ const ExpensePanel = ({
   }, [newExpense.receipt]);
 
   const categories = [
-    'Material Purchase', 
-    'FFE (Furniture & Fixtures)', 
-    'Contractor Payment', 
-    'Daily Labor Payout (Cash)', 
-    'Design Fees', 
-    'Permits/Official', 
+    'Material Purchase',
+    'FFE (Furniture & Fixtures)',
+    'Contractor Payment',
+    'Daily Labor Payout (Cash)',
+    'Design Fees',
+    'Permits/Official',
     'Miscellaneous'
   ];
 
@@ -400,7 +398,7 @@ const ExpensePanel = ({
             </span>
           </div>
         </div>
-        
+
         {/* Add Expense Form - Grid Layout */}
         <form onSubmit={onAddExpense} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
           <div className="md:col-span-3">
@@ -414,7 +412,7 @@ const ExpensePanel = ({
               className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
           </div>
-          
+
           <div className="md:col-span-2">
             <label className="block text-xs font-medium text-slate-500 mb-1">Category</label>
             <select
@@ -507,9 +505,9 @@ const ExpensePanel = ({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                     {expense.receipt_path ? (
-                      <a 
-                        href={`${SERVER_URL}/${expense.receipt_path.replace(/\\/g, '/')}`} 
-                        target="_blank" 
+                      <a
+                        href={`${SERVER_URL}/${expense.receipt_path.replace(/\\/g, '/')}`}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 text-emerald-600 hover:underline hover:text-emerald-700"
                       >
@@ -570,7 +568,7 @@ const NotesFeed = ({ notes = [], newNote, setNewNote, onAddNote }) => (
     <div className="flex justify-between items-center mb-4">
       <h3 className="text-lg font-serif text-slate-800">Activity & Notes</h3>
     </div>
-    
+
     <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
       {notes.length > 0 ? (
         notes.map((note) => (
@@ -620,7 +618,7 @@ const FilesPanel = ({ files = [], onFileUpload, onFileDelete }) => {
   const handleUploadAreaClick = () => {
     fileInputRef.current.click();
   };
-  
+
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -638,17 +636,17 @@ const FilesPanel = ({ files = [], onFileUpload, onFileDelete }) => {
   };
 
   const getFileIcon = (fileType) => {
-  if (!fileType) return FileIcon;
+    if (!fileType) return FileIcon;
 
-  if (fileType.startsWith("image/")) return ImageIcon;
-  if (fileType === "application/pdf") return FileText;
-  if (fileType.includes("spreadsheet") || fileType.includes("excel"))
-    return FileSpreadsheet;
-  if (fileType.includes("word") || fileType.includes("document"))
-    return FileText;
+    if (fileType.startsWith("image/")) return ImageIcon;
+    if (fileType === "application/pdf") return FileText;
+    if (fileType.includes("spreadsheet") || fileType.includes("excel"))
+      return FileSpreadsheet;
+    if (fileType.includes("word") || fileType.includes("document"))
+      return FileText;
 
-  return FileIcon;
-};
+    return FileIcon;
+  };
 
   return (
     <section className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
@@ -785,27 +783,27 @@ const ProjectDetail = () => {
   // Fetch Project Materials (from linked Quotation)
   useEffect(() => {
     if (activeTab === 'design' && project?.quotation_id && projectMaterials.length === 0) {
-        const fetchMaterials = async () => {
-            try {
-                const token = localStorage.getItem("token");
-                // 1. Fetch rooms
-                const roomsRes = await axios.get(`${API_URL}/quotations/${project.quotation_id}/rooms`, {
-                     headers: { Authorization: `Bearer ${token}` }
-                });
-                
-                // 2. Fetch items for each room
-                const roomsData = await Promise.all(roomsRes.data.map(async (room) => {
-                    const matRes = await axios.get(`${API_URL}/rooms/${room.id}/materials`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    return { ...room, items: matRes.data };
-                }));
-                setProjectMaterials(roomsData);
-            } catch (err) {
-                console.error("Error loading project materials", err);
-            }
-        };
-        fetchMaterials();
+      const fetchMaterials = async () => {
+        try {
+          const token = localStorage.getItem("token");
+          // 1. Fetch rooms
+          const roomsRes = await axios.get(`${API_URL}/quotations/${project.quotation_id}/rooms`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          // 2. Fetch items for each room
+          const roomsData = await Promise.all(roomsRes.data.map(async (room) => {
+            const matRes = await axios.get(`${API_URL}/rooms/${room.id}/materials`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            return { ...room, items: matRes.data };
+          }));
+          setProjectMaterials(roomsData);
+        } catch (err) {
+          console.error("Error loading project materials", err);
+        }
+      };
+      fetchMaterials();
     }
   }, [activeTab, project, projectMaterials.length]);
 
@@ -919,7 +917,7 @@ const ProjectDetail = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      
+
       const formData = new FormData();
       formData.append("description", newExpense.description);
       formData.append("amount", newExpense.amount);
@@ -1010,33 +1008,33 @@ const ProjectDetail = () => {
   const handleTaskStatusChange = async (taskId, currentStatus) => {
     // Cycle status: To Do → In Progress → Done → To Do
     const nextStatus =
-        currentStatus === "To Do"
-            ? "In Progress"
-            : currentStatus === "In Progress"
-            ? "Done"
-            : "To Do";
+      currentStatus === "To Do"
+        ? "In Progress"
+        : currentStatus === "In Progress"
+          ? "Done"
+          : "To Do";
 
     try {
-        const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
 
-        await axios.put(
-            `${API_URL}/tasks/${taskId}`,
-            { status: nextStatus },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
+      await axios.put(
+        `${API_URL}/tasks/${taskId}`,
+        { status: nextStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-        // Update local state
-        setProject(prev => ({
-            ...prev,
-            tasks: prev.tasks.map(task =>
-                task.id === taskId ? { ...task, status: nextStatus } : task
-            )
-        }));
+      // Update local state
+      setProject(prev => ({
+        ...prev,
+        tasks: prev.tasks.map(task =>
+          task.id === taskId ? { ...task, status: nextStatus } : task
+        )
+      }));
     } catch (err) {
-        console.error("Error updating task:", err);
-        alert("Failed to update task status.");
+      console.error("Error updating task:", err);
+      alert("Failed to update task status.");
     }
-};
+  };
 
 
   const handleProjectStatusChange = async (e) => {
@@ -1086,18 +1084,17 @@ const ProjectDetail = () => {
   const variance = project.budget - totalExpenses;
 
   return (
-    <div className="flex h-screen bg-stone-50 text-slate-800 font-sans">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto pt-16 md:pt-0">
-        
+    <Layout>
+      <div>
+
         {/* HERO HEADER */}
-        <div className="relative h-64 w-full bg-slate-900">
-          <div 
+        <div className="relative h-64 w-full bg-slate-900 rounded-2xl overflow-hidden">
+          <div
             className="absolute inset-0 bg-cover bg-center opacity-40"
             style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&q=80&w=2000")' }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
-          
+
           <div className="absolute bottom-0 left-0 w-full p-4 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div className="text-white">
               <div className="flex items-center gap-3 mb-2">
@@ -1109,21 +1106,21 @@ const ProjectDetail = () => {
               <h1 className="text-4xl font-serif font-medium tracking-tight mb-1">{project.name}</h1>
               <p className="text-slate-300 text-lg font-light">Client: {project.client_name}</p>
             </div>
-            
+
             <div className="flex gap-3">
-               <select
-                  value={project.status}
-                  onChange={handleProjectStatusChange}
-                  className="bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 [&>option]:text-slate-800"
-                >
-                  <option value="Not Started">Not Started</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="On Hold">On Hold</option>
-                  <option value="Completed">Completed</option>
-                </select>
-                <button onClick={() => navigate("/projects")} className="bg-white text-slate-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-100 transition-colors">
-                  Back to List
-                </button>
+              <select
+                value={project.status}
+                onChange={handleProjectStatusChange}
+                className="bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 [&>option]:text-slate-800"
+              >
+                <option value="Not Started">Not Started</option>
+                <option value="In Progress">In Progress</option>
+                <option value="On Hold">On Hold</option>
+                <option value="Completed">Completed</option>
+              </select>
+              <button onClick={() => navigate("/projects")} className="bg-white text-slate-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-100 transition-colors">
+                Back to List
+              </button>
             </div>
           </div>
         </div>
@@ -1141,11 +1138,10 @@ const ProjectDetail = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 py-2 md:py-4 text-[10px] md:text-sm font-medium border-b-2 transition-colors flex-1 md:flex-none ${
-                  activeTab === tab.id
-                    ? "border-emerald-600 text-emerald-700"
-                    : "border-transparent text-slate-500 hover:text-slate-700"
-                }`}
+                className={`flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 py-2 md:py-4 text-[10px] md:text-sm font-medium border-b-2 transition-colors flex-1 md:flex-none ${activeTab === tab.id
+                  ? "border-emerald-600 text-emerald-700"
+                  : "border-transparent text-slate-500 hover:text-slate-700"
+                  }`}
               >
                 <tab.icon className="w-4 h-4 md:w-4 md:h-4" />
                 <span className="hidden md:inline">{tab.label}</span>
@@ -1157,11 +1153,11 @@ const ProjectDetail = () => {
 
         {/* TAB CONTENT */}
         <div className="p-4 md:p-8 min-h-[calc(100vh-300px)]">
-          
+
           {activeTab === "overview" && (
             <div className="space-y-8">
               <PhaseStepper currentStatus={project.status} />
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard
                   label="Total Budget"
@@ -1183,7 +1179,7 @@ const ProjectDetail = () => {
 
               {/* Urgency Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div 
+                <div
                   onClick={() => { setActiveTab('tasks'); setTaskFilter('high'); }}
                   className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex items-center gap-4 relative overflow-hidden cursor-pointer hover:shadow-md transition-all hover:scale-[1.01]"
                 >
@@ -1197,7 +1193,7 @@ const ProjectDetail = () => {
                   </div>
                 </div>
 
-                <div 
+                <div
                   onClick={() => { setActiveTab('tasks'); setTaskFilter('overdue'); }}
                   className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex items-center gap-4 relative overflow-hidden cursor-pointer hover:shadow-md transition-all hover:scale-[1.01]"
                 >
@@ -1214,31 +1210,31 @@ const ProjectDetail = () => {
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-96">
                 <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-100 overflow-y-auto">
-                   <h3 className="text-lg font-serif text-slate-800 mb-4">Progress by Trade</h3>
-                   <div className="space-y-5">
-                     {tradeStats.length > 0 ? (
-                       tradeStats.map((stat) => (
-                         <div key={stat.trade}>
-                           <div className="flex justify-between items-end mb-1">
-                             <span className="text-sm font-medium text-slate-700">{stat.trade}</span>
-                             <span className="text-xs text-slate-500 font-medium">
-                               {stat.percent}% ({stat.completed}/{stat.total})
-                             </span>
-                           </div>
-                           <div className="w-full bg-slate-100 rounded-full h-2">
-                             <div 
-                               className={`h-2 rounded-full transition-all duration-500 ${stat.percent === 100 ? 'bg-emerald-500' : 'bg-slate-800'}`} 
-                               style={{ width: `${stat.percent}%` }} 
-                             />
-                           </div>
-                         </div>
-                       ))
-                     ) : (
-                       <div className="text-center py-8 text-slate-400 text-sm italic">
-                         No tasks tracked yet. Add tasks with trade categories to see progress here.
-                       </div>
-                     )}
-                   </div>
+                  <h3 className="text-lg font-serif text-slate-800 mb-4">Progress by Trade</h3>
+                  <div className="space-y-5">
+                    {tradeStats.length > 0 ? (
+                      tradeStats.map((stat) => (
+                        <div key={stat.trade}>
+                          <div className="flex justify-between items-end mb-1">
+                            <span className="text-sm font-medium text-slate-700">{stat.trade}</span>
+                            <span className="text-xs text-slate-500 font-medium">
+                              {stat.percent}% ({stat.completed}/{stat.total})
+                            </span>
+                          </div>
+                          <div className="w-full bg-slate-100 rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full transition-all duration-500 ${stat.percent === 100 ? 'bg-emerald-500' : 'bg-slate-800'}`}
+                              style={{ width: `${stat.percent}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-slate-400 text-sm italic">
+                        No tasks tracked yet. Add tasks with trade categories to see progress here.
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <NotesFeed notes={project.notes} newNote={newNote} setNewNote={setNewNote} onAddNote={handleAddNote} />
               </div>
@@ -1246,10 +1242,10 @@ const ProjectDetail = () => {
           )}
 
           {activeTab === "tasks" && (
-            <TasksPanel 
-              tasks={visibleTasks} 
-              onOpenAddTask={() => setIsTaskModalOpen(true)} 
-              onToggleTask={handleTaskStatusChange} 
+            <TasksPanel
+              tasks={visibleTasks}
+              onOpenAddTask={() => setIsTaskModalOpen(true)}
+              onToggleTask={handleTaskStatusChange}
               activeFilter={taskFilter}
               onClearFilter={() => setTaskFilter(null)}
             />
@@ -1260,12 +1256,12 @@ const ProjectDetail = () => {
           )}
 
           {activeTab === "financials" && (
-            <ExpensePanel 
-              expenses={project.expenses} 
-              newExpense={newExpense} 
-              setNewExpense={setNewExpense} 
-              onAddExpense={handleAddExpense} 
-              formatCurrency={formatCurrency} 
+            <ExpensePanel
+              expenses={project.expenses}
+              newExpense={newExpense}
+              setNewExpense={setNewExpense}
+              onAddExpense={handleAddExpense}
+              formatCurrency={formatCurrency}
               budget={project.budget}
               totalExpenses={totalExpenses}
             />
@@ -1276,16 +1272,16 @@ const ProjectDetail = () => {
           )}
 
         </div>
-      </main>
 
-      <TaskModal 
-        isOpen={isTaskModalOpen} 
-        onClose={() => setIsTaskModalOpen(false)} 
-        onSubmit={handleAddTask}
-        newTaskData={newTaskData}
-        setNewTaskData={setNewTaskData}
-      />
-    </div>
+        <TaskModal
+          isOpen={isTaskModalOpen}
+          onClose={() => setIsTaskModalOpen(false)}
+          onSubmit={handleAddTask}
+          newTaskData={newTaskData}
+          setNewTaskData={setNewTaskData}
+        />
+      </div>
+    </Layout>
   );
 };
 

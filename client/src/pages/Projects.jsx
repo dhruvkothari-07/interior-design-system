@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from "axios";
-import Sidebar from './Sidebar';
+import Layout from './Layout';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
+import { Search, FolderKanban, User, Calendar, ArrowRight } from 'lucide-react';
 
 const Projects = () => {
     const [projects, setProjects] = useState([]);
@@ -31,104 +32,124 @@ const Projects = () => {
     useEffect(() => {
         const debounceFetch = setTimeout(() => {
             fetchProjects(searchTerm);
-        }, 300); // 300ms debounce to prevent API calls on every keystroke
-
+        }, 300);
         return () => clearTimeout(debounceFetch);
     }, [searchTerm, navigate]);
 
     useEffect(() => {
-        fetchProjects(''); // Initial fetch
-    }, []); // Empty dependency array ensures this runs only once on mount
+        fetchProjects('');
+    }, []);
+
+    const getStatusStyles = (status) => {
+        switch (status?.toLowerCase()) {
+            case 'completed':
+                return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            case 'in progress':
+                return 'bg-blue-50 text-blue-700 border-blue-200';
+            case 'on hold':
+                return 'bg-amber-50 text-amber-700 border-amber-200';
+            default:
+                return 'bg-gray-100 text-gray-600 border-gray-200';
+        }
+    };
+
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
+        }).format(amount || 0);
+    };
 
     return (
-        <div className="flex h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 text-gray-800">
-            <Sidebar />
-            <main className="flex-1 p-4 md:p-8 overflow-y-auto pt-20 md:pt-8">
-                <header className="mb-8 flex items-center justify-between border-b border-gray-300 pb-4">
-                    <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">Projects</h1>
-                </header>
-                <header className="mb-4">
+        <Layout>
+            {/* Header */}
+            <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">Projects</h1>
+                    <p className="text-gray-500 mt-1">Track and manage your active projects</p>
+                </div>
+            </header>
+
+            {/* Search */}
+            <div className="mb-6">
+                <div className="relative max-w-md">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                         type="text"
                         placeholder="Search by project or client name..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full sm:w-1/3 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-orange/50 focus:border-theme-orange transition"
                     />
-                </header>
-                
-                {/* Desktop View: Table */}
-                <section className="hidden md:block bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        {isLoading ? (
-                            <p className="text-center py-8">Loading projects...</p>
-                        ) : projects.length > 0 ? (
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Project Name</th>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Client</th>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                                        <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-100">
-                                    {projects.map((project) => (
-                                        <tr key={project.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 font-medium">{project.name}</td>
-                                            <td className="px-6 py-4 text-gray-500">{project.client_name}</td>
-                                            <td className="px-6 py-4">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                    {'Completed': 'bg-green-100 text-green-700', 'On Hold': 'bg-red-100 text-red-700', 'Not Started': 'bg-gray-100 text-gray-600', 'In Progress': 'bg-yellow-100 text-yellow-700'}[project.status] || 'bg-gray-100 text-gray-600'
-                                                }`}>{project.status}</span>
-                                            </td>
-                                            <td className="px-6 py-4 text-right"><button onClick={() => navigate(`/projects/${project.id}`)} className="text-indigo-600 hover:text-indigo-800">View</button></td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        ) : (
-                            <p className="text-center py-8 italic">No projects found.</p>
-                        )}
-                    </div>
-                </section>
+                </div>
+            </div>
 
-                {/* Mobile View: Cards */}
-                <section className="md:hidden space-y-4">
-                    {isLoading ? (
-                        <p className="text-center py-8">Loading projects...</p>
-                    ) : projects.length > 0 ? (
-                        projects.map((project) => (
-                            <div key={project.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-3">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900">{project.name}</h3>
-                                        <p className="text-sm text-gray-500">{project.client_name}</p>
+            {/* Projects Grid */}
+            {isLoading ? (
+                <div className="flex items-center justify-center h-64">
+                    <p className="text-gray-500">Loading projects...</p>
+                </div>
+            ) : projects.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {projects.map((project) => (
+                        <div
+                            key={project.id}
+                            onClick={() => navigate(`/projects/${project.id}`)}
+                            className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-orange-100 transition-all duration-300 overflow-hidden group cursor-pointer"
+                        >
+                            <div className="p-6">
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-semibold text-lg text-gray-900 truncate group-hover:text-theme-orange transition-colors">
+                                            {project.name}
+                                        </h3>
+                                        <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
+                                            <User className="w-4 h-4" />
+                                            <span className="truncate">{project.client_name || 'No client'}</span>
+                                        </div>
                                     </div>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                        {'Completed': 'bg-green-100 text-green-700', 'On Hold': 'bg-red-100 text-red-700', 'Not Started': 'bg-gray-100 text-gray-600', 'In Progress': 'bg-yellow-100 text-yellow-700'}[project.status] || 'bg-gray-100 text-gray-600'
-                                    }`}>
-                                        {project.status}
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap border ${getStatusStyles(project.status)}`}>
+                                        {project.status || 'Planning'}
                                     </span>
                                 </div>
-                                
-                                <div className="pt-3 border-t border-gray-100 flex justify-between items-center mt-1">
-                                    <span className="text-xs text-gray-400">ID: #{project.id}</span>
-                                    <button 
-                                        onClick={() => navigate(`/projects/${project.id}`)} 
-                                        className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
-                                    >
-                                        View Details →
-                                    </button>
+
+                                {/* Budget Display */}
+                                <div className="p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-100 mb-4">
+                                    <p className="text-xs text-gray-500 font-medium mb-1">Budget</p>
+                                    <p className="text-2xl font-bold text-gray-900">
+                                        {project.budget ? formatCurrency(project.budget) : '—'}
+                                    </p>
+                                </div>
+
+                                {/* Dates */}
+                                <div className="flex items-center gap-2 text-sm text-gray-500">
+                                    <Calendar className="w-4 h-4" />
+                                    <span>
+                                        {project.start_date ? new Date(project.start_date).toLocaleDateString() : 'Not set'}
+                                        {project.end_date && ` - ${new Date(project.end_date).toLocaleDateString()}`}
+                                    </span>
                                 </div>
                             </div>
-                        ))
-                    ) : (
-                        <p className="text-center py-8 italic text-gray-500">No projects found.</p>
-                    )}
-                </section>
-            </main>
-        </div>
+
+                            <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 flex items-center justify-end">
+                                <button className="flex items-center gap-2 px-4 py-2 text-theme-orange hover:bg-orange-50 rounded-lg font-medium text-sm transition">
+                                    <FolderKanban className="w-4 h-4" />
+                                    View Project
+                                    <ArrowRight className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="flex flex-col items-center justify-center h-64 bg-white rounded-2xl border border-gray-100">
+                    <FolderKanban className="w-12 h-12 text-gray-300 mb-4" />
+                    <p className="text-gray-500 italic">No projects found.</p>
+                    <p className="mt-2 text-sm text-gray-400">Create a project from an approved quotation</p>
+                </div>
+            )}
+        </Layout>
     );
 };
 

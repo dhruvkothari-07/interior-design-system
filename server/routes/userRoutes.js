@@ -78,7 +78,7 @@ router.post("/signin", loginLimiter, async (req, res) => {
             return res.status(401).json({ message: "Incorrect Credentials" });
         }
         const token = jwt.sign(
-            { id: user.id, username: user.username },
+            { id: user.id, username: user.username, role: user.role },
             JWT_SECRET,
             { expiresIn: "5h" }
         );
@@ -107,8 +107,8 @@ router.get("/settings", authMiddleware, async (req, res) => {
     }
 });
 
-// PUT /settings - Update company settings
-router.put("/settings", authMiddleware, upload.single('logo'), async (req, res) => {
+// PUT /settings - Update company settings (Admin only)
+router.put("/settings", authMiddleware, authMiddleware.requireRole('admin'), upload.single('logo'), async (req, res) => {
     let { company_name, company_address, company_email, company_phone, default_terms, logo_url } = req.body;
 
     // If file uploaded, use its path (relative to server root)
@@ -137,6 +137,58 @@ router.put("/settings", authMiddleware, upload.single('logo'), async (req, res) 
     } catch (err) {
         console.error("Error updating settings:", err);
         res.status(500).json({ message: "Error updating settings" });
+    }
+});
+
+// --- STAFF MANAGEMENT ROUTES (Admin Only) ---
+
+// GET /staff - List all staff members
+router.get("/staff", authMiddleware, authMiddleware.requireRole('admin'), async (req, res) => {
+    try {
+        // Fetch all users with role 'staff'
+        const [staff] = await db.query("SELECT id, username, email, createdAt FROM users WHERE role = 'staff' ORDER BY createdAt DESC");
+        res.json(staff);
+    } catch (err) {
+        console.error("Error fetching staff:", err);
+        res.status(500).json({ message: "Error fetching staff list" });
+    }
+});
+
+// POST /staff - Create a new staff member
+router.post("/staff", authMiddleware, authMiddleware.requireRole('admin'), async (req, res) => {
+    const { username, email, password } = req.body;
+    if (!username || !email || !password) {
+        return res.status(400).json({ message: "All fields are required" });
+    }
+
+    try {
+        const checkUser = "SELECT * FROM users WHERE username = ? OR email = ?";
+        const [results] = await db.query(checkUser, [username, email]);
+        if (results.length > 0) {
+            return res.status(409).json({ message: "User already exists" });
+        }
+
+        const hashpass = await bcrypt.hash(password, 10);
+        // Explicitly set role to 'staff'
+        const createUser = "INSERT INTO users (username, email, password, role) VALUES(?,?,?, 'staff')";
+        const [result] = await db.query(createUser, [username, email, hashpass]);
+
+        res.status(201).json({ message: "Staff member created successfully", id: result.insertId });
+    } catch (err) {
+        console.error("Create Staff Error:", err);
+        res.status(500).json({ message: "Error creating staff member", error: err.message });
+    }
+});
+
+// DELETE /staff/:id - Remove a staff member
+router.delete("/staff/:id", authMiddleware, authMiddleware.requireRole('admin'), async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query("DELETE FROM users WHERE id = ? AND role = 'staff'", [id]);
+        res.json({ message: "Staff member removed successfully" });
+    } catch (err) {
+        console.error("Delete Staff Error:", err);
+        res.status(500).json({ message: "Error deleting staff member" });
     }
 });
 

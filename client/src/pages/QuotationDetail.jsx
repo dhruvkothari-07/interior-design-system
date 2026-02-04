@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
-import Sidebar from './Sidebar';
+import Layout from './Layout';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
-import { LayoutDashboard, TableProperties, FileText, Plus, X } from 'lucide-react';
+import { LayoutDashboard, TableProperties, FileText, Plus, X, ArrowLeft, Calendar, DollarSign, CheckCircle, Clock } from 'lucide-react';
 
 import OverviewTab from './quotation-tabs/OverviewTab';
 import WorksheetTab from './quotation-tabs/WorksheetTab';
@@ -125,31 +125,63 @@ const QuotationDetail = () => {
     if (!quotation) return null;
 
     return (
-        <div className="flex h-screen bg-gray-50 font-sans text-gray-900">
-            <Sidebar />
+        <Layout>
+            {/* Header with Tabs */}
+            {/* Header with Tabs */}
+            <div className="mb-8">
+                {/* Back Link */}
+                <button
+                    onClick={() => navigate('/quotations')}
+                    className="flex items-center gap-2 text-gray-400 hover:text-gray-600 mb-6 text-sm font-medium transition-colors"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>Back to Quotations</span>
+                </button>
 
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden mt-16 md:mt-0">
-                {/* Header with Tabs */}
-                <header className="bg-white border-b border-gray-200 pt-6 px-8 pb-0 z-20">
-                    <div className="flex justify-between items-center mb-6">
-                        <div>
-                            <div className="flex items-center gap-3 text-sm text-gray-500 mb-1">
-                                <span onClick={() => navigate('/quotations')} className="hover:text-indigo-600 cursor-pointer transition">Quotations</span>
-                                <span>/</span>
-                                <span>{quotation.id}</span>
-                            </div>
-                            <h1 className="text-2xl font-bold text-gray-900">{quotation.title}</h1>
+                <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                    {/* Left: Title & Metadata */}
+                    <div className="flex items-start gap-5">
+                        <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center border border-orange-100 flex-shrink-0">
+                            <FileText className="w-7 h-7 text-theme-orange" />
                         </div>
-                        <div className="text-right">
-                            <p className="text-sm text-gray-500">Total Value</p>
-                            <p className="text-xl font-bold text-indigo-600">
+                        <div>
+                            <div className="flex items-center gap-3 mb-1">
+                                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{quotation.title}</h1>
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${quotation.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
+                                        quotation.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
+                                            'bg-gray-100 text-gray-600'
+                                    }`}>
+                                    {quotation.status || 'Draft'}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-4 text-sm text-gray-500">
+                                <span className="font-medium text-gray-700">{quotation.client_name}</span>
+                                <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                                <span className="flex items-center gap-1">
+                                    <Clock className="w-3.5 h-3.5" />
+                                    Created {new Date(quotation.created_at).toLocaleDateString()}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right: Total Value Card */}
+                    <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-orange-100 flex items-center gap-5">
+                        <div className="w-12 h-12 bg-theme-orange rounded-full flex items-center justify-center shadow-lg shadow-orange-200">
+                            <span className="text-white font-serif text-xl">₹</span>
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-0.5">Total Value</p>
+                            <p className="text-2xl font-bold text-gray-900">
                                 {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(currentSubTotal)}
                             </p>
                         </div>
                     </div>
+                </header>
 
-                    {/* Navigation Tabs */}
-                    <div className="flex gap-8">
+                {/* Centered Tabs (Pill Style) */}
+                <div className="flex justify-center">
+                    <div className="bg-white p-1 rounded-full shadow-sm border border-gray-200 inline-flex">
                         {[
                             { id: 'overview', label: 'Overview', icon: LayoutDashboard },
                             { id: 'worksheet', label: 'Rooms & Materials', icon: TableProperties },
@@ -158,9 +190,9 @@ const QuotationDetail = () => {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 pb-4 text-sm font-medium border-b-2 transition-all ${activeTab === tab.id
-                                    ? 'border-indigo-600 text-indigo-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-all ${activeTab === tab.id
+                                        ? 'bg-theme-orange text-white shadow-md'
+                                        : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                                     }`}
                             >
                                 <tab.icon className="w-4 h-4" />
@@ -168,90 +200,90 @@ const QuotationDetail = () => {
                             </button>
                         ))}
                     </div>
-                </header>
-
-                {/* Main Content Area */}
-                <main className="flex-1 overflow-auto p-6 md:p-8">
-                    {activeTab === 'overview' && (
-                        <OverviewTab
-                            quotation={quotation}
-                            setQuotation={setQuotation}
-                            currentSubTotal={currentSubTotal}
-                            onTabChange={setActiveTab}
-                        />
-                    )}
-
-                    {activeTab === 'worksheet' && (
-                        <WorksheetTab
-                            quotationId={id}
-                            rooms={rooms}
-                            onRoomsUpdate={fetchData} // Refresh all rooms to update totals
-                            activeRoomId={activeRoomId}
-                            setActiveRoomId={setActiveRoomId}
-                            onAddRoomClick={handleOpenAddRoom}
-                            onEditRoom={handleOpenEditRoom}
-                            onDeleteRoom={handleDeleteRoom}
-                        />
-                    )}
-
-                    {activeTab === 'preview' && (
-                        <PreviewTab
-                            quotation={{ ...quotation, labor_cost: quotation.labor_cost, design_fee_type: quotation.design_fee_type, design_fee_value: quotation.design_fee_value }} // Ensure latest props
-                            setQuotation={setQuotation}
-                        />
-                    )}
-                </main>
+                </div>
             </div>
 
-            {/* Shared Room Modal */}
-            {isRoomModalOpen && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-                    <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-lg">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-2xl font-bold text-gray-800">{editingRoom ? 'Edit Room' : 'Add New Room'}</h3>
-                            <button onClick={() => setIsRoomModalOpen(false)}><X className="w-6 h-6 text-gray-400 hover:text-gray-600" /></button>
-                        </div>
-                        <form onSubmit={handleSaveRoom} className="space-y-5">
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Room Name</label>
+            {/* Main Content Area */}
+            <div className="mt-6">
+                {activeTab === 'overview' && (
+                    <OverviewTab
+                        quotation={quotation}
+                        setQuotation={setQuotation}
+                        currentSubTotal={currentSubTotal}
+                        onTabChange={setActiveTab}
+                    />
+                )}
 
-                                {/* Quick Select Chips */}
-                                <div className="flex flex-wrap gap-2 mb-3">
-                                    {['Living Room', 'Master Bedroom', 'Kitchen', 'Bathroom', 'Dining', 'Balcony'].map(roomType => (
-                                        <button
-                                            key={roomType}
-                                            type="button"
-                                            onClick={() => setRoomForm({ ...roomForm, name: roomType })}
-                                            className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${roomForm.name === roomType
-                                                    ? 'bg-indigo-100 text-indigo-700 border-indigo-200'
-                                                    : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
-                                                }`}
-                                        >
-                                            {roomType}
-                                        </button>
-                                    ))}
+                {activeTab === 'worksheet' && (
+                    <WorksheetTab
+                        quotationId={id}
+                        rooms={rooms}
+                        onRoomsUpdate={fetchData} // Refresh all rooms to update totals
+                        activeRoomId={activeRoomId}
+                        setActiveRoomId={setActiveRoomId}
+                        onAddRoomClick={handleOpenAddRoom}
+                        onEditRoom={handleOpenEditRoom}
+                        onDeleteRoom={handleDeleteRoom}
+                    />
+                )}
+
+                {activeTab === 'preview' && (
+                    <PreviewTab
+                        quotation={{ ...quotation, labor_cost: quotation.labor_cost, design_fee_type: quotation.design_fee_type, design_fee_value: quotation.design_fee_value }} // Ensure latest props
+                        setQuotation={setQuotation}
+                    />
+                )}
+
+                {/* Shared Room Modal */}
+                {isRoomModalOpen && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+                        <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-lg">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-2xl font-bold text-gray-800">{editingRoom ? 'Edit Room' : 'Add New Room'}</h3>
+                                <button onClick={() => setIsRoomModalOpen(false)}><X className="w-6 h-6 text-gray-400 hover:text-gray-600" /></button>
+                            </div>
+                            <form onSubmit={handleSaveRoom} className="space-y-5">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Room Name</label>
+
+                                    {/* Quick Select Chips */}
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {['Living Room', 'Master Bedroom', 'Kitchen', 'Bathroom', 'Dining', 'Balcony'].map(roomType => (
+                                            <button
+                                                key={roomType}
+                                                type="button"
+                                                onClick={() => setRoomForm({ ...roomForm, name: roomType })}
+                                                className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${roomForm.name === roomType
+                                                    ? 'bg-orange-100 text-theme-orange border-orange-200'
+                                                    : 'bg-white text-gray-600 border-gray-200 hover:border-orange-300'
+                                                    }`}
+                                            >
+                                                {roomType}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <input type="text" name="name" required value={roomForm.name} onChange={handleRoomFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-orange outline-none" placeholder="e.g. Master Bedroom" />
                                 </div>
-
-                                <input type="text" name="name" required value={roomForm.name} onChange={handleRoomFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="e.g. Master Bedroom" />
-                            </div>
-                            <div className="grid grid-cols-3 gap-4">
-                                <div><label className="block text-sm font-semibold text-gray-700 mb-1">Length (ft)</label><input type="number" name="length" value={roomForm.length} onChange={handleRoomFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg" /></div>
-                                <div><label className="block text-sm font-semibold text-gray-700 mb-1">Width (ft)</label><input type="number" name="width" value={roomForm.width} onChange={handleRoomFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg" /></div>
-                                <div><label className="block text-sm font-semibold text-gray-700 mb-1">Height (ft)</label><input type="number" name="height" value={roomForm.height} onChange={handleRoomFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg" /></div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Notes (Optional)</label>
-                                <textarea name="notes" rows="3" value={roomForm.notes} onChange={handleRoomFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg resize-none" placeholder="Specific requirements..." />
-                            </div>
-                            <div className="pt-4 flex justify-end gap-3">
-                                <button type="button" onClick={() => setIsRoomModalOpen(false)} className="px-5 py-2.5 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition">Cancel</button>
-                                <button type="submit" className="px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition">{editingRoom ? 'Update Room' : 'Create Room'}</button>
-                            </div>
-                        </form>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div><label className="block text-sm font-semibold text-gray-700 mb-1">Length (ft)</label><input type="number" name="length" value={roomForm.length} onChange={handleRoomFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg" /></div>
+                                    <div><label className="block text-sm font-semibold text-gray-700 mb-1">Width (ft)</label><input type="number" name="width" value={roomForm.width} onChange={handleRoomFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg" /></div>
+                                    <div><label className="block text-sm font-semibold text-gray-700 mb-1">Height (ft)</label><input type="number" name="height" value={roomForm.height} onChange={handleRoomFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg" /></div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Notes (Optional)</label>
+                                    <textarea name="notes" rows="3" value={roomForm.notes} onChange={handleRoomFormChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg resize-none" placeholder="Specific requirements..." />
+                                </div>
+                                <div className="pt-4 flex justify-end gap-3">
+                                    <button type="button" onClick={() => setIsRoomModalOpen(false)} className="px-5 py-2.5 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition">Cancel</button>
+                                    <button type="submit" className="px-5 py-2.5 bg-theme-orange text-white font-bold rounded-lg hover:bg-orange-700 shadow-lg shadow-orange-200 transition">{editingRoom ? 'Update Room' : 'Create Room'}</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )}
+            </div>
+        </Layout>
     );
 };
 
