@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { API_URL } from '../config';
+import { useQuotationCalculations } from '../hooks/useQuotationCalculations';
 import {
     LayoutDashboard,
     TableProperties,
@@ -77,9 +78,12 @@ const QuotationDetail = () => {
     useEffect(() => { fetchData(); }, [id]);
 
     // --- Computed Values ---
-    const currentSubTotal = useMemo(() => {
-        return rooms.reduce((sum, room) => sum + (parseFloat(room.room_total) || 0), 0);
-    }, [rooms]);
+    const { materialsTotal: currentSubTotal } = useQuotationCalculations(
+        rooms,
+        quotation?.labor_cost || 0,
+        quotation?.design_fee_type || 'percentage',
+        quotation?.design_fee_value || 0
+    );
 
     const formatCurrency = (amt) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amt || 0);
 
@@ -178,9 +182,7 @@ const QuotationDetail = () => {
     if (isLoading) return (
         <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center">
             <div className="flex flex-col items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center animate-pulse">
-                    <FileSpreadsheet className="w-7 h-7 text-white" />
-                </div>
+
                 <p className="text-[var(--color-text-muted)]">Loading quotation...</p>
             </div>
         </div>
@@ -217,12 +219,6 @@ const QuotationDetail = () => {
                         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                             {/* Left: Quotation Info */}
                             <div className="flex items-start gap-4">
-                                <div className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${statusConfig.gradient} flex items-center justify-center shadow-lg`}>
-                                    <FileSpreadsheet className="w-8 h-8 text-white" />
-                                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-lg flex items-center justify-center shadow-md border border-stone-100">
-                                        <StatusIcon className={`w-3.5 h-3.5 ${statusConfig.text}`} />
-                                    </div>
-                                </div>
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
                                         <h1 className="text-2xl lg:text-3xl font-bold text-[var(--color-text-primary)] tracking-tight">
@@ -234,10 +230,7 @@ const QuotationDetail = () => {
                                         </span>
                                     </div>
                                     <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--color-text-muted)]">
-                                        <span className="flex items-center gap-1.5">
-                                            <User className="w-4 h-4" />
-                                            {quotation.client_name || 'No client'}
-                                        </span>
+
                                         <span className="flex items-center gap-1.5">
                                             <Calendar className="w-4 h-4" />
                                             {quotation.createdAt ? new Date(quotation.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'No date'}
@@ -252,29 +245,9 @@ const QuotationDetail = () => {
 
                             {/* Right: Actions & Total */}
                             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                {/* Total Value Card */}
-                                <div className="flex items-center gap-3 bg-gradient-to-br from-[var(--color-accent)] to-amber-600 text-white rounded-2xl px-5 py-4 shadow-lg">
-                                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                                        <IndianRupee className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-white/70 uppercase tracking-wide">Total Value</p>
-                                        <p className="text-xl font-bold">{formatCurrency(currentSubTotal)}</p>
-                                    </div>
-                                </div>
 
-                                {/* Action Buttons */}
-                                <div className="flex items-center gap-2">
-                                    <button className="p-2.5 rounded-xl bg-white border border-[var(--color-border)] hover:shadow-md transition-all">
-                                        <Send className="w-5 h-5 text-[var(--color-text-muted)]" />
-                                    </button>
-                                    <button className="p-2.5 rounded-xl bg-white border border-[var(--color-border)] hover:shadow-md transition-all">
-                                        <Download className="w-5 h-5 text-[var(--color-text-muted)]" />
-                                    </button>
-                                    <button className="p-2.5 rounded-xl bg-white border border-[var(--color-border)] hover:shadow-md transition-all">
-                                        <MoreHorizontal className="w-5 h-5 text-[var(--color-text-muted)]" />
-                                    </button>
-                                </div>
+
+
                             </div>
                         </div>
                     </div>

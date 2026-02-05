@@ -4,6 +4,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import toast from 'react-hot-toast';
 import { API_URL } from '../../config';
+import { useQuotationCalculations } from '../../hooks/useQuotationCalculations';
 import {
     Download,
     Save,
@@ -83,40 +84,15 @@ const PreviewTab = ({ quotation, setQuotation }) => {
         }).format(amount);
     };
 
-    const materialsTotal = useMemo(() => {
-        return rooms.reduce((total, room) => {
-            const roomTotal = (room.materials || []).reduce((roomSum, material) => {
-                return roomSum + (Number(material.price) * Number(material.quantity));
-            }, 0);
-            return total + roomTotal;
-        }, 0);
-    }, [rooms]);
-
-    const totalMaterialsCount = useMemo(() => {
-        return rooms.reduce((count, room) => count + (room.materials?.length || 0), 0);
-    }, [rooms]);
-
-    const calculatedDesignFee = useMemo(() => {
-        const val = parseFloat(designFeeValue) || 0;
-        if (designFeeType === 'flat') {
-            return val;
-        } else {
-            const base = materialsTotal + (parseFloat(laborCost) || 0);
-            return (base * val) / 100;
-        }
-    }, [materialsTotal, laborCost, designFeeType, designFeeValue]);
-
-    const taxableAmount = useMemo(() => {
-        return materialsTotal + (parseFloat(laborCost) || 0) + calculatedDesignFee;
-    }, [materialsTotal, laborCost, calculatedDesignFee]);
-
-    const taxAmount = useMemo(() => {
-        return (taxableAmount * parseFloat(taxPercentage || 0)) / 100;
-    }, [taxableAmount, taxPercentage]);
-
-    const finalTotal = useMemo(() => {
-        return taxableAmount + taxAmount;
-    }, [taxableAmount, taxAmount]);
+    // Use centralized calculation hook
+    const {
+        materialsTotal,
+        totalMaterialsCount,
+        calculatedDesignFee,
+        taxableAmount,
+        taxAmount,
+        finalTotal
+    } = useQuotationCalculations(rooms, laborCost, designFeeType, designFeeValue, taxPercentage);
 
     const handleSaveFinalTotal = async () => {
         setIsSaving(true);
@@ -143,25 +119,47 @@ const PreviewTab = ({ quotation, setQuotation }) => {
     const [isPrinting, setIsPrinting] = useState(false);
 
     const handleDownloadPdf = async () => {
-        setIsPrinting(true);
-        setTimeout(async () => {
+        const toastId = 'pdf-generation';
+        try {
+            setIsPrinting(true);
+            toast.loading('Preparing document...', { id: toastId });
+
+            // Small delay to ensure UI updates
+            await new Promise(resolve => setTimeout(resolve, 100));
+
             const element = printRef.current;
-            if (!element) return;
-            try {
-                const canvas = await html2canvas(element, { scale: 2 });
-                const data = canvas.toDataURL('image/png');
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = pdf.internal.pageSize.getHeight();
-                const imgWidth = canvas.width;
-                const imgHeight = canvas.height;
-                const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-                pdf.addImage(data, 'PNG', 0, 0, imgWidth * ratio, imgHeight * ratio);
-                pdf.save(`quotation-${quotation.title.replace(/ /g, '_')}.pdf`);
-            } finally {
-                setIsPrinting(false);
+            if (!element) {
+                throw new Error('Document element not found');
             }
-        }, 100);
+
+            toast.loading('Capturing document...', { id: toastId });
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                logging: false,
+                useCORS: true
+            });
+
+            toast.loading('Generating PDF...', { id: toastId });
+            const data = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+            const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+
+            pdf.addImage(data, 'PNG', 0, 0, imgWidth * ratio, imgHeight * ratio);
+
+            const fileName = `quotation-${quotation.title.replace(/ /g, '_')}.pdf`;
+            pdf.save(fileName);
+
+            toast.success('PDF downloaded successfully!', { id: toastId });
+        } catch (error) {
+            console.error('PDF generation failed:', error);
+            toast.error('Failed to generate PDF. Please try again.', { id: toastId });
+        } finally {
+            setIsPrinting(false);
+        }
     };
 
     if (isLoading) return (
@@ -257,8 +255,7 @@ const PreviewTab = ({ quotation, setQuotation }) => {
 
                 {/* Actions Card */}
                 <div className="card p-5">
-                    <div className="flex items-center gap-2 mb-4">
-                        <Sparkles className="w-5 h-5 text-[var(--color-accent)]" />
+                    <div className="flex items-center mb-4">
                         <h3 className="font-semibold text-[var(--color-text-primary)]">Actions</h3>
                     </div>
 
@@ -289,31 +286,11 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                             {isPrinting ? 'Generating...' : 'Download PDF'}
                         </button>
 
-                        <div className="grid grid-cols-2 gap-2 pt-2">
-                            <button className="btn-secondary flex items-center justify-center gap-1.5 text-xs py-2.5">
-                                <Printer className="w-3.5 h-3.5" />
-                                Print
-                            </button>
-                            <button className="btn-secondary flex items-center justify-center gap-1.5 text-xs py-2.5">
-                                <Mail className="w-3.5 h-3.5" />
-                                Email
-                            </button>
-                        </div>
+
                     </div>
                 </div>
 
-                {/* Status Card */}
-                <div className="card p-4 bg-gradient-to-br from-emerald-50 to-white border-emerald-100">
-                    <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                            <FileCheck className="w-5 h-5 text-emerald-600" />
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-emerald-800">Ready to Export</p>
-                            <p className="text-xs text-emerald-600 mt-0.5">{rooms.length} rooms • {totalMaterialsCount} materials</p>
-                        </div>
-                    </div>
-                </div>
+
             </div>
 
             {/* Right - Preview Area */}

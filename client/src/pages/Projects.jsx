@@ -127,10 +127,7 @@ const Projects = () => {
                             </div>
 
                             <div className="flex items-center gap-3">
-                                <button className="btn-secondary flex items-center gap-2">
-                                    <SlidersHorizontal className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Filters</span>
-                                </button>
+
                                 <button
                                     onClick={() => navigate('/quotations')}
                                     className="btn-primary flex items-center gap-2 shadow-lg shadow-[var(--color-accent)]/25"
@@ -143,80 +140,6 @@ const Projects = () => {
                     </div>
                 </div>
 
-                {/* Stats Bento Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 animate-fade-in-up">
-                    {/* Total Projects - Large Card */}
-                    <div className="col-span-2 lg:col-span-1 card p-6 relative overflow-hidden group hover:shadow-lg transition-all duration-300">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[var(--color-accent)]/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-125 transition-transform duration-500" />
-                        <div className="relative">
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="text-sm font-medium text-[var(--color-text-muted)]">Total Projects</span>
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center">
-                                    <FolderKanban className="w-5 h-5 text-white" />
-                                </div>
-                            </div>
-                            <p className="text-4xl font-bold text-[var(--color-text-primary)] mb-1">{stats.total}</p>
-                            <div className="flex items-center gap-2 text-sm">
-                                <span className="text-emerald-600 font-medium flex items-center gap-1">
-                                    <TrendingUp className="w-3.5 h-3.5" />
-                                    +12%
-                                </span>
-                                <span className="text-[var(--color-text-muted)]">this month</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* In Progress */}
-                    <div className="card p-5 hover:shadow-md transition-all group">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-sm text-[var(--color-text-muted)]">In Progress</span>
-                            <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <PlayCircle className="w-4.5 h-4.5 text-amber-600" />
-                            </div>
-                        </div>
-                        <p className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.inProgress}</p>
-                        <div className="h-1.5 bg-amber-100 rounded-full mt-3 overflow-hidden">
-                            <div
-                                className="h-full bg-amber-500 rounded-full transition-all duration-500"
-                                style={{ width: `${stats.total ? (stats.inProgress / stats.total) * 100 : 0}%` }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Completed */}
-                    <div className="card p-5 hover:shadow-md transition-all group">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-sm text-[var(--color-text-muted)]">Completed</span>
-                            <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <CheckCircle2 className="w-4.5 h-4.5 text-emerald-600" />
-                            </div>
-                        </div>
-                        <p className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.completed}</p>
-                        <div className="h-1.5 bg-emerald-100 rounded-full mt-3 overflow-hidden">
-                            <div
-                                className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-                                style={{ width: `${stats.total ? (stats.completed / stats.total) * 100 : 0}%` }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* On Hold */}
-                    <div className="card p-5 hover:shadow-md transition-all group">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-sm text-[var(--color-text-muted)]">On Hold</span>
-                            <div className="w-9 h-9 rounded-lg bg-rose-100 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <PauseCircle className="w-4.5 h-4.5 text-rose-600" />
-                            </div>
-                        </div>
-                        <p className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.onHold}</p>
-                        <div className="h-1.5 bg-rose-100 rounded-full mt-3 overflow-hidden">
-                            <div
-                                className="h-full bg-rose-500 rounded-full transition-all duration-500"
-                                style={{ width: `${stats.total ? (stats.onHold / stats.total) * 100 : 0}%` }}
-                            />
-                        </div>
-                    </div>
-                </div>
 
                 {/* Filters Bar */}
                 <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-6 animate-fade-in-up">
@@ -257,20 +180,7 @@ const Projects = () => {
                     </div>
 
                     {/* View Toggle */}
-                    <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-[var(--color-border)] shadow-sm">
-                        <button
-                            onClick={() => setViewMode('grid')}
-                            className={`p-2.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-[var(--color-accent)] text-white shadow-sm' : 'text-[var(--color-text-muted)] hover:bg-stone-100'}`}
-                        >
-                            <LayoutGrid className="w-4 h-4" />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('list')}
-                            className={`p-2.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-[var(--color-accent)] text-white shadow-sm' : 'text-[var(--color-text-muted)] hover:bg-stone-100'}`}
-                        >
-                            <List className="w-4 h-4" />
-                        </button>
-                    </div>
+
                 </div>
 
                 {/* Results Count */}
@@ -305,66 +215,71 @@ const Projects = () => {
                             {filteredProjects.map((project, index) => {
                                 const statusConfig = getStatusConfig(project.status);
                                 const StatusIcon = statusConfig.icon;
-                                const totalExpenses = project.expenses?.reduce((sum, e) => sum + Number(e.amount), 0) || 0;
-                                const budgetUsage = project.budget ? Math.round((totalExpenses / project.budget) * 100) : 0;
+                                const totalExpenses = Number(project.total_expenses) || 0;
+                                const percentage = project.budget ? (totalExpenses / project.budget) * 100 : 0;
+                                const budgetUsage = percentage % 1 === 0 ? percentage.toFixed(0) : percentage.toFixed(1);
 
                                 return (
                                     <div
                                         key={project.id}
                                         onClick={() => navigate(`/projects/${project.id}`)}
-                                        className="card p-5 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden"
+                                        className="group relative bg-white rounded-2xl border border-stone-200/60 p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-stone-200/50 hover:border-[var(--color-accent)]/30"
                                         style={{ animationDelay: `${index * 40}ms` }}
                                     >
-                                        {/* Decorative gradient */}
-                                        <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${statusConfig.gradient}`} />
-
-                                        <div className="flex items-start justify-between mb-4">
-                                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${statusConfig.gradient} flex items-center justify-center shadow-sm group-hover:scale-110 group-hover:shadow-md transition-all duration-300`}>
-                                                <FolderKanban className="w-6 h-6 text-white" />
-                                            </div>
-                                            <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border} border flex items-center gap-1`}>
-                                                <StatusIcon className="w-3 h-3" />
-                                                {project.status}
-                                            </span>
-                                        </div>
-
-                                        <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-1 group-hover:text-[var(--color-accent)] transition-colors line-clamp-1">
-                                            {project.name}
-                                        </h3>
-
-                                        <div className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-5">
-                                            <Users className="w-3.5 h-3.5" />
-                                            <span className="truncate">{project.client_name || 'No client assigned'}</span>
-                                        </div>
-
-                                        {/* Budget Section */}
-                                        <div className="bg-[var(--color-bg-subtle)] rounded-xl p-3 mb-4">
-                                            <div className="flex justify-between text-xs mb-2">
-                                                <span className="text-[var(--color-text-muted)]">Budget</span>
-                                                <span className="font-semibold text-[var(--color-text-primary)]">{formatCurrency(project.budget)}</span>
-                                            </div>
-                                            <div className="h-2 bg-white rounded-full overflow-hidden shadow-inner">
-                                                <div
-                                                    className={`h-full rounded-full transition-all duration-500 ${budgetUsage > 90 ? 'bg-rose-500' : budgetUsage > 70 ? 'bg-amber-500' : 'bg-[var(--color-accent)]'}`}
-                                                    style={{ width: `${Math.min(budgetUsage, 100)}%` }}
-                                                />
-                                            </div>
-                                            <div className="flex justify-between mt-2 text-xs">
-                                                <span className="text-[var(--color-text-muted)]">{formatCurrency(totalExpenses)} spent</span>
-                                                <span className={`font-medium ${budgetUsage > 90 ? 'text-rose-600' : budgetUsage > 70 ? 'text-amber-600' : 'text-emerald-600'}`}>
-                                                    {budgetUsage}% used
+                                        <div className="relative pt-2">
+                                            {/* Header */}
+                                            <div className="flex items-start justify-between mb-5">
+                                                {/* Solid colored icon box - Orange Theme */}
+                                                <div className="w-12 h-12 rounded-2xl bg-[var(--color-accent)] flex items-center justify-center shadow-lg shadow-orange-100">
+                                                    <FolderKanban className="w-6 h-6 text-white" />
+                                                </div>
+                                                <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border} border flex items-center gap-1`}>
+                                                    <StatusIcon className="w-3 h-3" />
+                                                    {project.status}
                                                 </span>
                                             </div>
-                                        </div>
 
-                                        <div className="flex items-center justify-between pt-3 border-t border-[var(--color-border)]">
-                                            <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
-                                                <Calendar className="w-3.5 h-3.5" />
-                                                {project.end_date ? new Date(project.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'No deadline'}
+                                            {/* Title & Client */}
+                                            <div className="mb-6">
+                                                <h3 className="text-xl font-bold text-stone-800 mb-1 group-hover:text-[var(--color-accent)] transition-colors line-clamp-1">
+                                                    {project.name}
+                                                </h3>
+                                                <div className="flex items-center gap-2 text-stone-500">
+                                                    <Users className="w-4 h-4" />
+                                                    <span className="text-sm font-medium truncate">{project.client_name || 'No client'}</span>
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-1 text-xs text-[var(--color-accent)] font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                                                View Details
-                                                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+
+                                            {/* Budget Section */}
+                                            <div className="bg-[#F8F6F4] rounded-xl p-4 mb-5">
+                                                <div className="flex justify-between text-xs mb-2">
+                                                    <span className="font-medium text-stone-500">Budget Usage</span>
+                                                    <span className="font-bold text-stone-800">{formatCurrency(project.budget)}</span>
+                                                </div>
+                                                <div className="h-2 bg-stone-200 rounded-full overflow-hidden">
+                                                    <div
+                                                        className={`h-full rounded-full transition-all duration-500 ${budgetUsage > 90 ? 'bg-rose-500' : budgetUsage > 70 ? 'bg-amber-500' : 'bg-[var(--color-accent)]'}`}
+                                                        style={{ width: `${Math.min(budgetUsage, 100)}%` }}
+                                                    />
+                                                </div>
+                                                <div className="flex justify-between mt-2 text-xs">
+                                                    <span className="text-stone-400">{formatCurrency(totalExpenses)} spent</span>
+                                                    <span className={`font-semibold ${budgetUsage > 90 ? 'text-rose-600' : budgetUsage > 70 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                                                        {budgetUsage}% used
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Footer */}
+                                            <div className="flex items-center justify-between pt-1">
+                                                <div className="flex items-center gap-2 text-stone-400">
+                                                    <Calendar className="w-4 h-4" />
+                                                    <span className="text-sm">{project.end_date ? new Date(project.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'No deadline'}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1 text-sm font-semibold text-[var(--color-accent)] opacity-80 group-hover:opacity-100 transition-opacity cursor-pointer hover:gap-2 duration-300">
+                                                    <span>View</span>
+                                                    <ArrowRight className="w-4 h-4" />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

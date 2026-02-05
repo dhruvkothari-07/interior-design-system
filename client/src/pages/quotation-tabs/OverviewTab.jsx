@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import { API_URL } from '../../config';
+import { handleApiError } from '../../utils/errorHandler.jsx';
 import { Calendar, User, Mail, Phone, MapPin, FileText, ArrowRight, FolderKanban, IndianRupee } from 'lucide-react';
 
 const OverviewTab = ({ quotation, setQuotation, currentSubTotal, onTabChange }) => {
@@ -31,9 +33,30 @@ const OverviewTab = ({ quotation, setQuotation, currentSubTotal, onTabChange }) 
     };
 
     const handleStatusChange = async (newStatus) => {
-        if (!window.confirm(`Are you sure you want to change the status to "${newStatus}"?`)) {
-            return;
-        }
+        const confirmed = await new Promise((resolve) => {
+            toast((t) => (
+                <div className="flex flex-col gap-3">
+                    <p className="font-medium">Change status to "{newStatus}"?</p>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => { toast.dismiss(t.id); resolve(false); }}
+                            className="px-3 py-1.5 text-sm bg-stone-100 hover:bg-stone-200 rounded-lg transition"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={() => { toast.dismiss(t.id); resolve(true); }}
+                            className="px-3 py-1.5 text-sm bg-[var(--color-accent)] hover:bg-[var(--color-accent-dark)] text-white rounded-lg transition"
+                        >
+                            Confirm
+                        </button>
+                    </div>
+                </div>
+            ), { duration: 10000 });
+        });
+
+        if (!confirmed) return;
+
         try {
             const token = localStorage.getItem("token");
             await axios.put(`${API_URL}/quotations/${quotation.id}/status`,
@@ -41,9 +64,9 @@ const OverviewTab = ({ quotation, setQuotation, currentSubTotal, onTabChange }) 
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             setQuotation(prev => ({ ...prev, status: newStatus }));
+            toast.success(`Status updated to ${newStatus}`);
         } catch (err) {
-            console.error("Error updating status:", err);
-            alert("Failed to update status.");
+            handleApiError(err, 'Failed to update status');
         }
     };
 
@@ -65,8 +88,7 @@ const OverviewTab = ({ quotation, setQuotation, currentSubTotal, onTabChange }) 
             setNewProjectDetails({ start_date: '', end_date: '' });
             navigate(`/projects/${res.data.id}`);
         } catch (err) {
-            console.error("Error creating project:", err);
-            alert(err.response?.data?.message || "Failed to create project.");
+            handleApiError(err, err.response?.data?.message || 'Failed to create project');
         }
     };
 
@@ -105,9 +127,7 @@ const OverviewTab = ({ quotation, setQuotation, currentSubTotal, onTabChange }) 
                         <span className="text-sm font-medium text-[var(--color-text-muted)]">Calculation Subtotal</span>
                     </div>
                     <p className="text-3xl font-bold text-[var(--color-text-primary)]">{formatCurrency(currentSubTotal)}</p>
-                    <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                        {quotation.total_amount ? `Saved: ${formatCurrency(quotation.total_amount)}` : 'Not finalized'}
-                    </p>
+
                 </div>
 
                 {/* Status Card */}
@@ -231,18 +251,18 @@ const OverviewTab = ({ quotation, setQuotation, currentSubTotal, onTabChange }) 
                             ) : (
                                 <button
                                     onClick={() => setIsCreateProjectModalOpen(true)}
-                                    className="group flex items-center justify-between p-4 bg-gradient-to-r from-[var(--color-accent)] to-orange-600 text-white rounded-xl shadow-md hover:shadow-lg transition-all"
+                                    className="group flex items-center justify-between p-4 bg-white rounded-xl border border-[var(--color-border)] hover:border-[var(--color-accent)]/30 hover:shadow-md transition-all"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
-                                            <FolderKanban className="w-5 h-5" />
+                                        <div className="w-10 h-10 rounded-lg bg-[var(--color-accent)]/10 flex items-center justify-center">
+                                            <FolderKanban className="w-5 h-5 text-[var(--color-accent)]" />
                                         </div>
                                         <div className="text-left">
-                                            <p className="font-medium">Create Project</p>
-                                            <p className="text-xs text-white/80">From this quotation</p>
+                                            <p className="font-medium text-[var(--color-text-primary)]">Create Project</p>
+                                            <p className="text-xs text-[var(--color-text-muted)]">From this quotation</p>
                                         </div>
                                     </div>
-                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-all" />
+                                    <ArrowRight className="w-5 h-5 text-[var(--color-text-muted)] group-hover:text-[var(--color-accent)] group-hover:translate-x-1 transition-all" />
                                 </button>
                             )
                         )}
