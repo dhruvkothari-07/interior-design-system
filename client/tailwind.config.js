@@ -16,9 +16,10 @@ export default {
         accentHover: "#0B8F8A",
         error: "#DC2626",
         success: "#16A34A",
+        'theme-orange': '#A65D38',
       },
     },
   }
-,
+  ,
   plugins: [],
 }

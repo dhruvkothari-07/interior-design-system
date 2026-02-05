@@ -10,7 +10,8 @@ import {
     Menu,
     X,
     ChevronDown,
-    Sparkles
+    Sparkles,
+    Settings
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -30,6 +31,7 @@ const Navbar = () => {
         { path: '/projects', label: 'Projects', icon: FolderKanban },
         { path: '/materials', label: 'Materials', icon: Package },
         { path: '/clients', label: 'Clients', icon: Users },
+        { path: '/settings', label: 'Settings', icon: Settings },
     ];
 
     const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');

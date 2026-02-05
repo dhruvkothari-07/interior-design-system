@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import Layout from '../components/Layout';
 import { API_URL } from '../config';
 import { Save, Store, Mail, Phone, FileText, Image, Users, UserPlus, Trash2, Shield, Lock } from 'lucide-react';
 
@@ -171,7 +170,7 @@ const Settings = () => {
     if (isLoading) return <div className="flex h-screen items-center justify-center text-gray-500">Loading settings...</div>;
 
     return (
-        <Layout>
+        <div className="p-6 md:p-8 max-w-6xl mx-auto">
             <header className="mb-8">
                 <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">Settings</h1>
                 <p className="text-gray-500 mt-1">Manage company details {currentUserRole === 'admin' ? '& staff access' : ''}.</p>
@@ -182,19 +181,33 @@ const Settings = () => {
                 But let's be safe and conditional render. 
             */}
             {currentUserRole === 'admin' && (
-                <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl w-fit mb-8">
-                    <button
-                        onClick={() => setActiveTab('company')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'company' ? 'bg-white text-theme-orange shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                    >
-                        Company Profile
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('staff')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'staff' ? 'bg-white text-theme-orange shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                    >
-                        Staff Management
-                    </button>
+                <div className="flex justify-center mb-8">
+                    <div className="inline-flex bg-white p-1.5 rounded-2xl shadow-sm border border-[var(--color-border)]">
+                        <button
+                            onClick={() => setActiveTab('company')}
+                            className={`
+                                flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                                ${activeTab === 'company'
+                                    ? 'bg-[var(--color-accent)] text-white shadow-md'
+                                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-stone-50'}
+                            `}
+                        >
+                            <Store className="w-4 h-4" />
+                            Company Profile
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('staff')}
+                            className={`
+                                flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                                ${activeTab === 'staff'
+                                    ? 'bg-[var(--color-accent)] text-white shadow-md'
+                                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-stone-50'}
+                            `}
+                        >
+                            <Users className="w-4 h-4" />
+                            Staff Management
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -296,7 +309,7 @@ const Settings = () => {
                 <div className="animate-fade-in-up">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-bold text-gray-800">Team Members</h2>
-                        <button onClick={() => setIsAddStaffModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-theme-orange text-white rounded-xl hover:bg-orange-700 transition shadow-lg shadow-orange-200">
+                        <button onClick={() => setIsAddStaffModalOpen(true)} className="btn-primary flex items-center gap-2">
                             <UserPlus className="w-4 h-4" /> Add Staff
                         </button>
                     </div>
@@ -379,7 +392,7 @@ const Settings = () => {
                                 <p className="text-xs text-gray-500 mt-1">Share this password with the staff member securely.</p>
                             </div>
                             <div className="pt-2">
-                                <button type="submit" disabled={isCreatingStaff} className="w-full py-3 bg-theme-orange text-white font-bold rounded-xl hover:bg-orange-700 transition shadow-lg shadow-orange-200 disabled:opacity-70">
+                                <button type="submit" disabled={isCreatingStaff} className="w-full btn-primary py-3">
                                     {isCreatingStaff ? 'Creating...' : 'Create Account'}
                                 </button>
                             </div>
@@ -387,7 +400,7 @@ const Settings = () => {
                     </div>
                 </div>
             )}
-        </Layout>
+        </div>
     );
 };
 
