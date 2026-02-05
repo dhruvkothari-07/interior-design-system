@@ -4,8 +4,8 @@ const jwt = require("jsonwebtoken");
 const router = Router();
 const db = require("../db/db");
 const { rateLimit } = require('express-rate-limit');
-const { validate, rules } = require('../middleware/validation');
-const { asyncHandler } = require('../middleware/errorHandler');
+const authMiddleware = require("../middleware/authMiddleware");
+const upload = require("../middleware/uploadMiddleware");
 
 // Rate limiter for login: 5 attempts per 15 minutes
 const loginLimiter = rateLimit({
@@ -16,61 +16,180 @@ const loginLimiter = rateLimit({
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// SIGNUP
-router.post("/signup", rules.signup, validate, asyncHandler(async (req, res) => {
+//  SIGNUP
+router.post("/signup", async (req, res) => {
     const { username, email, password } = req.body;
-
-    const [results] = await db.query(
-        "SELECT id FROM users WHERE username = ? OR email = ?",
-        [username, email]
-    );
-
-    if (results.length > 0) {
-        return res.status(409).json({ message: "User already exists" });
+    if (!username || !email || !password) {
+        return res.status(400).json({ message: "All fields are required" });
     }
 
-    const hashpass = await bcrypt.hash(password, 12);
-    const [result] = await db.query(
-        "INSERT INTO users (username, email, password) VALUES(?,?,?)",
-        [username, email, hashpass]
-    );
+    try {
+        const checkUser = "SELECT * FROM users WHERE username = ? OR email = ?";
 
-    const token = jwt.sign(
-        { id: result.insertId, username },
-        JWT_SECRET,
-        { expiresIn: "5h" }
-    );
+        const [results] = await db.query(checkUser, [username, email]);
 
-    res.status(201).json({ message: "Signup successful!", token });
-}));
+        if (results.length > 0) {
+            return res.status(409).json({ message: "User already exists" });
+        }
+
+        const hashpass = await bcrypt.hash(password, 10);
+        const createUser = "INSERT INTO users (username, email, password) VALUES(?,?,?)";
+
+        const [result] = await db.query(createUser, [username, email, hashpass]);
+
+        // Generate token for auto-login
+        const token = jwt.sign(
+            { id: result.insertId, username: username },
+            JWT_SECRET,
+            { expiresIn: "5h" }
+        );
+
+        return res.status(200).json({
+            message: "Signup successful!",
+            token: token,
+        });
+    } catch (err) {
+        console.error("Signup Error:", err); // Log the actual error
+        return res.status(500).json({ message: "Error while signup", error: err.message });
+    }
+});
 
 // SIGNIN
-router.post("/signin", loginLimiter, rules.signin, validate, asyncHandler(async (req, res) => {
+router.post("/signin", loginLimiter, async (req, res) => {
     const { username, password } = req.body;
 
-    const [result] = await db.query(
-        "SELECT id, username, password FROM users WHERE username = ?",
-        [username]
-    );
-
-    if (result.length === 0) {
-        return res.status(401).json({ message: "Invalid username or password" });
+    if (!username || !password) {
+        return res.status(400).json({ message: "All fields are required" });
     }
 
-    const user = result[0];
-    const isMatch = await bcrypt.compare(password, user.password);
+    try {
+        const getuser = "SELECT * FROM users WHERE username= ?";
+        // Use await, not a callback
+        const [result] = await db.query(getuser, [username]);
 
-    if (!isMatch) {
-        return res.status(401).json({ message: "Invalid username or password" });
+        if (result.length === 0) {
+            return res.status(401).json({ message: "Invalid username or password" });
+        }
+
+        const user = result[0];
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(401).json({ message: "Incorrect Credentials" });
+        }
+        const token = jwt.sign(
+            { id: user.id, username: user.username, role: user.role },
+            JWT_SECRET,
+            { expiresIn: "5h" }
+        );
+        return res.status(200).json({
+            message: "Login successful!",
+            token: token,
+        });
+    } catch (err) {
+        console.error("Signin Error:", err);
+        return res.status(500).json({ message: "Error while signin", error: err.message });
+    }
+});
+
+// GET /settings - Fetch current user's company settings
+router.get("/settings", authMiddleware, async (req, res) => {
+    try {
+        const [rows] = await db.query(
+            "SELECT company_name, company_address, company_email, company_phone, default_terms, logo_url FROM users WHERE id = ?",
+            [req.user.id]
+        );
+        if (rows.length === 0) return res.status(404).json({ message: "User not found" });
+        res.json(rows[0]);
+    } catch (err) {
+        console.error("Error fetching settings:", err);
+        res.status(500).json({ message: "Error fetching settings" });
+    }
+});
+
+// PUT /settings - Update company settings (Admin only)
+router.put("/settings", authMiddleware, authMiddleware.requireRole('admin'), upload.single('logo'), async (req, res) => {
+    let { company_name, company_address, company_email, company_phone, default_terms, logo_url } = req.body;
+
+    // If file uploaded, use its path (relative to server root)
+    if (req.file) {
+        // Construct URL assuming server is hosting static /uploads
+        // req.protocol + '://' + req.get('host') + '/uploads/' + req.file.filename
+        // For simplicity, just storing relative path for now, frontend knows to prepend API base or just simple path
+        // actually standard is to store full URL or consistent relative path.
+        // Let's store '/uploads/filename'
+        logo_url = `/uploads/${req.file.filename}`;
     }
 
-    const token = jwt.sign(
-        { id: user.id, username: user.username },
-        JWT_SECRET,
-        { expiresIn: "5h" }
-    );
+    try {
+        await db.query(
+            `UPDATE users SET 
+            company_name = ?, 
+            company_address = ?, 
+            company_email = ?, 
+            company_phone = ?, 
+            default_terms = ?, 
+            logo_url = ? 
+            WHERE id = ?`,
+            [company_name, company_address, company_email, company_phone, default_terms, logo_url, req.user.id]
+        );
+        res.json({ message: "Settings updated successfully", logo_url });
+    } catch (err) {
+        console.error("Error updating settings:", err);
+        res.status(500).json({ message: "Error updating settings" });
+    }
+});
 
-    res.json({ message: "Login successful!", token });
-}));
+// --- STAFF MANAGEMENT ROUTES (Admin Only) ---
+
+// GET /staff - List all staff members
+router.get("/staff", authMiddleware, authMiddleware.requireRole('admin'), async (req, res) => {
+    try {
+        // Fetch all users with role 'staff'
+        const [staff] = await db.query("SELECT id, username, email, createdAt FROM users WHERE role = 'staff' ORDER BY createdAt DESC");
+        res.json(staff);
+    } catch (err) {
+        console.error("Error fetching staff:", err);
+        res.status(500).json({ message: "Error fetching staff list" });
+    }
+});
+
+// POST /staff - Create a new staff member
+router.post("/staff", authMiddleware, authMiddleware.requireRole('admin'), async (req, res) => {
+    const { username, email, password } = req.body;
+    if (!username || !email || !password) {
+        return res.status(400).json({ message: "All fields are required" });
+    }
+
+    try {
+        const checkUser = "SELECT * FROM users WHERE username = ? OR email = ?";
+        const [results] = await db.query(checkUser, [username, email]);
+        if (results.length > 0) {
+            return res.status(409).json({ message: "User already exists" });
+        }
+
+        const hashpass = await bcrypt.hash(password, 10);
+        // Explicitly set role to 'staff'
+        const createUser = "INSERT INTO users (username, email, password, role) VALUES(?,?,?, 'staff')";
+        const [result] = await db.query(createUser, [username, email, hashpass]);
+
+        res.status(201).json({ message: "Staff member created successfully", id: result.insertId });
+    } catch (err) {
+        console.error("Create Staff Error:", err);
+        res.status(500).json({ message: "Error creating staff member", error: err.message });
+    }
+});
+
+// DELETE /staff/:id - Remove a staff member
+router.delete("/staff/:id", authMiddleware, authMiddleware.requireRole('admin'), async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query("DELETE FROM users WHERE id = ? AND role = 'staff'", [id]);
+        res.json({ message: "Staff member removed successfully" });
+    } catch (err) {
+        console.error("Delete Staff Error:", err);
+        res.status(500).json({ message: "Error deleting staff member" });
+    }
+});
 
 module.exports = router;

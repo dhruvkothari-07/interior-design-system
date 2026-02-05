@@ -12,6 +12,7 @@ import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import ClientDetail from './pages/ClientDetail';
 import RoomMaterials from './pages/RoomMaterials';
+import Settings from './pages/Settings';
 import Layout from './components/Layout';
 import CommandPalette from './components/CommandPalette';
 
@@ -52,6 +53,7 @@ const App = () => {
                     <Route path="/quotations/:quotationId/rooms/:roomId" element={<RoomMaterials />} />
                     <Route path="/projects" element={<Projects />} />
                     <Route path="/projects/:id" element={<ProjectDetail />} />
+                    <Route path="/settings" element={<Settings />} />
                 </Route>
             </Routes>
         </Router>
