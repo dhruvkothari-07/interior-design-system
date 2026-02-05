@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import Layout from './Layout';
+import Layout from '../components/Layout';
 import { API_URL } from '../config';
 import { Save, Store, Mail, Phone, FileText, Image, Users, UserPlus, Trash2, Shield, Lock } from 'lucide-react';
 
