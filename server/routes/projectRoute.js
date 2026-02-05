@@ -32,10 +32,12 @@ router.get("/projects", authMiddleware, asyncHandler(async (req, res) => {
         SELECT 
             p.id, p.name, p.status, p.start_date, p.end_date, p.createdAt,
             q.total_amount as budget, 
-            c.name as client_name 
+            c.name as client_name,
+            COALESCE(SUM(e.amount), 0) as total_expenses
         FROM projects p 
         JOIN quotations q ON p.quotation_id = q.id 
-        JOIN clients c ON q.client_id = c.id`;
+        JOIN clients c ON q.client_id = c.id
+        LEFT JOIN expenses e ON p.id = e.project_id`;
 
     const params = [];
     if (search) {
@@ -43,7 +45,7 @@ router.get("/projects", authMiddleware, asyncHandler(async (req, res) => {
         params.push(`%${search}%`, `%${search}%`);
     }
 
-    query += ` ORDER BY p.createdAt DESC`;
+    query += ` GROUP BY p.id ORDER BY p.createdAt DESC`;
 
     const [projects] = await db.query(query, params);
     res.status(200).json(projects);

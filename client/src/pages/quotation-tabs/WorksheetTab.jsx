@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import axios from 'axios';
-import { Plus, Minus, Check, X, Edit2, Trash2, ChevronDown } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { Plus, Minus, Check, X, Edit2, Trash2, ChevronDown, Filter } from 'lucide-react';
 import { API_URL } from '../../config';
+import { handleApiError } from '../../utils/errorHandler.jsx';
 
-// --- Sub-components (MaterialCard) ---
+// --- Sub-components (Material Card for Grid) ---
 const MaterialCard = React.memo(({
     material,
     roomMaterial,
@@ -16,11 +18,11 @@ const MaterialCard = React.memo(({
     const isAdded = !!roomMaterial;
     const quantity = roomMaterial ? roomMaterial.quantity : 0;
     const roomMaterialId = roomMaterial?.id;
+    const price = roomMaterial?.price || material.price;
+    const lineTotal = price * quantity;
 
     const [localQty, setLocalQty] = useState(quantity > 0 ? Number(quantity) : '');
     const inputRef = useRef(null);
-    const addButtonRef = useRef(null);
-    const prevIsAdded = useRef(isAdded);
 
     useEffect(() => {
         if (document.activeElement === inputRef.current) return;
@@ -28,13 +30,6 @@ const MaterialCard = React.memo(({
             setLocalQty(Number(quantity));
         }
     }, [quantity]);
-
-    useEffect(() => {
-        if (prevIsAdded.current && !isAdded && addButtonRef.current) {
-            addButtonRef.current.focus({ preventScroll: true });
-        }
-        prevIsAdded.current = isAdded;
-    }, [isAdded]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -46,104 +41,76 @@ const MaterialCard = React.memo(({
         return () => clearTimeout(timer);
     }, [localQty, quantity, roomMaterialId, onUpdateQuantity]);
 
-    const displayDescription = roomMaterial?.specification || material.description || '';
-
     return (
-        <div className={`group relative bg-white rounded-xl border-2 p-4 transition-all duration-300 hover:shadow-lg flex flex-col justify-between h-full ${isAdded ? 'border-orange-200 bg-orange-50/30' : 'border-stone-200 hover:border-orange-300'
-            }`}>
-            <div className="mb-4">
-                <div className="flex justify-between items-start mb-2">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${isAdded ? 'bg-orange-100 text-orange-700' : 'bg-stone-100 text-stone-600'
-                        }`}>
-                        {material.category || 'General'}
-                    </span>
-                    {isAdded && (
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => onEdit(roomMaterial)}
-                                className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                title="Edit Details"
-                            >
-                                <Edit2 className="w-3.5 h-3.5" />
-                            </button>
-                            <div className="h-5 w-5 bg-orange-100 rounded-full flex items-center justify-center">
-                                <Check className="w-3 h-3 text-orange-600" />
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                <h3 className="text-base font-bold text-slate-900 leading-tight mb-1">
+        <div className={`group p-4 rounded-xl border transition-all duration-200 bg-white
+            ${isAdded
+                ? 'border-[var(--color-accent)]/40 shadow-sm'
+                : 'border-stone-200 hover:border-stone-300 hover:shadow-sm'
+            }
+        `}>
+            {/* Header: Name + Check */}
+            <div className="flex items-start justify-between gap-2 mb-2">
+                <h4 className="text-sm font-semibold text-stone-800 leading-tight line-clamp-2 flex-1">
                     {material.name}
-                </h3>
-
-                {displayDescription && (
-                    <p className="text-xs text-slate-500 leading-relaxed mb-2 line-clamp-2">
-                        {displayDescription}
-                    </p>
+                </h4>
+                {isAdded && (
+                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[var(--color-accent)] flex items-center justify-center">
+                        <Check className="w-3 h-3 text-white" />
+                    </span>
                 )}
-
-                <div className="flex items-baseline gap-1 mt-2">
-                    <span className="text-lg font-bold text-slate-900">
-                        {formatCurrency(roomMaterial?.price || material.price)}
-                    </span>
-                    <span className="text-xs text-slate-500 font-medium">
-                        / {material.unit}
-                    </span>
-                </div>
             </div>
 
-            <div className="mt-auto">
-                {isAdded ? (
-                    <div className="flex items-center gap-2">
-                        <div className="flex-1 flex items-center justify-between bg-white rounded-lg border border-orange-200 p-0.5">
-                            <button
-                                onClick={() => {
-                                    if (quantity > 1) {
-                                        setLocalQty(Number(quantity) - 1);
-                                        onUpdateQuantity(roomMaterialId, Number(quantity) - 1);
-                                    } else {
-                                        onDelete(roomMaterialId, material.name, true);
-                                    }
-                                }}
-                                className="w-8 h-8 flex items-center justify-center rounded bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-                            >
-                                <Minus className="w-3 h-3" />
-                            </button>
-                            <input
-                                type="number"
-                                ref={inputRef}
-                                value={localQty}
-                                onChange={(e) => setLocalQty(e.target.value)}
-                                onBlur={() => {
-                                    if (localQty === '' || Number(localQty) <= 0) {
-                                        setLocalQty(Number(quantity));
-                                    }
-                                }}
-                                onFocus={(e) => e.target.select()}
-                                className="flex-1 w-0 h-8 text-center bg-transparent font-bold text-sm text-slate-900 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            />
-                            <button
-                                onClick={() => {
-                                    setLocalQty(Number(quantity) + 1);
-                                    onUpdateQuantity(roomMaterialId, Number(quantity) + 1);
-                                }}
-                                className="w-8 h-8 flex items-center justify-center rounded bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-dark)] transition-colors"
-                            >
-                                <Plus className="w-3 h-3" />
-                            </button>
-                        </div>
+            {/* Price */}
+            <div className="mb-3">
+                <span className="text-base font-bold text-[var(--color-accent)]">{formatCurrency(price)}</span>
+                <span className="text-xs text-stone-400"> / {material.unit}</span>
+            </div>
+
+            {/* Quantity & Total */}
+            {isAdded ? (
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={() => {
+                                if (quantity > 1) {
+                                    setLocalQty(Number(quantity) - 1);
+                                    onUpdateQuantity(roomMaterialId, Number(quantity) - 1);
+                                } else {
+                                    onDelete(roomMaterialId, material.name, true);
+                                }
+                            }}
+                            className="w-6 h-6 flex items-center justify-center text-stone-500 hover:bg-red-50 hover:text-red-500 rounded transition-colors"
+                        >
+                            <Minus className="w-3 h-3" />
+                        </button>
+                        <input
+                            type="number"
+                            ref={inputRef}
+                            value={localQty}
+                            onChange={(e) => setLocalQty(e.target.value)}
+                            onBlur={() => { if (localQty === '' || Number(localQty) <= 0) setLocalQty(Number(quantity)); }}
+                            className="w-8 h-6 text-center font-medium text-sm text-stone-800 focus:outline-none border border-stone-200 rounded bg-stone-50"
+                        />
+                        <button
+                            onClick={() => {
+                                setLocalQty(Number(quantity) + 1);
+                                onUpdateQuantity(roomMaterialId, Number(quantity) + 1);
+                            }}
+                            className="w-6 h-6 flex items-center justify-center text-stone-500 hover:bg-[var(--color-accent)]/10 hover:text-[var(--color-accent)] rounded transition-colors"
+                        >
+                            <Plus className="w-3 h-3" />
+                        </button>
                     </div>
-                ) : (
-                    <button
-                        ref={addButtonRef}
-                        onClick={() => onAdd(material.id, 1)}
-                        className="w-full py-2 bg-orange-50 text-[var(--color-accent)] border border-orange-200 font-semibold rounded-lg text-sm hover:bg-[var(--color-accent)] hover:text-white transition-all flex items-center justify-center gap-2"
-                    >
-                        <Plus className="w-4 h-4" /> Add
-                    </button>
-                )}
-            </div>
+                    <span className="text-sm font-bold text-[var(--color-accent)]">{formatCurrency(lineTotal)}</span>
+                </div>
+            ) : (
+                <button
+                    onClick={() => onAdd(material.id, 1)}
+                    className="w-full py-2 bg-stone-100 text-stone-600 font-medium text-sm rounded-lg hover:bg-[var(--color-accent)] hover:text-white transition-all"
+                >
+                    + Add
+                </button>
+            )}
         </div>
     );
 });
@@ -166,6 +133,7 @@ const WorksheetTab = ({
     // Search & Filter
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
+    const [showFilters, setShowFilters] = useState(false);
 
     // Modals
     const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
@@ -236,7 +204,7 @@ const WorksheetTab = ({
             setActiveRoomMaterials(prev => [...prev, res.data]);
             onRoomsUpdate(); // Update total in parent
         } catch (err) {
-            alert("Failed to add material.");
+            handleApiError(err, 'Failed to add material');
         }
     };
 
@@ -260,7 +228,30 @@ const WorksheetTab = ({
     };
 
     const handleDeleteMaterialFromRoom = async (roomMaterialId, materialName, skipConfirm = false) => {
-        if (!skipConfirm && !window.confirm(`Remove "${materialName}"?`)) return;
+        if (!skipConfirm) {
+            const confirmed = await new Promise((resolve) => {
+                toast((t) => (
+                    <div className="flex flex-col gap-3">
+                        <p className="font-medium">Remove "{materialName}"?</p>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => { toast.dismiss(t.id); resolve(false); }}
+                                className="px-3 py-1.5 text-sm bg-stone-100 hover:bg-stone-200 rounded-lg transition"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => { toast.dismiss(t.id); resolve(true); }}
+                                className="px-3 py-1.5 text-sm bg-rose-500 hover:bg-rose-600 text-white rounded-lg transition"
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                ), { duration: 10000 });
+            });
+            if (!confirmed) return;
+        }
         try {
             const token = localStorage.getItem("token");
             setActiveRoomMaterials(prev => prev.filter(mat => mat.id !== roomMaterialId));
@@ -286,7 +277,7 @@ const WorksheetTab = ({
             setCustomItem({ description: '', unit: 'nos', rate: '', quantity: 1, specification: '', saveToCatalog: false });
             onRoomsUpdate();
         } catch (err) {
-            alert("Failed to add custom item.");
+            handleApiError(err, 'Failed to add custom item');
         }
     };
 
@@ -311,7 +302,7 @@ const WorksheetTab = ({
             setEditingRoomItem(null);
             onRoomsUpdate();
         } catch (err) {
-            alert("Failed to update item details.");
+            handleApiError(err, 'Failed to update item details');
         }
     };
 
@@ -349,280 +340,209 @@ const WorksheetTab = ({
     }, [mergedMaterials]);
 
 
+    const groupedMaterials = useMemo(() => {
+        // Group filtered materials by category
+        if (filteredMasterMaterials.length === 0) return {};
+
+        const groups = {};
+        filteredMasterMaterials.forEach(item => {
+            const cat = item.category || 'Others';
+            if (!groups[cat]) groups[cat] = [];
+            groups[cat].push(item);
+        });
+        // Sort keys if needed?
+        return groups;
+    }, [filteredMasterMaterials]);
+
+
     return (
-        <div className="flex flex-col md:flex-row md:h-[calc(100vh-180px)] h-auto bg-white rounded-xl shadow-sm border border-[var(--color-border)] md:overflow-hidden overflow-visible animate-fade-in-up">
-            {/* Left Sidebar: Room List (Desktop Only) */}
-            <aside className="w-full md:w-72 hidden md:flex flex-none bg-[var(--color-bg-subtle)] border-r border-[var(--color-border)] flex-col md:h-full md:max-h-full overflow-hidden transition-all">
-                <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-white sticky top-0 z-10">
-                    <h3 className="font-semibold text-gray-700">Rooms</h3>
-                    <button
-                        onClick={onAddRoomClick}
-                        className="p-1.5 bg-orange-50 text-[var(--color-accent)] rounded-md hover:bg-orange-100 transition"
-                        title="Add Room"
-                    >
-                        <Plus className="w-4 h-4" />
-                    </button>
+        <div className="flex flex-col md:flex-row md:h-[calc(100vh-180px)] h-auto bg-white rounded-2xl shadow-sm border border-slate-200 md:overflow-hidden overflow-visible animate-fade-in-up">
+            {/* Left Sidebar: Room List (Desktop Only) - Airy Design */}
+            <aside className="w-full md:w-[320px] hidden md:flex flex-none bg-white border-r border-slate-100 flex-col md:h-full md:max-h-full overflow-hidden">
+                <div className="p-6 border-b border-slate-100">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-semibold text-stone-800 text-lg">Rooms</h3>
+                        <button
+                            onClick={onAddRoomClick}
+                            className="p-2.5 bg-[var(--color-accent)] text-white rounded-xl hover:bg-[var(--color-accent-dark)] transition-all shadow-sm"
+                            title="Add Room"
+                        >
+                            <Plus className="w-4 h-4" />
+                        </button>
+                    </div>
+                    <div className="p-4 bg-[var(--color-accent)]/5 rounded-xl border border-[var(--color-accent)]/10">
+                        <p className="text-xs text-stone-500 uppercase tracking-wide font-semibold mb-1">Total Project Value</p>
+                        <p className="text-2xl font-bold text-stone-800">{formatCurrency(rooms.reduce((acc, r) => acc + (Number(r.room_total) || 0), 0))}</p>
+                    </div>
                 </div>
-                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                <div className="flex-1 overflow-y-auto p-4 space-y-2">
                     {rooms.length === 0 && (
-                        <p className="text-sm text-gray-500 text-center py-4 italic">No rooms yet. Add one to start.</p>
+                        <div className="flex flex-col items-center justify-center h-48 text-center p-6">
+                            <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
+                                <Plus className="w-6 h-6 text-slate-400" />
+                            </div>
+                            <p className="text-base font-medium text-slate-600 mb-2">No rooms yet</p>
+                            <button onClick={onAddRoomClick} className="text-sm text-[var(--color-accent)] hover:underline font-bold">Create your first room</button>
+                        </div>
                     )}
                     {rooms.map(room => (
                         <div
                             key={room.id}
                             onClick={() => setActiveRoomId(room.id)}
-                            className={`group w-full text-left p-3 rounded-lg text-sm border transition-all cursor-pointer relative ${activeRoomId === room.id
-                                ? 'bg-white border-[var(--color-accent)] shadow-sm ring-1 ring-[var(--color-accent)] z-10'
-                                : 'bg-white border-stone-200 hover:border-orange-300 text-stone-600'
+                            className={`group w-full text-left p-4 rounded-xl transition-all cursor-pointer relative ${activeRoomId === room.id
+                                ? 'bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/30'
+                                : 'hover:bg-stone-50 text-stone-700 border border-transparent'
                                 }`}
                         >
-                            <div className="flex justify-between items-start">
-                                <span className={`font-medium ${activeRoomId === room.id ? 'text-[var(--color-accent-dark)]' : 'text-stone-900'}`}>{room.name}</span>
-                                {activeRoomId === room.id && <Check className="w-3.5 h-3.5 text-[var(--color-accent)]" />}
+                            <div className="flex justify-between items-center mb-2">
+                                <span className={`font-semibold text-base ${activeRoomId === room.id ? 'text-[var(--color-accent)]' : 'text-stone-700'}`}>{room.name}</span>
                             </div>
-                            <div className="flex justify-between items-end mt-1">
-                                <span className="text-xs text-gray-500">{room.dimensions || `${room.length}x${room.width}`}</span>
-                                <span className="font-semibold text-gray-900">{formatCurrency(room.room_total || 0)}</span>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-stone-400">{room.dimensions || 'No dimensions'}</span>
+                                <span className={`text-base font-semibold ${activeRoomId === room.id ? 'text-[var(--color-accent)]' : 'text-stone-600'}`}>{formatCurrency(room.room_total || 0)}</span>
                             </div>
 
                             {/* Hover Actions */}
-                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 flex gap-1 bg-white/80 backdrop-blur-sm rounded p-0.5 transition-opacity">
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); onEditRoom(room); }}
-                                    className="p-1 text-slate-400 hover:text-blue-600 rounded"
-                                    title="Edit Room"
-                                >
-                                    <Edit2 className="w-3 h-3" />
-                                </button>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); onDeleteRoom(room); }}
-                                    className="p-1 text-slate-400 hover:text-red-600 rounded"
-                                    title="Delete Room"
-                                >
-                                    <Trash2 className="w-3 h-3" />
-                                </button>
-                            </div>
+                            {activeRoomId !== room.id && (
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex gap-1 transition-all">
+                                    <button onClick={(e) => { e.stopPropagation(); onEditRoom(room); }} className="p-2 hover:bg-white text-slate-400 hover:text-blue-600 rounded-lg transition-colors shadow-sm bg-white/80"><Edit2 className="w-3.5 h-3.5" /></button>
+                                    <button onClick={(e) => { e.stopPropagation(); onDeleteRoom(room); }} className="p-2 hover:bg-white text-slate-400 hover:text-red-600 rounded-lg transition-colors shadow-sm bg-white/80"><Trash2 className="w-3.5 h-3.5" /></button>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
             </aside>
 
             {/* Main Area: Materials */}
-            <main className="flex-1 flex flex-col min-w-0 bg-white md:h-full h-auto">
-                {/* Mobile Room Selector (Sticky) */}
-                <div className="md:hidden sticky top-0 z-20 bg-white border-b border-gray-200 p-3 flex gap-2 items-center shadow-sm">
-                    <div className="flex-1 relative">
-                        <select
-                            value={activeRoomId || ''}
-                            onChange={(e) => setActiveRoomId(Number(e.target.value))}
-                            className="w-full appearance-none bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 pr-8 font-medium"
-                        >
-                            <option value="" disabled>Select Room...</option>
-                            {rooms.length === 0 && <option value="" disabled>No rooms added</option>}
-                            {rooms.map(room => (
-                                <option key={room.id} value={room.id}>{room.name}</option>
-                            ))}
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                            <ChevronDown className="w-4 h-4" />
-                        </div>
-                    </div>
-                    <button
-                        onClick={onAddRoomClick}
-                        className="p-2.5 bg-[var(--color-accent)] text-white rounded-lg shadow-md hover:bg-[var(--color-accent-dark)] transition flex-shrink-0"
-                        title="Add Room"
-                    >
-                        <Plus className="w-5 h-5" />
-                    </button>
-                    {activeRoomId && (
-                        <div className="flex gap-1 ml-1 border-l pl-2 border-gray-200">
-                            <button
-                                onClick={() => { const r = rooms.find(r => r.id === activeRoomId); if (r) onEditRoom(r); }}
-                                className="p-2 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-gray-100"
-                                title="Edit Room"
-                            >
-                                <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button
-                                onClick={() => { const r = rooms.find(r => r.id === activeRoomId); if (r) onDeleteRoom(r); }}
-                                className="p-2 text-gray-500 hover:text-red-600 rounded-lg hover:bg-gray-100"
-                                title="Delete Room"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </button>
-                        </div>
-                    )}
-                </div>
-
+            <main className="flex-1 flex flex-col min-w-0 bg-white md:h-full h-auto relative">
                 {!activeRoomId ? (
-                    <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8">
-                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                            <Edit2 className="w-8 h-8 text-gray-300" />
+                    <div className="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 text-center bg-slate-50/30">
+                        <div className="w-20 h-20 bg-white rounded-3xl shadow-sm border border-slate-100 flex items-center justify-center mb-6 animate-pulse">
+                            <span className="text-4xl">🏗️</span>
                         </div>
-                        <p className="text-lg font-medium text-gray-500">Select a room to start adding items</p>
-                        <p className="text-sm mt-2">Or add a new room from the sidebar</p>
+                        <h3 className="text-xl font-bold text-slate-700 mb-2">Workspace Ready</h3>
+                        <p className="text-slate-500 max-w-xs">Select a room from the sidebar to start adding materials and building your quotation.</p>
                     </div>
                 ) : (
                     <>
-                        {/* Material Toolbar */}
-                        <div className="p-4 border-b border-gray-200 flex flex-col gap-4 bg-white z-10">
-                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                <div className="hidden md:block">
-                                    <h2 className="text-lg font-bold text-gray-900">{activeRoom?.name}</h2>
-                                    <p className="text-sm text-gray-500">{activeRoomMaterials.length} items added • Total: {formatCurrency(activeRoom?.room_total || 0)}</p>
+                        {/* Clean Header */}
+                        <div className="px-8 py-6 border-b border-slate-100 bg-white">
+                            <div className="max-w-5xl mx-auto">
+                                <div className="flex justify-between items-start mb-6">
+                                    <div>
+                                        <h2 className="text-3xl font-bold text-slate-900 mb-1">{activeRoom?.name}</h2>
+                                        <p className="text-slate-500">{activeRoomMaterials.length} items added to this room</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-xs text-stone-400 uppercase tracking-wide font-semibold mb-1">Room Total</p>
+                                        <p className="text-3xl font-bold text-[var(--color-accent)]">{formatCurrency(activeRoom?.room_total || 0)}</p>
+                                    </div>
                                 </div>
-                                <div className="flex gap-2 w-full md:w-auto">
-                                    <input
-                                        type="text"
-                                        placeholder="Search catalog..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="flex-1 md:w-64 px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
-                                    />
+
+                                {/* Simple Search Bar */}
+                                <div className="flex gap-4 items-center">
+                                    <div className="flex-1 relative">
+                                        <input
+                                            type="text"
+                                            placeholder="Search materials..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="w-full pl-4 pr-12 py-3.5 bg-slate-50 border-0 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all placeholder:text-slate-400"
+                                        />
+                                        {searchTerm && (
+                                            <button onClick={() => setSearchTerm('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <button
+                                        onClick={() => setShowFilters(!showFilters)}
+                                        className={`px-5 py-3.5 rounded-xl flex items-center gap-2 transition-all font-medium ${showFilters
+                                            ? 'bg-[var(--color-accent)] text-white'
+                                            : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                                            }`}
+                                    >
+                                        <Filter className="w-4 h-4" />
+                                        Filters
+                                    </button>
+
                                     <button
                                         onClick={() => setIsCustomModalOpen(true)}
-                                        className="px-3 py-2 bg-[var(--color-accent)] text-white text-sm font-medium rounded-lg hover:bg-[var(--color-accent-dark)] transition whitespace-nowrap"
+                                        className="px-5 py-3.5 bg-[var(--color-accent)] text-white font-semibold rounded-xl hover:opacity-90 transition shadow-md shadow-[var(--color-accent)]/20 flex items-center gap-2"
                                     >
-                                        + Custom Item
+                                        <Plus className="w-4 h-4" />
+                                        Custom Item
                                     </button>
                                 </div>
-                            </div>
 
-                            {/* Categories */}
-                            <div className="mb-4">
-                                <div className="flex flex-wrap gap-2 md:gap-3">
-                                    {categories.map(cat => (
-                                        <button
-                                            key={cat}
-                                            onClick={() => setSelectedCategory(cat)}
-                                            className={`px-4 py-2 md:px-5 md:py-2.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider border transition-all ${selectedCategory === cat
-                                                ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)] shadow-md shadow-orange-200'
-                                                : 'bg-white text-stone-500 border-stone-200 hover:border-orange-300 hover:bg-stone-50'
-                                                }`}
-                                        >
-                                            {cat}
-                                        </button>
-                                    ))}
-                                </div>
-                                <div className="flex justify-end mt-2">
-                                    <button
-                                        onClick={async () => {
-                                            const allSelected = filteredMasterMaterials.length > 0 && filteredMasterMaterials.every(m => {
-                                                if (m.isCustom) return true;
-                                                return activeRoomMaterials.find(rm => Number(rm.material_id) === Number(m.id));
-                                            });
-
-                                            if (allSelected) {
-                                                // Unselect All Logic
-                                                const itemsToRemove = activeRoomMaterials.filter(rm => {
-                                                    // Remove if it matches a catalog item in the current filter OR if it is a visible custom item
-                                                    if (filteredMasterMaterials.some(m => m.isCustom && m.originalRoomMaterialId === rm.id)) return true;
-                                                    return filteredMasterMaterials.some(m => !m.isCustom && Number(m.id) === Number(rm.material_id));
-                                                });
-
-                                                if (itemsToRemove.length === 0) return;
-                                                const confirmMsg = itemsToRemove.length === 1 ? "Remove 1 item?" : `Remove ${itemsToRemove.length} items from this room?`;
-                                                if (!window.confirm(confirmMsg)) return;
-
-                                                setIsLoadingMaterials(true);
-                                                try {
-                                                    const token = localStorage.getItem("token");
-                                                    await Promise.all(itemsToRemove.map(item =>
-                                                        axios.delete(`${API_URL}/room-materials/${item.id}`, {
-                                                            headers: { Authorization: `Bearer ${token}` }
-                                                        })
-                                                    ));
-                                                    // Refresh
-                                                    const res = await axios.get(`${API_URL}/rooms/${activeRoomId}/materials`, {
-                                                        headers: { Authorization: `Bearer ${token}` }
-                                                    });
-                                                    setActiveRoomMaterials(res.data);
-                                                    onRoomsUpdate();
-                                                } catch (err) {
-                                                    console.error(err);
-                                                    alert("Failed to remove items.");
-                                                } finally {
-                                                    setIsLoadingMaterials(false);
-                                                }
-                                            } else {
-                                                // Select All Logic
-                                                const itemsToAdd = filteredMasterMaterials
-                                                    .filter(m => !m.isCustom)
-                                                    .filter(m => !activeRoomMaterials.find(rm => Number(rm.material_id) === Number(m.id)));
-
-                                                if (itemsToAdd.length === 0) return;
-                                                const confirmMsg = itemsToAdd.length === 1 ? "Add 1 item?" : `Add ${itemsToAdd.length} items to this room?`;
-                                                if (!window.confirm(confirmMsg)) return;
-
-                                                setIsLoadingMaterials(true);
-                                                try {
-                                                    const token = localStorage.getItem("token");
-                                                    await Promise.all(itemsToAdd.map(item =>
-                                                        axios.post(`${API_URL}/rooms/${activeRoomId}/materials`,
-                                                            { material_id: item.id, quantity: 1 },
-                                                            { headers: { Authorization: `Bearer ${token}` } }
-                                                        )
-                                                    ));
-                                                    // Refresh
-                                                    const res = await axios.get(`${API_URL}/rooms/${activeRoomId}/materials`, {
-                                                        headers: { Authorization: `Bearer ${token}` }
-                                                    });
-                                                    setActiveRoomMaterials(res.data);
-                                                    onRoomsUpdate();
-                                                } catch (err) {
-                                                    console.error(err);
-                                                    alert("Failed to add items.");
-                                                } finally {
-                                                    setIsLoadingMaterials(false);
-                                                }
-                                            }
-                                        }}
-                                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 font-medium cursor-pointer"
-                                    >
-                                        <div className={`w-4 h-4 border rounded flex items-center justify-center transition-colors ${filteredMasterMaterials.length > 0 && filteredMasterMaterials.every(m => m.isCustom || activeRoomMaterials.find(rm => Number(rm.material_id) === Number(m.id)))
-                                            ? 'bg-[var(--color-accent)] border-[var(--color-accent)]'
-                                            : 'border-stone-400 bg-white'
-                                            }`}>
-                                            {filteredMasterMaterials.length > 0 && filteredMasterMaterials.every(m => m.isCustom || activeRoomMaterials.find(rm => Number(rm.material_id) === Number(m.id))) &&
-                                                <Check className="w-3 h-3 text-white" />
-                                            }
+                                {/* Category Filters (Collapsible) */}
+                                {showFilters && (
+                                    <div className="mt-6 p-5 bg-slate-50 rounded-2xl animate-fade-in">
+                                        <div className="flex flex-wrap gap-3">
+                                            {categories.map(cat => (
+                                                <button
+                                                    key={cat}
+                                                    onClick={() => setSelectedCategory(cat)}
+                                                    className={`px-4 py-2.5 rounded-xl font-medium transition-all ${selectedCategory === cat
+                                                        ? 'bg-[var(--color-accent)] text-white'
+                                                        : 'bg-white text-stone-600 hover:bg-stone-100 border border-stone-200'
+                                                        }`}
+                                                >
+                                                    {cat}
+                                                </button>
+                                            ))}
                                         </div>
-                                        {filteredMasterMaterials.length > 0 && filteredMasterMaterials.every(m => m.isCustom || activeRoomMaterials.find(rm => Number(rm.material_id) === Number(m.id)))
-                                            ? 'Unselect All'
-                                            : 'Select All'
-                                        }
-                                    </button>
-                                </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* Material Grid */}
-                        <div className="md:flex-1 h-auto md:overflow-y-auto overflow-visible p-4 bg-[var(--color-bg-subtle)]">
+                        {/* Card Grid Layout */}
+                        <div className="md:flex-1 h-auto md:overflow-y-auto overflow-visible p-5 bg-stone-50/50">
                             {isLoadingMaterials ? (
-                                <div className="flex justify-center p-8"><span className="text-gray-500 animate-pulse">Loading materials...</span></div>
+                                <div className="grid place-items-center h-full py-16"><span className="animate-pulse text-stone-400 font-medium">Loading materials...</span></div>
                             ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                    {filteredMasterMaterials.map(material => {
-                                        const roomMaterial = material.isCustom
-                                            ? activeRoomMaterials.find(rm => rm.id === material.originalRoomMaterialId)
-                                            : activeRoomMaterials.find(m => Number(m.material_id) === Number(material.id));
+                                <div className="space-y-6 pb-8">
+                                    {Object.keys(groupedMaterials).map(category => (
+                                        <section key={category} className="animate-fade-in-up">
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <span className="w-2 h-2 rounded-full bg-[var(--color-accent)]"></span>
+                                                <h4 className="text-sm font-semibold text-stone-600 uppercase tracking-wide">{category}</h4>
+                                                <span className="text-xs text-stone-400">({groupedMaterials[category].length})</span>
+                                            </div>
+                                            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                                {groupedMaterials[category].map(material => {
+                                                    const roomMaterial = material.isCustom
+                                                        ? activeRoomMaterials.find(rm => rm.id === material.originalRoomMaterialId)
+                                                        : activeRoomMaterials.find(m => Number(m.material_id) === Number(material.id));
 
-                                        return (
-                                            <MaterialCard
-                                                key={material.id}
-                                                material={material}
-                                                roomMaterial={roomMaterial}
-                                                onUpdateQuantity={handleUpdateMaterialQuantity}
-                                                onDelete={handleDeleteMaterialFromRoom}
-                                                onAdd={handleAddMaterialToRoom}
-                                                onEdit={(item) => {
-                                                    setEditingRoomItem(item);
-                                                    setIsEditModalOpen(true);
-                                                }}
-                                                formatCurrency={formatCurrency}
-                                            />
-                                        );
-                                    })}
+                                                    return (
+                                                        <MaterialCard
+                                                            key={material.id}
+                                                            material={material}
+                                                            roomMaterial={roomMaterial}
+                                                            onUpdateQuantity={handleUpdateMaterialQuantity}
+                                                            onDelete={handleDeleteMaterialFromRoom}
+                                                            onAdd={handleAddMaterialToRoom}
+                                                            onEdit={(item) => { setEditingRoomItem(item); setIsEditModalOpen(true); }}
+                                                            formatCurrency={formatCurrency}
+                                                        />
+                                                    );
+                                                })}
+                                            </div>
+                                        </section>
+                                    ))}
+                                    {filteredMasterMaterials.length === 0 && (
+                                        <div className="flex flex-col items-center justify-center py-16 text-stone-400">
+                                            <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mb-4">
+                                                <Filter className="w-6 h-6 text-stone-300" />
+                                            </div>
+                                            <p className="font-medium">No materials found</p>
+                                            <p className="text-sm mt-1">Try adjusting your search or filters.</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -632,54 +552,55 @@ const WorksheetTab = ({
 
             {/* Custom Item Modal */}
             {isCustomModalOpen && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
-                        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                            <h3 className="font-bold text-gray-800">Add Custom Work Item</h3>
-                            <button onClick={() => setIsCustomModalOpen(false)}><X className="w-5 h-5 text-gray-400" /></button>
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fade-in">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden scale-100 animate-scale-in">
+                        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h3 className="font-bold text-slate-800 text-lg">Add Custom Item</h3>
+                            <button onClick={() => setIsCustomModalOpen(false)} className="p-1 hover:bg-slate-200 rounded-full transition"><X className="w-5 h-5 text-slate-400" /></button>
                         </div>
-                        <form onSubmit={handleAddCustomItem} className="p-6 space-y-4">
+                        <form onSubmit={handleAddCustomItem} className="p-6 space-y-5">
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Item Name</label>
-                                <input type="text" required value={customItem.description} onChange={(e) => setCustomItem({ ...customItem, description: e.target.value })} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="e.g. Custom Cabinetry" />
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Item Name</label>
+                                <input type="text" required value={customItem.description} onChange={(e) => setCustomItem({ ...customItem, description: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-accent)]/20 focus:border-[var(--color-accent)] outline-none transition-all font-medium" placeholder="e.g. Custom Cabinetry" />
                             </div>
-                            <div className="grid grid-cols-3 gap-3">
-                                <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Unit</label><input type="text" required value={customItem.unit} onChange={(e) => setCustomItem({ ...customItem, unit: e.target.value })} className="w-full px-3 py-2 border rounded-lg" placeholder="sqft" /></div>
-                                <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Rate (₹)</label><input type="number" required value={customItem.rate} onChange={(e) => setCustomItem({ ...customItem, rate: e.target.value })} className="w-full px-3 py-2 border rounded-lg" placeholder="0.00" /></div>
-                                <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Qty</label><input type="number" required value={customItem.quantity} onChange={(e) => setCustomItem({ ...customItem, quantity: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
+                            <div className="grid grid-cols-3 gap-4">
+                                <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Unit</label><input type="text" required value={customItem.unit} onChange={(e) => setCustomItem({ ...customItem, unit: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-accent)]/20 focus:border-[var(--color-accent)] outline-none transition-all" placeholder="sqft" /></div>
+                                <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Rate (₹)</label><input type="number" required value={customItem.rate} onChange={(e) => setCustomItem({ ...customItem, rate: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-accent)]/20 focus:border-[var(--color-accent)] outline-none transition-all" placeholder="0.00" /></div>
+                                <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Qty</label><input type="number" required value={customItem.quantity} onChange={(e) => setCustomItem({ ...customItem, quantity: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-accent)]/20 focus:border-[var(--color-accent)] outline-none transition-all" /></div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Specification</label>
-                                <textarea rows="3" value={customItem.specification} onChange={(e) => setCustomItem({ ...customItem, specification: e.target.value })} className="w-full px-3 py-2 border rounded-lg resize-none" placeholder="Details..." />
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Specification</label>
+                                <textarea rows="3" value={customItem.specification} onChange={(e) => setCustomItem({ ...customItem, specification: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--color-accent)]/20 focus:border-[var(--color-accent)] outline-none transition-all resize-none" placeholder="Details..." />
                             </div>
-                            <button type="submit" className="w-full bg-[var(--color-accent)] text-white py-2.5 rounded-lg font-bold hover:bg-[var(--color-accent-dark)]">Add Item</button>
+                            <button type="submit" className="w-full bg-[var(--color-accent)] text-white py-3 rounded-xl font-bold hover:bg-[var(--color-accent-dark)] shadow-md shadow-[var(--color-accent)]/20 transition-all transform active:scale-95">Add Custom Item</button>
                         </form>
                     </div>
                 </div>
             )}
 
-            {/* Edit Modal (Simpler version) */}
+            {/* Edit Modal */}
             {isEditModalOpen && editingRoomItem && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
-                        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                            <h3 className="font-bold text-gray-800">Edit Item</h3>
-                            <button onClick={() => setIsEditModalOpen(false)}><X className="w-5 h-5 text-gray-400" /></button>
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fade-in">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden scale-100 animate-scale-in">
+                        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h3 className="font-bold text-slate-800 text-lg">Edit Item Details</h3>
+                            <button onClick={() => setIsEditModalOpen(false)} className="p-1 hover:bg-slate-200 rounded-full transition"><X className="w-5 h-5 text-slate-400" /></button>
                         </div>
-                        <form onSubmit={handleUpdateRoomItemDetails} className="p-6 space-y-4">
-                            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Name</label><input type="text" required value={editingRoomItem.name} onChange={(e) => setEditingRoomItem({ ...editingRoomItem, name: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
+                        <form onSubmit={handleUpdateRoomItemDetails} className="p-6 space-y-5">
+                            <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Name</label><input type="text" required value={editingRoomItem.name} onChange={(e) => setEditingRoomItem({ ...editingRoomItem, name: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl transition-all outline-none focus:border-[var(--color-accent)]" /></div>
                             <div className="grid grid-cols-2 gap-4">
-                                <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Rate</label><input type="number" required value={editingRoomItem.price} onChange={(e) => setEditingRoomItem({ ...editingRoomItem, price: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
-                                <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Qty</label><input type="number" required value={editingRoomItem.quantity} onChange={(e) => setEditingRoomItem({ ...editingRoomItem, quantity: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
+                                <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Rate</label><input type="number" required value={editingRoomItem.price} onChange={(e) => setEditingRoomItem({ ...editingRoomItem, price: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl transition-all outline-none focus:border-[var(--color-accent)]" /></div>
+                                <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Qty</label><input type="number" required value={editingRoomItem.quantity} onChange={(e) => setEditingRoomItem({ ...editingRoomItem, quantity: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl transition-all outline-none focus:border-[var(--color-accent)]" /></div>
                             </div>
-                            <div><label className="block text-xs font-bold text-gray-500 uppercase mb-1">Specification</label><textarea rows="3" value={editingRoomItem.specification || ''} onChange={(e) => setEditingRoomItem({ ...editingRoomItem, specification: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
-                            <button type="submit" className="w-full bg-[var(--color-accent)] text-white py-2.5 rounded-lg font-bold hover:bg-[var(--color-accent-dark)]">Save Changes</button>
+                            <div><label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Specification</label><textarea rows="3" value={editingRoomItem.specification || ''} onChange={(e) => setEditingRoomItem({ ...editingRoomItem, specification: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl transition-all outline-none focus:border-[var(--color-accent)] resize-none" /></div>
+                            <button type="submit" className="w-full bg-[var(--color-accent)] text-white py-3 rounded-xl font-bold hover:bg-[var(--color-accent-dark)] shadow-md shadow-[var(--color-accent)]/20 transition-all transform active:scale-95">Save Changes</button>
                         </form>
                     </div>
                 </div>
             )}
         </div>
     );
+
 };
 
 export default WorksheetTab;
