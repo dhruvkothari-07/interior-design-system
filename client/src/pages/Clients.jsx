@@ -183,7 +183,6 @@ const Clients = () => {
                         />
                     </div>
                     <button onClick={() => setIsAddModalOpen(true)} className="btn-primary flex items-center justify-center gap-2 whitespace-nowrap">
-                        <UserPlus className="w-4 h-4" />
                         Add Client
                     </button>
                 </div>
@@ -217,7 +216,7 @@ const Clients = () => {
                                 {/* Header */}
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-500 flex items-center justify-center text-white shadow-lg shrink-0">
+                                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center text-white shadow-lg shrink-0">
                                             <User className="w-6 h-6 md:w-7 md:h-7" />
                                         </div>
                                         <div className="min-w-0">

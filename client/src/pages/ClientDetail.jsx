@@ -65,7 +65,7 @@ const ClientDetail = () => {
                     </button>
 
                     <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-500 flex items-center justify-center text-white shadow-lg shrink-0">
+                        <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center text-white shadow-lg shrink-0">
                             <User className="w-7 h-7 md:w-8 md:h-8" />
                         </div>
                         <div>
