@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 import Signin from "./pages/Signin";
 import Dashboard from "./pages/Dashboard";
 import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
 import Materials from "./pages/Materials";
 import Quotations from "./pages/Quotations";
 import Clients from "./pages/Clients";
@@ -41,6 +42,7 @@ const App = () => {
                 <Route path="/" element={<Navigate to="/signin" replace />} />
                 <Route path="/signin" element={<Signin />} />
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
 
                 {/* Protected Layout Routes */}
                 <Route element={<Layout />}>

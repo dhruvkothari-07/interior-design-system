@@ -147,11 +147,10 @@ const Signin = () => {
               )}
             </div>
 
-            {/* Remember / Forgot */}
             {/* Forgot Password Link */}
             <div className="flex justify-end items-center">
               <Link
-                to="#"
+                to="/forgot-password"
                 className="text-sm text-[var(--color-accent)] hover:underline font-medium"
               >
                 Forgot password?
