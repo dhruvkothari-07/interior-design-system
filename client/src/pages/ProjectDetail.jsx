@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
+import toast from "react-hot-toast";
 import { useParams, useNavigate } from "react-router-dom";
 import {
     LayoutDashboard,
@@ -29,7 +30,8 @@ import {
     FolderKanban,
     Wallet,
     ListChecks,
-    TrendingDown
+    TrendingDown,
+    PieChart
 } from "lucide-react";
 import { API_URL } from '../config';
 
@@ -52,6 +54,7 @@ const ProjectDetail = () => {
             setProject(res.data);
         } catch (err) {
             console.error(err);
+            toast.error("Failed to load project details");
         } finally {
             setIsLoading(false);
         }
@@ -65,7 +68,8 @@ const ProjectDetail = () => {
         try {
             await axios.put(`${API_URL}/projects/${id}/status`, { status: newStatus }, { headers: { Authorization: `Bearer ${token}` } });
             setProject(prev => ({ ...prev, status: newStatus }));
-        } catch (err) { alert("Failed to update status"); }
+            toast.success("Project status updated");
+        } catch (err) { toast.error("Failed to update status"); }
     };
 
     const handleAddTask = async (e) => {
@@ -76,7 +80,8 @@ const ProjectDetail = () => {
             setProject(prev => ({ ...prev, tasks: [res.data, ...prev.tasks] }));
             setIsTaskModalOpen(false);
             setNewTaskData({ description: "", due_date: "", priority: "Medium", trade_category: "General" });
-        } catch (err) { alert("Failed"); }
+            toast.success("Task added successfully");
+        } catch (err) { toast.error("Failed to add task"); }
     };
 
     const handleAddExpense = async (e) => {
@@ -86,7 +91,8 @@ const ProjectDetail = () => {
             const res = await axios.post(`${API_URL}/projects/${id}/expenses`, newExpense, { headers: { Authorization: `Bearer ${token}` } });
             setProject(prev => ({ ...prev, expenses: [res.data, ...prev.expenses] }));
             setNewExpense({ description: "", amount: "", category: "", expense_date: new Date().toISOString().split('T')[0] });
-        } catch (err) { alert("Failed"); }
+            toast.success("Expense logged successfully");
+        } catch (err) { toast.error("Failed to log expense"); }
     };
 
     const handleTaskToggle = async (taskId, currentStatus) => {
@@ -98,7 +104,54 @@ const ProjectDetail = () => {
                 ...prev,
                 tasks: prev.tasks.map(t => t.id === taskId ? { ...t, status: nextStatus } : t)
             }));
-        } catch (err) { }
+            toast.success(`Task marked as ${nextStatus}`);
+        } catch (err) { toast.error("Failed to update task"); }
+    };
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const toastId = toast.loading("Uploading file...");
+
+        try {
+            const token = localStorage.getItem("token");
+            const res = await axios.post(`${API_URL}/projects/${id}/files`, formData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            setProject(prev => ({
+                ...prev,
+                files: [res.data, ...(prev.files || [])]
+            }));
+            toast.success("File uploaded successfully", { id: toastId });
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to upload file", { id: toastId });
+        }
+    };
+
+    const handleFileDelete = async (fileId) => {
+        if (!window.confirm("Are you sure you want to delete this file?")) return;
+
+        const toastId = toast.loading("Deleting file...");
+        try {
+            const token = localStorage.getItem("token");
+            await axios.delete(`${API_URL}/files/${fileId}`, { headers: { Authorization: `Bearer ${token}` } });
+            setProject(prev => ({
+                ...prev,
+                files: prev.files.filter(f => f.id !== fileId)
+            }));
+            toast.success("File deleted successfully", { id: toastId });
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to delete file", { id: toastId });
+        }
     };
 
     if (isLoading) return (
@@ -162,27 +215,15 @@ const ProjectDetail = () => {
                         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                             {/* Left: Project Info */}
                             <div className="flex items-start gap-4">
-                                <div className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${statusConfig.gradient} flex items-center justify-center shadow-lg`}>
-                                    <FolderKanban className="w-8 h-8 text-white" />
-                                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-lg flex items-center justify-center shadow-md border border-stone-100">
-                                        <StatusIcon className={`w-3.5 h-3.5 ${statusConfig.text}`} />
-                                    </div>
-                                </div>
+
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
                                         <h1 className="text-2xl lg:text-3xl font-bold text-[var(--color-text-primary)] tracking-tight">
                                             {project.name}
                                         </h1>
-                                        <span className={`px-3 py-1.5 rounded-xl text-xs font-semibold ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border} border flex items-center gap-1.5`}>
-                                            <StatusIcon className="w-3 h-3" />
-                                            {project.status}
-                                        </span>
                                     </div>
                                     <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--color-text-muted)]">
-                                        <span className="flex items-center gap-1.5">
-                                            <Users className="w-4 h-4" />
-                                            {project.client_name || 'No client assigned'}
-                                        </span>
+
                                         <span className="flex items-center gap-1.5">
                                             <Calendar className="w-4 h-4" />
                                             {project.end_date ? new Date(project.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'No deadline'}
@@ -203,12 +244,6 @@ const ProjectDetail = () => {
                                     <option value="On Hold">On Hold</option>
                                     <option value="Completed">Completed</option>
                                 </select>
-                                <button className="p-2.5 rounded-xl bg-white border border-[var(--color-border)] hover:shadow-md transition-all">
-                                    <Edit3 className="w-5 h-5 text-[var(--color-text-muted)]" />
-                                </button>
-                                <button className="p-2.5 rounded-xl bg-white border border-[var(--color-border)] hover:shadow-md transition-all">
-                                    <MoreHorizontal className="w-5 h-5 text-[var(--color-text-muted)]" />
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -218,20 +253,14 @@ const ProjectDetail = () => {
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 animate-fade-in-up">
                     {/* Budget Card */}
                     <div className="card p-5 relative overflow-hidden group hover:shadow-lg transition-all">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[var(--color-accent)]/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-125 transition-transform duration-500" />
                         <div className="relative">
                             <div className="flex items-center justify-between mb-3">
                                 <span className="text-sm text-[var(--color-text-muted)]">Budget</span>
-                                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center">
+                                <div className="w-9 h-9 rounded-lg bg-[var(--color-accent)] flex items-center justify-center">
                                     <IndianRupee className="w-4 h-4 text-white" />
                                 </div>
                             </div>
                             <p className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{formatCurrency(project.budget)}</p>
-                            <div className="flex items-center gap-2 text-xs">
-                                <span className={`font-medium ${budgetUsage > 90 ? 'text-rose-600' : 'text-[var(--color-text-muted)]'}`}>
-                                    {budgetUsage}% utilized
-                                </span>
-                            </div>
                         </div>
                     </div>
 
@@ -239,44 +268,36 @@ const ProjectDetail = () => {
                     <div className="card p-5 group hover:shadow-lg transition-all">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-sm text-[var(--color-text-muted)]">Spent</span>
-                            <div className="w-9 h-9 rounded-lg bg-rose-100 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <TrendingDown className="w-4 h-4 text-rose-600" />
+                            <div className="w-9 h-9 rounded-lg bg-[var(--color-accent)] flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <TrendingUp className="w-4 h-4 text-white" />
                             </div>
                         </div>
                         <p className="text-2xl font-bold text-[var(--color-text-primary)]">{formatCurrency(totalExpenses)}</p>
-                        <p className="text-xs text-[var(--color-text-muted)] mt-1">{project.expenses?.length || 0} transactions</p>
                     </div>
 
                     {/* Tasks Progress */}
                     <div className="card p-5 group hover:shadow-lg transition-all">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-sm text-[var(--color-text-muted)]">Tasks</span>
-                            <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <ListChecks className="w-4 h-4 text-emerald-600" />
+                            <div className="w-9 h-9 rounded-lg bg-[var(--color-accent)] flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <ListChecks className="w-4 h-4 text-white" />
                             </div>
                         </div>
                         <p className="text-2xl font-bold text-[var(--color-text-primary)]">{tasksCompleted}/{totalTasks}</p>
-                        <div className="h-1.5 bg-emerald-100 rounded-full mt-2 overflow-hidden">
-                            <div
-                                className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-                                style={{ width: `${taskProgress}%` }}
-                            />
-                        </div>
                     </div>
 
                     {/* Remaining */}
                     <div className="card p-5 group hover:shadow-lg transition-all">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-sm text-[var(--color-text-muted)]">Remaining</span>
-                            <div className={`w-9 h-9 rounded-lg ${remainingBudget < 0 ? 'bg-rose-100' : 'bg-emerald-100'} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                                <Target className={`w-4 h-4 ${remainingBudget < 0 ? 'text-rose-600' : 'text-emerald-600'}`} />
+                            <div className="w-9 h-9 rounded-lg bg-[var(--color-accent)] flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <PieChart className="w-4 h-4 text-white" />
                             </div>
                         </div>
                         <p className={`text-2xl font-bold flex items-center gap-2 ${remainingBudget < 0 ? 'text-rose-600' : 'text-[var(--color-text-primary)]'}`}>
                             {formatCurrency(remainingBudget)}
                             {remainingBudget < 0 && <AlertTriangle className="w-4 h-4" />}
                         </p>
-                        <p className="text-xs text-[var(--color-text-muted)] mt-1">of budget</p>
                     </div>
                 </div>
 
@@ -294,7 +315,6 @@ const ProjectDetail = () => {
                                         : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-stone-50'}
                                 `}
                             >
-                                <tab.icon className="w-4 h-4" />
                                 {tab.label}
                                 {tab.badge > 0 && activeTab !== tab.id && (
                                     <span className="ml-1 px-1.5 py-0.5 bg-[var(--color-accent)]/10 text-[var(--color-accent)] rounded text-[10px] font-semibold">
@@ -313,7 +333,6 @@ const ProjectDetail = () => {
                             {/* Project Description */}
                             <div className="lg:col-span-2 card p-6">
                                 <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
-                                    <FileText className="w-5 h-5 text-[var(--color-accent)]" />
                                     Project Details
                                 </h3>
                                 <p className="text-[var(--color-text-secondary)] leading-relaxed mb-6">
@@ -350,47 +369,38 @@ const ProjectDetail = () => {
                             </div>
 
                             {/* Quick Actions */}
-                            <div className="card p-6 bg-gradient-to-br from-[var(--color-accent)] to-amber-700 text-white relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-                                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-
-                                <div className="relative">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <Sparkles className="w-5 h-5" />
-                                        <h3 className="text-lg font-semibold">Quick Actions</h3>
-                                    </div>
-                                    <div className="space-y-3">
-                                        <button
-                                            onClick={() => setIsTaskModalOpen(true)}
-                                            className="w-full flex items-center justify-between p-3.5 bg-white/15 backdrop-blur-sm rounded-xl hover:bg-white/25 transition-all group"
-                                        >
-                                            <span className="flex items-center gap-2">
-                                                <Plus className="w-4 h-4" />
-                                                Add Task
-                                            </span>
-                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                        </button>
-                                        <button
-                                            onClick={() => setActiveTab('financials')}
-                                            className="w-full flex items-center justify-between p-3.5 bg-white/15 backdrop-blur-sm rounded-xl hover:bg-white/25 transition-all group"
-                                        >
-                                            <span className="flex items-center gap-2">
-                                                <DollarSign className="w-4 h-4" />
-                                                Log Expense
-                                            </span>
-                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                        </button>
-                                        <button
-                                            onClick={() => setActiveTab('files')}
-                                            className="w-full flex items-center justify-between p-3.5 bg-white/15 backdrop-blur-sm rounded-xl hover:bg-white/25 transition-all group"
-                                        >
-                                            <span className="flex items-center gap-2">
-                                                <FolderOpen className="w-4 h-4" />
-                                                Upload Files
-                                            </span>
-                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                        </button>
-                                    </div>
+                            <div className="card p-6 bg-white">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Quick Actions</h3>
+                                </div>
+                                <div className="space-y-3">
+                                    <button
+                                        onClick={() => setIsTaskModalOpen(true)}
+                                        className="w-full flex items-center justify-between p-3.5 bg-[var(--color-bg-subtle)] rounded-xl hover:bg-stone-100 transition-all group text-[var(--color-text-primary)]"
+                                    >
+                                        <span className="flex items-center gap-2 font-medium">
+                                            Add Task
+                                        </span>
+                                        <ArrowRight className="w-4 h-4 text-[var(--color-text-muted)] group-hover:translate-x-1 transition-transform" />
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('financials')}
+                                        className="w-full flex items-center justify-between p-3.5 bg-[var(--color-bg-subtle)] rounded-xl hover:bg-stone-100 transition-all group text-[var(--color-text-primary)]"
+                                    >
+                                        <span className="flex items-center gap-2 font-medium">
+                                            Log Expense
+                                        </span>
+                                        <ArrowRight className="w-4 h-4 text-[var(--color-text-muted)] group-hover:translate-x-1 transition-transform" />
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('files')}
+                                        className="w-full flex items-center justify-between p-3.5 bg-[var(--color-bg-subtle)] rounded-xl hover:bg-stone-100 transition-all group text-[var(--color-text-primary)]"
+                                    >
+                                        <span className="flex items-center gap-2 font-medium">
+                                            Upload Files
+                                        </span>
+                                        <ArrowRight className="w-4 h-4 text-[var(--color-text-muted)] group-hover:translate-x-1 transition-transform" />
+                                    </button>
                                 </div>
                             </div>
 
@@ -398,11 +408,10 @@ const ProjectDetail = () => {
                             <div className="lg:col-span-3 card p-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
-                                        <ListChecks className="w-5 h-5 text-[var(--color-accent)]" />
                                         Recent Tasks
                                     </h3>
                                     <button onClick={() => setIsTaskModalOpen(true)} className="btn-primary text-sm py-2 flex items-center gap-1.5">
-                                        <Plus className="w-4 h-4" /> Add Task
+                                        Add Task
                                     </button>
                                 </div>
 
@@ -472,7 +481,7 @@ const ProjectDetail = () => {
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">All Tasks</h3>
                                 <button onClick={() => setIsTaskModalOpen(true)} className="btn-primary flex items-center gap-2">
-                                    <Plus className="w-4 h-4" /> Add Task
+                                    Add Task
                                 </button>
                             </div>
 
@@ -521,12 +530,7 @@ const ProjectDetail = () => {
                                 {/* Budget Overview */}
                                 <div className="card p-6">
                                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Budget Overview</h3>
-                                    <div className="h-4 bg-stone-100 rounded-full overflow-hidden mb-4">
-                                        <div
-                                            className={`h-full rounded-full ${budgetUsage > 90 ? 'bg-rose-500' : 'bg-gradient-to-r from-[var(--color-accent)] to-amber-600'}`}
-                                            style={{ width: `${Math.min(budgetUsage, 100)}%` }}
-                                        />
-                                    </div>
+
                                     <div className="grid grid-cols-3 gap-4 text-center">
                                         <div className="bg-[var(--color-bg-subtle)] rounded-xl p-4">
                                             <p className="text-xs text-[var(--color-text-muted)] uppercase mb-1">Budget</p>
@@ -571,7 +575,6 @@ const ProjectDetail = () => {
                             {/* Add Expense Form */}
                             <div className="card p-6 h-fit sticky top-24">
                                 <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
-                                    <Plus className="w-5 h-5 text-[var(--color-accent)]" />
                                     Add Expense
                                 </h3>
                                 <form onSubmit={handleAddExpense} className="space-y-4">
@@ -623,16 +626,98 @@ const ProjectDetail = () => {
                     )}
 
                     {activeTab === 'files' && (
-                        <div className="card p-12 text-center">
-                            <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-[var(--color-accent)]/10 to-amber-100/50 flex items-center justify-center">
-                                <FolderOpen className="w-10 h-10 text-[var(--color-accent)]" />
+                        <div className="card p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Project Files</h3>
+                                <div>
+                                    <input
+                                        type="file"
+                                        id="file-upload"
+                                        className="hidden"
+                                        onChange={handleFileUpload}
+                                    />
+                                    <label
+                                        htmlFor="file-upload"
+                                        className="btn-primary flex items-center gap-2 cursor-pointer"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        Upload File
+                                    </label>
+
+                                </div>
                             </div>
-                            <h3 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">No files yet</h3>
-                            <p className="text-[var(--color-text-muted)] mb-6">Upload project files to keep everything organized</p>
-                            <button className="btn-primary inline-flex items-center gap-2">
-                                <Plus className="w-4 h-4" />
-                                Upload Files
-                            </button>
+
+                            {project.files && project.files.length > 0 ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {project.files.map((file) => {
+                                        const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(file.file_name);
+                                        const fileUrl = `${API_URL.replace('/api/v1', '')}/${file.file_path}`;
+
+                                        return (
+                                            <div key={file.id} className="group relative bg-[var(--color-bg-subtle)] rounded-xl border border-[var(--color-border)] hover:shadow-md transition-all overflow-hidden">
+                                                {isImage ? (
+                                                    <div className="aspect-video w-full overflow-hidden bg-white border-b border-[var(--color-border)]">
+                                                        <img
+                                                            src={fileUrl}
+                                                            alt={file.file_name}
+                                                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                                            onError={(e) => {
+                                                                e.target.onerror = null;
+                                                                e.target.src = 'https://via.placeholder.com/150?text=Error'; // Or hide/fallback
+                                                                e.target.parentElement.classList.add('hidden');
+                                                                e.target.parentElement.nextSibling.classList.remove('hidden'); // Show icon fallback if image fails
+                                                            }}
+                                                        />
+                                                    </div>
+                                                ) : null}
+
+                                                <div className={`p-4 flex items-start justify-between ${isImage ? '' : ''}`}>
+                                                    <div className="flex items-center gap-3 overflow-hidden">
+                                                        <div className={`w-10 h-10 rounded-lg bg-white flex items-center justify-center flex-shrink-0 text-[var(--color-accent)] ${isImage ? 'hidden' : ''}`}>
+                                                            <FileText className="w-5 h-5" />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <a
+                                                                href={fileUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="block font-medium text-[var(--color-text-primary)] truncate hover:text-[var(--color-accent)] hover:underline"
+                                                            >
+                                                                {file.file_name}
+                                                            </a>
+                                                            <p className="text-xs text-[var(--color-text-muted)]">
+                                                                {new Date(file.uploaded_at).toLocaleDateString()}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleFileDelete(file.id)}
+                                                        className="p-1.5 text-[var(--color-text-muted)] hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                        title="Delete file"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 bg-[var(--color-bg-subtle)] rounded-xl border-2 border-dashed border-[var(--color-accent)]/20">
+                                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center">
+                                        <FolderOpen className="w-8 h-8 text-[var(--color-accent)]" />
+                                    </div>
+                                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-1">No files uploaded</h3>
+                                    <p className="text-[var(--color-text-muted)] mb-6">Upload documents, images, or plans for this project.</p>
+                                    <label
+                                        htmlFor="file-upload"
+                                        className="btn-primary inline-flex items-center gap-2 cursor-pointer"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        Upload First File
+                                    </label>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

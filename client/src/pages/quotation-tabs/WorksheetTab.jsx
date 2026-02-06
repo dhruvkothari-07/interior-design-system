@@ -364,7 +364,7 @@ const WorksheetTab = ({
                         <h3 className="font-semibold text-stone-800 text-lg">Rooms</h3>
                         <button
                             onClick={onAddRoomClick}
-                            className="p-2.5 bg-[var(--color-accent)] text-white rounded-xl hover:bg-[var(--color-accent-dark)] transition-all shadow-sm"
+                            className="p-2.5 bg-[var(--color-accent)] text-white rounded-xl transition-all shadow-sm"
                             title="Add Room"
                         >
                             <Plus className="w-4 h-4" />
@@ -418,10 +418,6 @@ const WorksheetTab = ({
             <main className="flex-1 flex flex-col min-w-0 bg-white md:h-full h-auto relative">
                 {!activeRoomId ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 text-center bg-slate-50/30">
-                        <div className="w-20 h-20 bg-white rounded-3xl shadow-sm border border-slate-100 flex items-center justify-center mb-6 animate-pulse">
-                            <span className="text-4xl">🏗️</span>
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-700 mb-2">Workspace Ready</h3>
                         <p className="text-slate-500 max-w-xs">Select a room from the sidebar to start adding materials and building your quotation.</p>
                     </div>
                 ) : (
