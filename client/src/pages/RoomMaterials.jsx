@@ -405,21 +405,21 @@ const RoomMaterials = () => {
                                                 </div>
 
                                                 {isAdded ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="flex items-center flex-1 border border-[var(--color-border)] rounded-xl overflow-hidden bg-[var(--color-bg-subtle)]">
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <div className="flex items-center border border-[var(--color-border)] rounded-xl overflow-hidden bg-[var(--color-bg-subtle)]">
                                                             <button
                                                                 onClick={() => roomItem.quantity > 1
                                                                     ? handleUpdateQuantity(roomItem.id, roomItem.quantity - 1)
                                                                     : handleRemoveFromRoom(roomItem.id)
                                                                 }
-                                                                className="p-2.5 hover:bg-[var(--color-border)] transition-colors"
+                                                                className="p-2 hover:bg-[var(--color-border)] transition-colors"
                                                             >
                                                                 <Minus className="w-4 h-4" />
                                                             </button>
-                                                            <span className="flex-1 text-center font-semibold">{roomItem.quantity}</span>
+                                                            <span className="w-8 text-center font-semibold">{roomItem.quantity}</span>
                                                             <button
                                                                 onClick={() => handleUpdateQuantity(roomItem.id, roomItem.quantity + 1)}
-                                                                className="p-2.5 hover:bg-[var(--color-border)] transition-colors"
+                                                                className="p-2 hover:bg-[var(--color-border)] transition-colors"
                                                             >
                                                                 <Plus className="w-4 h-4" />
                                                             </button>
@@ -429,9 +429,10 @@ const RoomMaterials = () => {
                                                                 setEditingItem(roomItem);
                                                                 setIsEditModalOpen(true);
                                                             }}
-                                                            className="p-2.5 hover:bg-[var(--color-bg-subtle)] rounded-xl transition-colors"
+                                                            className="p-2 hover:bg-[var(--color-bg-subtle)] rounded-xl transition-colors border border-[var(--color-border)]"
+                                                            title="Edit item"
                                                         >
-                                                            <Edit3 className="w-4 h-4 text-[var(--color-text-muted)]" />
+                                                            <Edit3 className="w-4 h-4 text-[var(--color-accent)]" />
                                                         </button>
                                                     </div>
                                                 ) : (

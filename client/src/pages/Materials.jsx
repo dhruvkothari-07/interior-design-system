@@ -159,7 +159,6 @@ const Materials = () => {
                             </div>
                         </div>
                         <button onClick={() => setIsAddModalOpen(true)} className="btn-primary flex items-center justify-center gap-2 whitespace-nowrap">
-                            <Plus className="w-4 h-4" />
                             <span className="hidden sm:inline">Add Material</span>
                             <span className="sm:hidden">Add</span>
                         </button>
