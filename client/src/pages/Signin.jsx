@@ -23,7 +23,6 @@ const Signin = () => {
     password: "",
   });
   const [errors, setErrors] = useState({});
-  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
@@ -74,9 +73,6 @@ const Signin = () => {
         SigninData
       );
       localStorage.setItem("token", res.data.token);
-      if (rememberMe) {
-        localStorage.setItem("rememberMe", "true");
-      }
       toast.success("Successfully signed in!");
       navigate("/dashboard");
     } catch (err) {
@@ -152,17 +148,8 @@ const Signin = () => {
             </div>
 
             {/* Remember / Forgot */}
-            <div className="flex justify-between items-center">
-              <label className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)] cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-stone-300 text-[var(--color-accent)] focus:ring-[var(--color-accent)]"
-                />
-                Remember me
-              </label>
-
+            {/* Forgot Password Link */}
+            <div className="flex justify-end items-center">
               <Link
                 to="#"
                 className="text-sm text-[var(--color-accent)] hover:underline font-medium"
