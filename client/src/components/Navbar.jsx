@@ -42,11 +42,9 @@ const Navbar = () => {
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
                     <Link to="/dashboard" className="flex items-center gap-2.5 group">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--color-accent)] to-orange-600 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-                            <Sparkles className="w-5 h-5 text-white" />
-                        </div>
-                        <span className="text-lg font-bold text-[var(--color-text-primary)] tracking-tight hidden sm:block">
-                            DesignFlow
+                        <span className="text-2xl tracking-tight hidden sm:block">
+                            <span className="font-bold text-[var(--color-text-primary)]">Interior</span>
+                            <span className="font-bold text-[var(--color-accent)]">Desk</span>
                         </span>
                     </Link>
 

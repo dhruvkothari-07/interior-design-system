@@ -164,9 +164,22 @@ router.put("/quotations/:id/status", authMiddleware, rules.idParam, validate, as
 router.delete("/quotations/:id", authMiddleware, rules.idParam, validate, asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    // First check if it exists
+    // 1. Role Check
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin privileges required." });
+    }
+
+    // 2. First check if it exists
     const [exists] = await db.query("SELECT id FROM quotations WHERE id = ?", [id]);
     if (exists.length === 0) return res.status(404).json({ message: "Quotation not found" });
+
+    // 3. Check for linked Projects (Integrity Check)
+    const [linkedProject] = await db.query("SELECT id FROM projects WHERE quotation_id = ?", [id]);
+    if (linkedProject.length > 0) {
+        return res.status(409).json({
+            message: "Cannot delete quotation because it has an associated project. Please delete the project first."
+        });
+    }
 
     await db.query("DELETE FROM quotations WHERE id = ? ", [id]);
     res.status(200).json({ message: "Deleted quotation" });

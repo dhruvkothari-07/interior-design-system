@@ -9,14 +9,21 @@ const router = Router();
 // GET all clients (full details)
 router.get("/clients-full", authMiddleware, asyncHandler(async (req, res) => {
     const { search = '' } = req.query;
-    let query = "SELECT * FROM clients";
+    let query = `
+        SELECT 
+            c.*,
+            (SELECT COUNT(*) FROM quotations q WHERE q.client_id = c.id) as quotation_count,
+            (SELECT COUNT(*) FROM projects p JOIN quotations q ON p.quotation_id = q.id WHERE q.client_id = c.id) as project_count,
+            (SELECT COALESCE(SUM(q.total_amount), 0) FROM quotations q WHERE q.client_id = c.id AND q.status = 'Approved') as total_revenue
+        FROM clients c
+    `;
     const params = [];
 
     if (search) {
-        query += " WHERE name LIKE ?";
+        query += " WHERE c.name LIKE ?";
         params.push(`%${search}%`);
     }
-    query += " ORDER BY name ASC";
+    query += " ORDER BY c.name ASC";
     const [clients] = await db.query(query, params);
     res.status(200).json(clients);
 }));

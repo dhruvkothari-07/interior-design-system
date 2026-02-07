@@ -60,9 +60,9 @@ const rules = {
 
     // Project validations
     createProject: [
-        body('name').trim().isLength({ min: 2, max: 200 }).withMessage('Project name required'),
-        body('client_id').isInt({ min: 1 }).withMessage('Valid client required'),
-        body('budget').optional().isFloat({ min: 0 }).withMessage('Budget must be positive')
+        body('quotation_id').isInt({ min: 1 }).withMessage('Valid quotation ID required'),
+        body('start_date').optional({ checkFalsy: true }).isISO8601().withMessage('Invalid start date'),
+        body('end_date').optional({ checkFalsy: true }).isISO8601().withMessage('Invalid end date')
     ],
 
     // Common param validations

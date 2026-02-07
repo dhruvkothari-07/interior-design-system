@@ -159,7 +159,7 @@ const Clients = () => {
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                         <div>
                             <div className="flex items-center gap-3 mb-2">
-                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center shadow-lg">
+                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center shadow-none">
                                     <Users className="w-6 h-6 text-white" />
                                 </div>
                                 <div>
@@ -216,7 +216,7 @@ const Clients = () => {
                                 {/* Header */}
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center text-white shadow-lg shrink-0">
+                                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center text-white shadow-none shrink-0">
                                             <User className="w-6 h-6 md:w-7 md:h-7" />
                                         </div>
                                         <div className="min-w-0">

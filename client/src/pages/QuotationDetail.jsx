@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -313,8 +314,9 @@ const QuotationDetail = () => {
             </main>
 
             {/* Room Modal */}
-            {isRoomModalOpen && (
-                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fade-in">
+            {/* Room Modal */}
+            {isRoomModalOpen && createPortal(
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex justify-center items-center z-[9999] p-4 animate-fade-in">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in-up">
                         <div className="px-6 py-5 border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-accent)]/5 to-amber-50 flex justify-between items-center">
                             <h3 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center gap-2">
@@ -327,7 +329,22 @@ const QuotationDetail = () => {
                         </div>
                         <form onSubmit={handleSaveRoom} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Room Name *</label>
+                                <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-3">Room Name *</label>
+
+                                {/* Quick Add Bubbles */}
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                    {['Living Room', 'Bedroom', 'Master Bedroom', 'Kitchen', 'Bathroom', 'Balcony', 'Dining', 'Office'].map((name) => (
+                                        <button
+                                            key={name}
+                                            type="button"
+                                            onClick={() => setRoomForm(prev => ({ ...prev, name }))}
+                                            className="px-3 py-1 rounded-full text-xs font-medium bg-stone-100 text-stone-600 hover:bg-[var(--color-accent)] hover:text-white transition-colors border border-stone-200"
+                                        >
+                                            {name}
+                                        </button>
+                                    ))}
+                                </div>
+
                                 <input
                                     type="text"
                                     name="name"
@@ -373,7 +390,8 @@ const QuotationDetail = () => {
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

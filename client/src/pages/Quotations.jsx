@@ -20,6 +20,8 @@ import {
     Trash2,
     Eye
 } from 'lucide-react';
+import { handleApiError, confirmAction } from '../utils/errorHandler.jsx';
+import { isAdmin } from '../utils/authUtils';
 
 const Quotations = () => {
     const [quotations, setQuotations] = useState([]);
@@ -176,24 +178,29 @@ const Quotations = () => {
         navigate(`/quotations/${quotationId}`);
     };
 
-    const handleDeleteQuotation = async (e, quotationId, quotationTitle) => {
-        e.stopPropagation();
-        if (!window.confirm(`Are you sure you want to delete "${quotationTitle}"?`)) return;
+    const handleDeleteQuotation = (quotationId, event) => {
+        event.stopPropagation();
+        if (!isAdmin()) return;
 
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) return;
-
-            await axios.delete(`${API_URL}/quotations/${quotationId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            setQuotations(current => current.filter(q => q.id !== quotationId));
-        } catch (err) {
-            console.error("Error deleting quotation:", err);
-            alert("Failed to delete quotation.");
-        }
+        confirmAction(
+            "Are you sure you want to delete this quotation?",
+            async () => {
+                const token = localStorage.getItem("token");
+                await axios.delete(`${API_URL}/quotations/${quotationId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setQuotations(prev => prev.filter(q => q.id !== quotationId));
+                setFilteredQuotations(prev => prev.filter(q => q.id !== quotationId));
+                toast.success("Quotation deleted successfully");
+            },
+            {
+                confirmText: "Delete",
+                description: "This action cannot be undone. If a project exists, you must delete the project first."
+            }
+        );
     };
+
+
 
     return (
         <div className="min-h-screen bg-[var(--color-bg)]">
@@ -205,7 +212,7 @@ const Quotations = () => {
                     <div className="relative p-6 lg:p-8">
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                             <div className="flex items-start gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center shadow-lg">
+                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center shadow-none">
                                     <FileText className="w-7 h-7 text-white" />
                                 </div>
                                 <div>
@@ -221,7 +228,7 @@ const Quotations = () => {
                             <div className="flex items-center gap-3">
                                 <button
                                     onClick={handleAddModalOpen}
-                                    className="btn-primary flex items-center gap-2 shadow-lg shadow-[var(--color-accent)]/25"
+                                    className="btn-primary flex items-center gap-2"
                                 >
                                     <Plus className="w-4 h-4" />
                                     New Quotation
@@ -303,7 +310,7 @@ const Quotations = () => {
                                         {/* Header */}
                                         <div className="flex items-start justify-between mb-5">
                                             {/* Solid colored icon box - Orange Theme */}
-                                            <div className="w-12 h-12 rounded-2xl bg-[var(--color-accent)] flex items-center justify-center shadow-lg shadow-orange-100">
+                                            <div className="w-12 h-12 rounded-2xl bg-[var(--color-accent)] flex items-center justify-center shadow-none">
                                                 <FileText className="w-6 h-6 text-white" />
                                             </div>
 
@@ -313,6 +320,8 @@ const Quotations = () => {
                                                 {quotation.status}
                                             </span>
                                         </div>
+
+
 
                                         {/* Title & Client */}
                                         <div className="mb-6">
@@ -337,6 +346,17 @@ const Quotations = () => {
 
                                         {/* Footer */}
                                         <div className="flex items-center justify-between pt-1">
+                                            {isAdmin() ? (
+                                                <button
+                                                    onClick={(e) => handleDeleteQuotation(quotation.id, e)}
+                                                    className="flex items-center gap-1.5 text-sm font-medium text-stone-400 hover:text-rose-600 transition-colors p-1 -ml-1 rounded-md hover:bg-rose-50"
+                                                    title="Delete Quotation"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                    <span className="opacity-100 group-hover:opacity-100 transition-opacity">Delete</span>
+                                                </button>
+                                            ) : <div></div>}
+
                                             <div className="flex items-center gap-1 text-sm font-semibold text-[var(--color-accent)] opacity-80 group-hover:opacity-100 transition-opacity cursor-pointer hover:gap-2 duration-300">
                                                 <span>View</span>
                                                 <ArrowRight className="w-4 h-4" />

@@ -228,4 +228,26 @@ router.put("/projects/:id/status", authMiddleware, rules.idParam, asyncHandler(a
     res.status(200).json({ message: "Project status updated successfully.", newStatus: status });
 }));
 
+// DELETE - Delete a project (Admin only)
+router.delete("/projects/:id", authMiddleware, rules.idParam, validate, asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    // 1. Role Check
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin privileges required." });
+    }
+
+    // 2. Check existence
+    const [exists] = await db.query("SELECT id FROM projects WHERE id = ?", [id]);
+    if (exists.length === 0) return res.status(404).json({ message: "Project not found." });
+
+    // 3. Delete
+    // Note: This assumes ON DELETE CASCADE is set up in DB for related tasks/expenses, 
+    // or that we accept they might remain orphaned (though cascading is standard).
+    // If explicit cleanup is needed, we would delete from child tables first.
+    await db.query("DELETE FROM projects WHERE id = ?", [id]);
+
+    res.status(200).json({ message: "Project deleted successfully." });
+}));
+
 module.exports = router;

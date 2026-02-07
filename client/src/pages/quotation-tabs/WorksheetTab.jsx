@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Plus, Minus, Check, X, Edit2, Trash2, ChevronDown, Filter } from 'lucide-react';
@@ -547,8 +548,8 @@ const WorksheetTab = ({
             </main>
 
             {/* Custom Item Modal */}
-            {isCustomModalOpen && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fade-in">
+            {isCustomModalOpen && createPortal(
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[9999] p-4 animate-fade-in">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden scale-100 animate-scale-in">
                         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                             <h3 className="font-bold text-slate-800 text-lg">Add Custom Item</h3>
@@ -571,12 +572,13 @@ const WorksheetTab = ({
                             <button type="submit" className="w-full bg-[var(--color-accent)] text-white py-3 rounded-xl font-bold hover:bg-[var(--color-accent-dark)] shadow-md shadow-[var(--color-accent)]/20 transition-all transform active:scale-95">Add Custom Item</button>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* Edit Modal */}
-            {isEditModalOpen && editingRoomItem && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fade-in">
+            {isEditModalOpen && editingRoomItem && createPortal(
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[9999] p-4 animate-fade-in">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden scale-100 animate-scale-in">
                         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                             <h3 className="font-bold text-slate-800 text-lg">Edit Item Details</h3>
@@ -592,7 +594,8 @@ const WorksheetTab = ({
                             <button type="submit" className="w-full bg-[var(--color-accent)] text-white py-3 rounded-xl font-bold hover:bg-[var(--color-accent-dark)] shadow-md shadow-[var(--color-accent)]/20 transition-all transform active:scale-95">Save Changes</button>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

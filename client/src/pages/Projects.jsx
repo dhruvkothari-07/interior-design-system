@@ -21,8 +21,12 @@ import {
     SlidersHorizontal,
     Sparkles,
     Target,
-    BarChart3
+    BarChart3,
+    Trash2
 } from 'lucide-react';
+import toast from 'react-hot-toast'; // Ensure toast is imported if not already, checked file it seems missing in imports shown but used in code? checking... wait, toast is not imported in the viewed file. I should add it.
+import { handleApiError, confirmAction } from '../utils/errorHandler.jsx';
+import { isAdmin } from '../utils/authUtils';
 
 const Projects = () => {
     const [projects, setProjects] = useState([]);
@@ -69,6 +73,28 @@ const Projects = () => {
         setFilteredProjects(result);
     }, [searchQuery, statusFilter, projects]);
 
+    const handleDeleteProject = (projectId, event) => {
+        event.stopPropagation();
+        if (!isAdmin()) return;
+
+        confirmAction(
+            "Are you sure you want to delete this project?",
+            async () => {
+                const token = localStorage.getItem("token");
+                await axios.delete(`${API_URL}/projects/${projectId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setProjects(prev => prev.filter(p => p.id !== projectId));
+                setFilteredProjects(prev => prev.filter(p => p.id !== projectId));
+                toast.success("Project deleted successfully");
+            },
+            {
+                confirmText: "Delete Project",
+                description: "This will permanently remove the project and all its related data."
+            }
+        );
+    };
+
     const getStatusConfig = (status) => {
         const configs = {
             'Completed': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: CheckCircle2, gradient: 'from-emerald-500 to-teal-500' },
@@ -113,7 +139,7 @@ const Projects = () => {
                     <div className="relative p-6 lg:p-8">
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                             <div className="flex items-start gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center shadow-lg">
+                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center shadow-none">
                                     <FolderKanban className="w-7 h-7 text-white" />
                                 </div>
                                 <div>
@@ -130,7 +156,7 @@ const Projects = () => {
 
                                 <button
                                     onClick={() => navigate('/quotations')}
-                                    className="btn-primary flex items-center gap-2 shadow-lg shadow-[var(--color-accent)]/25"
+                                    className="btn-primary flex items-center gap-2"
                                 >
                                     <Plus className="w-4 h-4" />
                                     New Project
@@ -230,7 +256,7 @@ const Projects = () => {
                                             {/* Header */}
                                             <div className="flex items-start justify-between mb-5">
                                                 {/* Solid colored icon box - Orange Theme */}
-                                                <div className="w-12 h-12 rounded-2xl bg-[var(--color-accent)] flex items-center justify-center shadow-lg shadow-orange-100">
+                                                <div className="w-12 h-12 rounded-2xl bg-[var(--color-accent)] flex items-center justify-center shadow-none">
                                                     <FolderKanban className="w-6 h-6 text-white" />
                                                 </div>
                                                 <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border} border flex items-center gap-1`}>
@@ -239,14 +265,22 @@ const Projects = () => {
                                                 </span>
                                             </div>
 
+
+
                                             {/* Title & Client */}
                                             <div className="mb-6">
                                                 <h3 className="text-xl font-bold text-stone-800 mb-1 group-hover:text-[var(--color-accent)] transition-colors line-clamp-1">
                                                     {project.name}
                                                 </h3>
-                                                <div className="flex items-center gap-2 text-stone-500">
-                                                    <Users className="w-4 h-4" />
-                                                    <span className="text-sm font-medium truncate">{project.client_name || 'No client'}</span>
+                                                <div className="flex flex-col gap-1.5">
+                                                    <div className="flex items-center gap-2 text-stone-500">
+                                                        <Users className="w-4 h-4" />
+                                                        <span className="text-sm font-medium truncate">{project.client_name || 'No client'}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-stone-400">
+                                                        <Calendar className="w-4 h-4" />
+                                                        <span className="text-sm">{project.end_date ? new Date(project.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'No deadline'}</span>
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -272,10 +306,17 @@ const Projects = () => {
 
                                             {/* Footer */}
                                             <div className="flex items-center justify-between pt-1">
-                                                <div className="flex items-center gap-2 text-stone-400">
-                                                    <Calendar className="w-4 h-4" />
-                                                    <span className="text-sm">{project.end_date ? new Date(project.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'No deadline'}</span>
-                                                </div>
+                                                {isAdmin() ? (
+                                                    <button
+                                                        onClick={(e) => handleDeleteProject(project.id, e)}
+                                                        className="flex items-center gap-1.5 text-sm font-medium text-stone-400 hover:text-rose-600 transition-colors p-1 -ml-1 rounded-md hover:bg-rose-50"
+                                                        title="Delete Project"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                        <span className="transition-opacity">Delete</span>
+                                                    </button>
+                                                ) : <div></div>}
+
                                                 <div className="flex items-center gap-1 text-sm font-semibold text-[var(--color-accent)] opacity-80 group-hover:opacity-100 transition-opacity cursor-pointer hover:gap-2 duration-300">
                                                     <span>View</span>
                                                     <ArrowRight className="w-4 h-4" />
@@ -349,7 +390,16 @@ const Projects = () => {
                                                     <td className="px-6 py-4 text-sm text-[var(--color-text-muted)]">
                                                         {project.end_date ? new Date(project.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
                                                     </td>
-                                                    <td className="px-6 py-4">
+                                                    <td className="px-6 py-4 flex items-center gap-2">
+                                                        {isAdmin() && (
+                                                            <button
+                                                                onClick={(e) => handleDeleteProject(project.id, e)}
+                                                                className="p-1.5 text-stone-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                                                                title="Delete Project"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        )}
                                                         <ArrowRight className="w-4 h-4 text-[var(--color-text-muted)]" />
                                                     </td>
                                                 </tr>

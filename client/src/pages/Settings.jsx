@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
-import { Save, Store, Mail, Phone, FileText, Image, Users, UserPlus, Trash2, Shield, Lock } from 'lucide-react';
+import { Save, Store, Mail, Phone, FileText, Image, Users, UserPlus, Trash2, Shield, Lock, User } from 'lucide-react';
 
 const Settings = () => {
     const navigate = useNavigate();
@@ -343,7 +343,7 @@ const Settings = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                    <Shield className="w-3 h-3 mr-1" /> Staff
+                                                    <User className="w-3 h-3 mr-1" /> Staff
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-500">

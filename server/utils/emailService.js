@@ -11,13 +11,13 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 async function sendPasswordResetEmail(toEmail, otp) {
     try {
         const { data, error } = await resend.emails.send({
-            from: 'DesignFlow <onboarding@resend.dev>',
+            from: 'InteriorDesk <onboarding@resend.dev>',
             to: toEmail,
-            subject: 'Your Password Reset Code - DesignFlow',
+            subject: 'Your Password Reset Code - InteriorDesk',
             html: `
                 <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
                     <div style="text-align: center; margin-bottom: 30px;">
-                        <h1 style="color: #C25E00; margin: 0; font-size: 28px;">DesignFlow</h1>
+                        <h1 style="color: #C25E00; margin: 0; font-size: 28px;">InteriorDesk</h1>
                     </div>
                     
                     <div style="background: #FAF9F7; border-radius: 12px; padding: 30px; border: 1px solid #E8E4DE;">
@@ -39,7 +39,7 @@ async function sendPasswordResetEmail(toEmail, otp) {
                     </div>
                     
                     <p style="color: #8C867E; font-size: 12px; text-align: center; margin-top: 30px;">
-                        © ${new Date().getFullYear()} DesignFlow. All rights reserved.
+                        © ${new Date().getFullYear()}   InteriorDesk. All rights reserved.
                     </p>
                 </div>
             `

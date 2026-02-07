@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { API_URL } from '../../config';
 import { handleApiError } from '../../utils/errorHandler.jsx';
-import { Calendar, User, Mail, Phone, MapPin, FileText, ArrowRight, FolderKanban, IndianRupee } from 'lucide-react';
+import { Calendar, User, Mail, Phone, MapPin, FileText, ArrowRight, FolderKanban, IndianRupee, Lock } from 'lucide-react';
 
 const OverviewTab = ({ quotation, setQuotation, currentSubTotal, onTabChange }) => {
     const navigate = useNavigate();
@@ -46,7 +47,7 @@ const OverviewTab = ({ quotation, setQuotation, currentSubTotal, onTabChange }) 
                         </button>
                         <button
                             onClick={() => { toast.dismiss(t.id); resolve(true); }}
-                            className="px-3 py-1.5 text-sm bg-[var(--color-accent)] hover:bg-[var(--color-accent-dark)] text-white rounded-lg transition"
+                            className="px-3 py-1.5 text-sm bg-[var(--color-accent)] text-white rounded-lg transition"
                         >
                             Confirm
                         </button>
@@ -271,8 +272,8 @@ const OverviewTab = ({ quotation, setQuotation, currentSubTotal, onTabChange }) 
             </div>
 
             {/* Create Project Modal */}
-            {isCreateProjectModalOpen && (
-                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+            {isCreateProjectModalOpen && createPortal(
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex justify-center items-center z-[9999] p-4">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in-up">
                         <div className="px-6 py-5 border-b border-[var(--color-border)] bg-[var(--color-bg-subtle)]">
                             <h3 className="text-xl font-bold text-[var(--color-text-primary)]">Create New Project</h3>
@@ -318,7 +319,8 @@ const OverviewTab = ({ quotation, setQuotation, currentSubTotal, onTabChange }) 
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

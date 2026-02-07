@@ -220,15 +220,13 @@ const Dashboard = () => {
                     <div className="relative p-6 lg:p-8">
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                             <div className="flex items-start gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
-                                    <Sparkles className="w-7 h-7 text-white" />
-                                </div>
+
                                 <div>
                                     <h1 className="text-3xl lg:text-4xl font-bold text-[var(--color-text-primary)] tracking-tight">
                                         {greeting}, Designer!
                                     </h1>
                                     <p className="text-[var(--color-text-muted)] mt-1">
-                                        Here's your business at a glance • {new Date().toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric' })}
+                                        {new Date().toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                                     </p>
                                 </div>
                             </div>
@@ -281,9 +279,9 @@ const Dashboard = () => {
                                 </div>
                             </div>
 
-                            <p className="text-4xl font-bold text-[var(--color-text-primary)] mb-1">
+                            <div className="text-4xl font-bold text-[var(--color-text-primary)] mb-1">
                                 {isLoading ? <Skeleton className="h-10 w-36" /> : formatCompact(data.financials.revenueYTD)}
-                            </p>
+                            </div>
                             <p className="text-sm text-[var(--color-text-muted)]">Year to date</p>
 
                             <AreaChart data={data.revenueTrend.map(r => r.total)} color="var(--color-accent)" />
@@ -297,9 +295,9 @@ const Dashboard = () => {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm text-[var(--color-text-muted)] mb-1">{periodLabel} Income</p>
-                                    <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+                                    <div className="text-2xl font-bold text-[var(--color-text-primary)]">
                                         {isLoading ? <Skeleton className="h-8 w-28" /> : formatCompact(data.financials.revenueMonth)}
-                                    </p>
+                                    </div>
                                 </div>
                                 <div className="w-12 h-12 rounded-xl bg-[var(--color-bg-subtle)] flex items-center justify-center group-hover:scale-110 transition-transform">
                                     <TrendingUp className="w-6 h-6 text-[var(--color-text-primary)]" />
@@ -312,9 +310,9 @@ const Dashboard = () => {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm text-[var(--color-text-muted)] mb-1">{periodLabel} Expenses</p>
-                                    <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+                                    <div className="text-2xl font-bold text-[var(--color-text-primary)]">
                                         {isLoading ? <Skeleton className="h-8 w-28" /> : formatCompact(data.financials.expensesMonth)}
-                                    </p>
+                                    </div>
                                 </div>
                                 <div className="w-12 h-12 rounded-xl bg-[var(--color-bg-subtle)] flex items-center justify-center group-hover:scale-110 transition-transform">
                                     <TrendingDown className="w-6 h-6 text-[var(--color-text-primary)]" />
@@ -456,7 +454,7 @@ const Dashboard = () => {
                         {/* Pipeline Card */}
                         <div className="card p-6 animate-fade-in-up" style={{ animationDelay: '250ms' }}>
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-semibold text-[var(--color-text-primary)]">Sales Pipeline</h3>
+                                <h3 className="font-semibold text-[var(--color-text-primary)]">Quotations Overview</h3>
                                 <button onClick={() => navigate('/quotations')} className="text-xs text-[var(--color-accent)] hover:underline">View</button>
                             </div>
 
@@ -467,7 +465,7 @@ const Dashboard = () => {
                                             <FileText className="w-5 h-5 text-[var(--color-warning)]" />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-medium text-[var(--color-text-primary)]">Pending Quotes</p>
+                                            <p className="text-sm font-medium text-[var(--color-text-primary)]">Pending Quotations</p>
                                             <p className="text-xs text-[var(--color-text-muted)]">{data.pipeline.pendingCount} awaiting</p>
                                         </div>
                                     </div>
@@ -480,7 +478,7 @@ const Dashboard = () => {
                                             <CheckCircle2 className="w-5 h-5 text-[var(--color-success)]" />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-medium text-[var(--color-text-primary)]">Won This Period</p>
+                                            <p className="text-sm font-medium text-[var(--color-text-primary)]">Approved Quotations</p>
                                             <p className="text-xs text-[var(--color-text-muted)]">{data.pipeline.wonMonthCount} converted</p>
                                         </div>
                                     </div>
@@ -489,42 +487,7 @@ const Dashboard = () => {
                             </div>
                         </div>
 
-                        {/* Project Health */}
-                        <div className="card p-6 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
-                            <h3 className="font-semibold text-[var(--color-text-primary)] mb-4">Project Health</h3>
 
-                            <div className="flex items-center justify-center mb-4">
-                                <div className="relative">
-                                    <ProgressRing
-                                        value={stats.inProgress > 0 ? Math.round((stats.projectHealth.onTrack / stats.inProgress) * 100) : 100}
-                                        size={100}
-                                        strokeWidth={8}
-                                        color="var(--color-accent)"
-                                    />
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="text-center">
-                                            <p className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.projectHealth.onTrack}</p>
-                                            <p className="text-[10px] text-[var(--color-text-muted)]">On Track</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-2 text-center">
-                                <div className="bg-[var(--color-bg-subtle)] rounded-lg p-2">
-                                    <p className="text-lg font-bold text-[var(--color-text-primary)]">{stats.projectHealth.onTrack}</p>
-                                    <p className="text-[10px] text-[var(--color-text-muted)]">Healthy</p>
-                                </div>
-                                <div className="bg-[var(--color-bg-subtle)] rounded-lg p-2">
-                                    <p className="text-lg font-bold text-[var(--color-text-primary)]">{stats.projectHealth.atRisk}</p>
-                                    <p className="text-[10px] text-[var(--color-text-muted)]">At Risk</p>
-                                </div>
-                                <div className="bg-[var(--color-bg-subtle)] rounded-lg p-2">
-                                    <p className="text-lg font-bold text-[var(--color-text-primary)]">{stats.projectHealth.critical}</p>
-                                    <p className="text-[10px] text-[var(--color-text-muted)]">Critical</p>
-                                </div>
-                            </div>
-                        </div>
 
                         {/* Quick Actions */}
                         <div className="card p-5 bg-gradient-to-br from-stone-50 to-white animate-fade-in-up" style={{ animationDelay: '350ms' }}>

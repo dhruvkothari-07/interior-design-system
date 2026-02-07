@@ -274,8 +274,7 @@ const CommandPalette = ({ isOpen, onClose }) => {
                         </span>
                     </div>
                     <span className="flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
-                        DesignFlow
+                        InteriorDesk
                     </span>
                 </div>
             </div>
