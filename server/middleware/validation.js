@@ -17,18 +17,36 @@ const rules = {
     // User validations
     signup: [
         body('username').trim().isLength({ min: 3, max: 50 }).withMessage('Username must be 3-50 characters'),
-        body('email').isEmail().normalizeEmail().withMessage('Invalid email'),
+        body('email').isEmail().normalizeEmail().withMessage('Invalid email').custom(value => {
+            const domain = value.split('@')[1];
+            if (domain !== 'gmail.com' && domain !== 'yahoo.com') {
+                throw new Error('Only @gmail.com or @yahoo.com emails are supported');
+            }
+            return true;
+        }),
         body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
     ],
     signin: [
         body('username').trim().notEmpty().withMessage('Username required'),
-        body('password').notEmpty().withMessage('Password required')
+        body('password').notEmpty().withMessage('Password required').custom(value => {
+            const domain = value.split('@')[1];
+            if (domain !== 'gmail.com' && domain !== 'yahoo.com') {
+                throw new Error('Only @gmail.com or @yahoo.com emails are supported');
+            }
+            return true;
+        }),
     ],
 
     // Client validations
     createClient: [
         body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be 2-100 characters'),
-        body('email').optional({ checkFalsy: true }).isEmail().withMessage('Invalid email'),
+        body('email').optional({ checkFalsy: true }).isEmail().withMessage('Invalid email').custom(value => {
+            const domain = value.split('@')[1];
+            if (domain !== 'gmail.com' && domain !== 'yahoo.com') {
+                throw new Error('Only @gmail.com or @yahoo.com emails are supported');
+            }
+            return true;
+        }),
         body('phone').optional({ checkFalsy: true }).isMobilePhone().withMessage('Invalid phone')
     ],
 
@@ -42,9 +60,9 @@ const rules = {
     // Quotation validations
     createQuotation: [
         body('title').trim().isLength({ min: 2, max: 200 }).withMessage('Title required'),
-        body('client_id').isInt({ min: 1 }).withMessage('Valid client required')
+        body('client_id').optional({ checkFalsy: true }).isInt({ min: 1 }).withMessage('Valid client required'),
+        body('client_name').optional().trim().isLength({ min: 2 }).withMessage('Client name required when creating new client')
     ],
-
     // Room validations
     createRoom: [
         body('name').trim().isLength({ min: 1, max: 100 }).withMessage('Room name required')

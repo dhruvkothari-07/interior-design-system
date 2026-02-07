@@ -6,26 +6,26 @@ import { toast } from "react-hot-toast";
 import { z } from "zod";
 import { API_URL } from '../config';
 
-const signupSchema = z.object({
-    username: z.string()
-        .min(3, "Username must be at least 3 characters")
-        .max(30, "Username must be less than 30 characters")
-        .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
-    email: z.string()
-        .email("Please enter a valid email address")
-        .max(100, "Email must be less than 100 characters"),
-    password: z.string()
-        .min(6, "Password must be at least 6 characters")
-        .max(100, "Password must be less than 100 characters")
-        .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-        .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-        .regex(/[0-9]/, "Password must contain at least one number"),
-    confirmPassword: z.string()
-        .min(1, "Please confirm your password"),
-}).refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-});
+// const signupSchema = z.object({
+//     username: z.string()
+//         .min(3, "Username must be at least 3 characters")
+//         .max(30, "Username must be less than 30 characters")
+//         .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
+//     email: z.string()
+//         .email("Please enter a valid email address")
+//         .max(100, "Email must be less than 100 characters"),
+//     password: z.string()
+//         .min(6, "Password must be at least 6 characters")
+//         .max(100, "Password must be less than 100 characters")
+//         .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+//         .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+//         .regex(/[0-9]/, "Password must contain at least one number"),
+//     confirmPassword: z.string()
+//         .min(1, "Please confirm your password"),
+// }).refine((data) => data.password === data.confirmPassword, {
+//     message: "Passwords don't match",
+//     path: ["confirmPassword"],
+// });
 
 const Signup = () => {
     const [signupData, setSignupData] = useState({
@@ -297,7 +297,7 @@ const Signup = () => {
                             )}
                         </div>
 
-                        {/* Password Requirements Hint */}
+                        {/* Password Requirements Hint
                         <div className="text-[10px] text-[var(--color-text-muted)] bg-[var(--color-bg-subtle)] p-2 rounded-lg">
                             <p className="font-medium mb-1">Password must contain:</p>
                             <ul className="space-y-0.5 grid grid-cols-2 gap-x-2">
@@ -314,7 +314,7 @@ const Signup = () => {
                                     • One number
                                 </li>
                             </ul>
-                        </div>
+                        </div> */}
 
                         {/* Submit */}
                         <button
