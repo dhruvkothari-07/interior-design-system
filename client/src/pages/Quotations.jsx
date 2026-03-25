@@ -272,13 +272,6 @@ const Quotations = () => {
                     </div>
                 </div>
 
-                {/* Results Count */}
-                <div className="flex items-center justify-between mb-6">
-                    <p className="text-sm text-[var(--color-text-muted)]">
-                        Showing <span className="font-semibold text-[var(--color-text-primary)]">{filteredQuotations.length}</span> of {quotations.length} quotations
-                    </p>
-                </div>
-
                 {/* Quotations Grid/List */}
                 {isLoading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

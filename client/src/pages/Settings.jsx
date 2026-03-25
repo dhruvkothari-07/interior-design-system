@@ -192,7 +192,7 @@ const Settings = () => {
                                     : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-stone-50'}
                             `}
                         >
-                            <Store className="w-4 h-4" />
+                            {/* <Store className="w-4 h-4" /> */}
                             Company Profile
                         </button>
                         <button
@@ -204,7 +204,7 @@ const Settings = () => {
                                     : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-stone-50'}
                             `}
                         >
-                            <Users className="w-4 h-4" />
+                            {/* <Users className="w-4 h-4" /> */}
                             Staff Management
                         </button>
                     </div>
@@ -218,7 +218,7 @@ const Settings = () => {
                     {/* Company Identity */}
                     <section>
                         <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
-                            <Store className="w-5 h-5 text-theme-orange" />
+                            {/* <Store className="w-5 h-5 text-theme-orange" /> */}
                             Identity
                         </h2>
                         <div className="grid md:grid-cols-2 gap-6">
@@ -264,7 +264,7 @@ const Settings = () => {
                     {/* Contact Info */}
                     <section>
                         <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
-                            <Mail className="w-5 h-5 text-theme-orange" />
+                            {/* <Mail className="w-5 h-5 text-theme-orange" /> */}
                             Contact Details
                         </h2>
                         <div className="grid md:grid-cols-2 gap-6">
@@ -284,7 +284,7 @@ const Settings = () => {
                     </section>
 
                     {/* Defaults */}
-                    <section>
+                    {/* <section>
                         <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
                             <FileText className="w-5 h-5 text-theme-orange" />
                             Quotation Defaults
@@ -294,7 +294,7 @@ const Settings = () => {
                             <textarea name="default_terms" rows="6" value={settings.default_terms} onChange={handleChange} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-orange outline-none resize-none transition font-mono text-sm" placeholder="1. Payment terms...&#10;2. Validity..." />
                             <p className="text-xs text-gray-500 mt-2">These terms will automatically appear on all new quotations.</p>
                         </div>
-                    </section>
+                    </section> */}
 
                     <div className="pt-6 border-t border-gray-100 flex justify-end">
                         <button type="submit" disabled={isSaving} className="flex items-center gap-2 px-6 py-2.5 bg-theme-orange text-white font-medium rounded-lg hover:bg-orange-700 shadow-sm transition disabled:opacity-70">
@@ -310,7 +310,7 @@ const Settings = () => {
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-bold text-gray-800">Team Members</h2>
                         <button onClick={() => setIsAddStaffModalOpen(true)} className="btn-primary flex items-center gap-2">
-                            <UserPlus className="w-4 h-4" /> Add Staff
+                            Add Staff
                         </button>
                     </div>
 
@@ -332,9 +332,6 @@ const Settings = () => {
                                         <tr key={staff.id} className="hover:bg-gray-50 transition">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-theme-orange font-bold">
-                                                        {staff.username[0].toUpperCase()}
-                                                    </div>
                                                     <div>
                                                         <div className="font-semibold text-gray-900">{staff.username}</div>
                                                         <div className="text-xs text-gray-500">{staff.email}</div>
@@ -343,7 +340,7 @@ const Settings = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                    <User className="w-3 h-3 mr-1" /> Staff
+                                                    Staff
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-500">

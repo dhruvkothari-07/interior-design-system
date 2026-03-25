@@ -284,7 +284,7 @@ const Dashboard = () => {
                             </div>
                             <p className="text-sm text-[var(--color-text-muted)]">Year to date</p>
 
-                            <AreaChart data={data.revenueTrend.map(r => r.total)} color="var(--color-accent)" />
+
                         </div>
                     </div>
 
@@ -346,8 +346,6 @@ const Dashboard = () => {
                             <p className="text-sm text-white/70">
                                 {netFlow >= 0 ? `Positive flow for ${periodLabel.toLowerCase()}` : 'Monitor your expenses'}
                             </p>
-
-                            <AreaChart data={data.cashflowTrend.map(r => r.total)} color="rgba(255,255,255,0.5)" height={50} />
                         </div>
                     </div>
 
@@ -400,9 +398,7 @@ const Dashboard = () => {
                                         className="grid grid-cols-12 gap-4 items-center py-4 hover:bg-stone-50 -mx-2 px-2 rounded-lg cursor-pointer transition-colors group"
                                     >
                                         <div className="col-span-6 md:col-span-5 flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-stone-100 to-stone-50 flex items-center justify-center text-[var(--color-accent)] font-bold group-hover:scale-110 transition-transform">
-                                                {project.name?.charAt(0) || 'P'}
-                                            </div>
+
                                             <div className="min-w-0">
                                                 <p className="font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors truncate">{project.name}</p>
                                                 <p className="text-xs text-[var(--color-text-muted)] truncate">{project.client_name || 'No client'}</p>
@@ -461,9 +457,7 @@ const Dashboard = () => {
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-[var(--color-warning)]/10 flex items-center justify-center">
-                                            <FileText className="w-5 h-5 text-[var(--color-warning)]" />
-                                        </div>
+
                                         <div>
                                             <p className="text-sm font-medium text-[var(--color-text-primary)]">Pending Quotations</p>
                                             <p className="text-xs text-[var(--color-text-muted)]">{data.pipeline.pendingCount} awaiting</p>
@@ -474,9 +468,7 @@ const Dashboard = () => {
 
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-[var(--color-success)]/10 flex items-center justify-center">
-                                            <CheckCircle2 className="w-5 h-5 text-[var(--color-success)]" />
-                                        </div>
+
                                         <div>
                                             <p className="text-sm font-medium text-[var(--color-text-primary)]">Approved Quotations</p>
                                             <p className="text-xs text-[var(--color-text-muted)]">{data.pipeline.wonMonthCount} converted</p>
@@ -492,7 +484,6 @@ const Dashboard = () => {
                         {/* Quick Actions */}
                         <div className="card p-5 bg-gradient-to-br from-stone-50 to-white animate-fade-in-up" style={{ animationDelay: '350ms' }}>
                             <h3 className="font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
-                                <Sparkles className="w-4 h-4 text-[var(--color-accent)]" />
                                 Quick Actions
                             </h3>
                             <div className="grid grid-cols-2 gap-3">
@@ -533,17 +524,17 @@ const Dashboard = () => {
                 {isAdmin && (
                     <div className="col-span-12 card p-5 animate-fade-in-up mt-6" style={{ animationDelay: '400ms' }}>
                         <h3 className="font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
-                            <Activity className="w-4 h-4 text-[var(--color-accent)]" />
+
                             Recent Activity
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {data.recentActivity?.length > 0 ? (
                                 data.recentActivity.map((activity, idx) => (
                                     <div key={idx} className="flex items-start gap-4 p-4 rounded-xl bg-[var(--color-bg-subtle)] border border-transparent hover:border-[var(--color-border)] hover:shadow-sm transition-all cursor-pointer group" onClick={() => activity.link && navigate(activity.link)}>
-                                        <div className={`mt-1.5 w-2.5 h-2.5 rounded-full shrink-0 ${activity.type === 'quotation' ? 'bg-[var(--color-accent)]' :
+                                        {/* <div className={`mt-1.5 w-2.5 h-2.5 rounded-full shrink-0 ${activity.type === 'quotation' ? 'bg-[var(--color-accent)]' :
                                             activity.type === 'project' ? 'bg-[var(--color-success)]' :
                                                 'bg-[var(--color-error)]'
-                                            }`} />
+                                            }`} /> */}
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm text-[var(--color-text-primary)] font-medium truncate mb-1 group-hover:text-[var(--color-accent)] transition-colors">
                                                 {activity.description}

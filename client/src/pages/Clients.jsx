@@ -224,7 +224,7 @@ const Clients = () => {
                                                 {client.name}
                                             </h3>
                                             <p className="text-xs text-[var(--color-text-muted)]">
-                                                Added {new Date(client.created_at).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}
+                                                Added {new Date(client.createdAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}
                                             </p>
                                         </div>
                                     </div>
