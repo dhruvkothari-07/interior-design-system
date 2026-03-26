@@ -3,6 +3,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 const db = require("../db/db");
 const { validate, rules } = require('../middleware/validation');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { sendQuotationEmail } = require('../utils/emailService');
 
 const router = Router();
 
@@ -183,6 +184,58 @@ router.delete("/quotations/:id", authMiddleware, rules.idParam, validate, asyncH
 
     await db.query("DELETE FROM quotations WHERE id = ? ", [id]);
     res.status(200).json({ message: "Deleted quotation" });
+}));
+
+// POST /quotations/:id/email
+router.post("/quotations/:id/email", authMiddleware, rules.idParam, validate, asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { pdfBase64 } = req.body;
+
+    if (!pdfBase64) {
+        return res.status(400).json({ message: "PDF data is required" });
+    }
+
+    const [quotation] = await db.query(
+        `SELECT q.title, c.name as client_name, c.email as client_email 
+         FROM quotations q 
+         LEFT JOIN clients c ON q.client_id = c.id
+         WHERE q.id = ?`,
+        [id]
+    );
+
+    if (quotation.length === 0) {
+        return res.status(404).json({ message: "Quotation not found" });
+    }
+
+    const { title, client_name, client_email } = quotation[0];
+
+    if (!client_email) {
+        return res.status(400).json({ message: "Client does not have an email address associated." });
+    }
+
+    // Get company settings safely
+    let companyName = 'InteriorDesk';
+    try {
+        const [settings] = await db.query("SELECT company_name FROM users WHERE id = ? LIMIT 1", [req.user.id]);
+        if (settings.length > 0 && settings[0].company_name) {
+            companyName = settings[0].company_name;
+        }
+    } catch (err) {
+        console.warn("Could not fetch company name", err);
+    }
+
+    console.log(`[EMAIL] Sending to: ${client_email}, Client: ${client_name}, Title: ${title}`);
+    console.log(`[EMAIL] PDF base64 length: ${pdfBase64.length} chars (~${Math.round(pdfBase64.length / 1024)}KB)`);
+
+    const emailResult = await sendQuotationEmail(client_email, client_name || 'Client', pdfBase64, title, companyName);
+
+    console.log(`[EMAIL] Result:`, JSON.stringify(emailResult));
+
+    if (!emailResult.success) {
+        return res.status(500).json({ message: "Failed to send email", error: emailResult.error });
+    }
+
+    res.status(200).json({ message: "Email sent successfully" });
 }));
 
 module.exports = router;

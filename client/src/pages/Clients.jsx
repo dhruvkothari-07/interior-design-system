@@ -108,7 +108,8 @@ const Clients = () => {
             toast.success('Client updated!');
         } catch (err) {
             console.error("Error updating client: ", err);
-            toast.error('Failed to update client');
+            const errorMsg = err.response?.data?.errors?.[0]?.message || err.response?.data?.message || 'Failed to update client';
+            toast.error(errorMsg);
         }
     };
 

@@ -40,14 +40,8 @@ const rules = {
     // Client validations
     createClient: [
         body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be 2-100 characters'),
-        body('email').optional({ checkFalsy: true }).isEmail().withMessage('Invalid email').custom(value => {
-            const domain = value.split('@')[1];
-            if (domain !== 'gmail.com' && domain !== 'yahoo.com') {
-                throw new Error('Only @gmail.com or @yahoo.com emails are supported');
-            }
-            return true;
-        }),
-        body('phone').optional({ checkFalsy: true }).isMobilePhone().withMessage('Invalid phone')
+        body('email').optional({ checkFalsy: true }).isEmail().withMessage('Invalid email'),
+        body('phone').optional({ checkFalsy: true }).isString().trim().isLength({ min: 5, max: 25 }).withMessage('Invalid phone')
     ],
 
     // Material validations

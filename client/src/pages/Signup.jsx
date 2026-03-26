@@ -6,26 +6,23 @@ import { toast } from "react-hot-toast";
 import { z } from "zod";
 import { API_URL } from '../config';
 
-// const signupSchema = z.object({
-//     username: z.string()
-//         .min(3, "Username must be at least 3 characters")
-//         .max(30, "Username must be less than 30 characters")
-//         .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
-//     email: z.string()
-//         .email("Please enter a valid email address")
-//         .max(100, "Email must be less than 100 characters"),
-//     password: z.string()
-//         .min(6, "Password must be at least 6 characters")
-//         .max(100, "Password must be less than 100 characters")
-//         .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-//         .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-//         .regex(/[0-9]/, "Password must contain at least one number"),
-//     confirmPassword: z.string()
-//         .min(1, "Please confirm your password"),
-// }).refine((data) => data.password === data.confirmPassword, {
-//     message: "Passwords don't match",
-//     path: ["confirmPassword"],
-// });
+const signupSchema = z.object({
+    username: z.string()
+        .min(3, "Username must be at least 3 characters")
+        .max(30, "Username must be less than 30 characters")
+        .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
+    email: z.string()
+        .email("Please enter a valid email address")
+        .max(100, "Email must be less than 100 characters"),
+    password: z.string()
+        .min(6, "Password must be at least 6 characters")
+        .max(100, "Password must be less than 100 characters"),
+    confirmPassword: z.string()
+        .min(1, "Please confirm your password"),
+}).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+});
 
 const Signup = () => {
     const [signupData, setSignupData] = useState({
@@ -139,19 +136,6 @@ const Signup = () => {
         }
     }
 
-    const getStrengthColor = () => {
-        if (passwordStrength <= 2) return "bg-rose-500";
-        if (passwordStrength <= 3) return "bg-amber-500";
-        return "bg-emerald-500";
-    };
-
-    const getStrengthText = () => {
-        if (signupData.password.length === 0) return "";
-        if (passwordStrength <= 2) return "Weak";
-        if (passwordStrength <= 3) return "Medium";
-        return "Strong";
-    };
-
     const passwordsMatch = signupData.password && signupData.confirmPassword &&
         signupData.password === signupData.confirmPassword;
 
@@ -238,23 +222,6 @@ const Signup = () => {
                             {errors.password && (
                                 <p className="text-xs text-rose-600 mt-1">{errors.password}</p>
                             )}
-
-                            {/* Password Strength */}
-                            {signupData.password && !errors.password && (
-                                <div className="flex items-center gap-3 mt-1.5">
-                                    <div className="flex-1 h-1 bg-stone-200 rounded-full overflow-hidden">
-                                        <div
-                                            className={`h-full ${getStrengthColor()} transition-all duration-300`}
-                                            style={{ width: `${(Math.min(passwordStrength, 5) / 5) * 100}%` }}
-                                        />
-                                    </div>
-                                    <span className={`text-[10px] font-medium min-w-[50px] ${passwordStrength <= 2 ? 'text-rose-600' :
-                                        passwordStrength <= 3 ? 'text-amber-600' : 'text-emerald-600'
-                                        }`}>
-                                        {getStrengthText()}
-                                    </span>
-                                </div>
-                            )}
                         </div>
 
                         {/* Confirm Password */}
@@ -296,25 +263,6 @@ const Signup = () => {
                                 </p>
                             )}
                         </div>
-
-                        {/* Password Requirements Hint
-                        <div className="text-[10px] text-[var(--color-text-muted)] bg-[var(--color-bg-subtle)] p-2 rounded-lg">
-                            <p className="font-medium mb-1">Password must contain:</p>
-                            <ul className="space-y-0.5 grid grid-cols-2 gap-x-2">
-                                <li className={signupData.password.length >= 6 ? 'text-emerald-600' : ''}>
-                                    • At least 6 characters
-                                </li>
-                                <li className={/[A-Z]/.test(signupData.password) ? 'text-emerald-600' : ''}>
-                                    • One uppercase
-                                </li>
-                                <li className={/[a-z]/.test(signupData.password) ? 'text-emerald-600' : ''}>
-                                    • One lowercase
-                                </li>
-                                <li className={/[0-9]/.test(signupData.password) ? 'text-emerald-600' : ''}>
-                                    • One number
-                                </li>
-                            </ul>
-                        </div> */}
 
                         {/* Submit */}
                         <button

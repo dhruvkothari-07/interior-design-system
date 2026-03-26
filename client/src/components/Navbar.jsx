@@ -13,6 +13,7 @@ import {
     Sparkles,
     Settings
 } from 'lucide-react';
+import { getCurrentUserRole } from '../utils/authUtils';
 
 const Navbar = () => {
     const location = useLocation();
@@ -36,6 +37,12 @@ const Navbar = () => {
 
     const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
 
+    const userRole = getCurrentUserRole();
+    const filteredNavItems = navItems.filter(item => {
+        if (item.path === '/settings' && userRole !== 'admin') return false;
+        return true;
+    });
+
     return (
         <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-[var(--color-border)]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -50,7 +57,7 @@ const Navbar = () => {
 
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center gap-1">
-                        {navItems.map((item) => (
+                        {filteredNavItems.map((item) => (
                             <Link
                                 key={item.path}
                                 to={item.path}
@@ -93,7 +100,7 @@ const Navbar = () => {
                 {isMobileMenuOpen && (
                     <div className="md:hidden py-4 border-t border-[var(--color-border)] animate-fade-in">
                         <div className="flex flex-col gap-1">
-                            {navItems.map((item) => (
+                            {filteredNavItems.map((item) => (
                                 <Link
                                     key={item.path}
                                     to={item.path}

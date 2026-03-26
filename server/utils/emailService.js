@@ -57,4 +57,43 @@ async function sendPasswordResetEmail(toEmail, otp) {
     }
 }
 
-module.exports = { sendPasswordResetEmail };
+/**
+ * Send a quotation PDF email to a client
+ */
+async function sendQuotationEmail(toEmail, clientName, pdfBase64, quotationTitle, companyName) {
+    try {
+        const { data, error } = await resend.emails.send({
+            from: 'InteriorDesk <onboarding@resend.dev>',
+            to: toEmail,
+            subject: `Your Quotation: ${quotationTitle}`,
+            html: `
+                <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+                    <div style="background: #FAF9F7; border-radius: 12px; padding: 30px; border: 1px solid #E8E4DE;">
+                        <h2 style="color: #2C2825; margin: 0 0 20px 0; font-size: 22px;">Hello ${clientName},</h2>
+                        
+                        <p style="color: #5C5650; line-height: 1.6; margin: 0 0 20px 0;">
+                            Please find attached your quotation for <strong>${quotationTitle}</strong> from ${companyName}.
+                        </p>
+                    </div>
+                </div>
+            `,
+            attachments: [
+                {
+                    filename: `Quotation-${quotationTitle.replace(/\s+/g, '_')}.pdf`,
+                    content: Buffer.from(pdfBase64, 'base64')
+                }
+            ]
+        });
+
+        if (error) {
+            console.error('Resend error:', JSON.stringify(error));
+            return { success: false, error: error.message || JSON.stringify(error) };
+        }
+        return { success: true, data };
+    } catch (err) {
+        console.error('Email send error:', err);
+        return { success: false, error: err.message };
+    }
+}
+
+module.exports = { sendPasswordResetEmail, sendQuotationEmail };

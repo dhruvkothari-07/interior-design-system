@@ -224,7 +224,7 @@ const Settings = () => {
                         </h2>
                         <div className="grid md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Company Name</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Business Name</label>
                                 <input type="text" name="company_name" value={settings.company_name} onChange={handleChange} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-orange outline-none transition" placeholder="e.g. Acme Interiors" />
                             </div>
                             <div>

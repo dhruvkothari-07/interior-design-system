@@ -51,7 +51,7 @@ router.post("/signup", async (req, res) => {
             token: token,
         });
     } catch (err) {
-        console.error("Signup Error:", err); // Log the actual error
+        console.error("Signup Error:", err);
         return res.status(500).json({ message: "Error while signup", error: err.message });
     }
 });

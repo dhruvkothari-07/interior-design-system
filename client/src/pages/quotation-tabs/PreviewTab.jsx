@@ -138,6 +138,63 @@ const PreviewTab = ({ quotation, setQuotation }) => {
     };
 
     const [isPrinting, setIsPrinting] = useState(false);
+    const [isSendingEmail, setIsSendingEmail] = useState(false);
+
+    const handleSendEmail = async () => {
+        const toastId = 'email-generation';
+        try {
+            setIsSendingEmail(true);
+            toast.loading('Preparing document for email...', { id: toastId });
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const element = printRef.current;
+            if (!element) throw new Error('Document element not found');
+
+            toast.loading('Capturing document...', { id: toastId });
+            const canvas = await html2canvas(element, {
+                scale: 1,     // Lower scale for email (keeps it small)
+                logging: false,
+                useCORS: true
+            });
+
+            toast.loading('Generating PDF attachment...', { id: toastId });
+            const data = canvas.toDataURL('image/jpeg', 0.7);  // JPEG at 70% quality = much smaller
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+            const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+
+            pdf.addImage(data, 'JPEG', 0, 0, imgWidth * ratio, imgHeight * ratio);
+
+            toast.loading('Sending email to client...', { id: toastId });
+
+            // Convert PDF to clean base64 (no data URI prefix)
+            const pdfArrayBuffer = pdf.output('arraybuffer');
+            const pdfBytes = new Uint8Array(pdfArrayBuffer);
+            let binary = '';
+            for (let i = 0; i < pdfBytes.length; i++) {
+                binary += String.fromCharCode(pdfBytes[i]);
+            }
+            const pdfBase64 = btoa(binary);
+            
+            const token = localStorage.getItem("token");
+            await axios.post(`${API_URL}/quotations/${quotation.id}/email`, 
+                { pdfBase64 },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            toast.success('Email sent successfully!', { id: toastId });
+        } catch (error) {
+            console.error('Email generation failed:', error);
+            const errorMessage = error.response?.data?.message || 'Failed to send email. Please try again.';
+            toast.error(errorMessage, { id: toastId });
+        } finally {
+            setIsSendingEmail(false);
+        }
+    };
 
     const handleDownloadPdf = async () => {
         const toastId = 'pdf-generation';
@@ -282,7 +339,7 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                     <div className="space-y-3">
                         <button
                             onClick={handleSaveFinalTotal}
-                            disabled={isSaving}
+                            disabled={isSaving || isPrinting || isSendingEmail}
                             className="w-full btn-primary flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                             {isSaving ? (
@@ -295,7 +352,7 @@ const PreviewTab = ({ quotation, setQuotation }) => {
 
                         <button
                             onClick={handleDownloadPdf}
-                            disabled={isPrinting}
+                            disabled={isPrinting || isSaving || isSendingEmail}
                             className="w-full btn-secondary flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                             {isPrinting ? (
@@ -306,7 +363,18 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                             {isPrinting ? 'Generating...' : 'Download PDF'}
                         </button>
 
-
+                        <button
+                            onClick={handleSendEmail}
+                            disabled={isSendingEmail || isPrinting || isSaving}
+                            className="w-full btn-secondary flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                            {isSendingEmail ? (
+                                <div className="w-4 h-4 border-2 border-[var(--color-accent)]/30 border-t-[var(--color-accent)] rounded-full animate-spin" />
+                            ) : (
+                                <Mail className="w-4 h-4" />
+                            )}
+                            {isSendingEmail ? 'Sending...' : 'Email to Client'}
+                        </button>
                     </div>
                 </div>
 
@@ -461,18 +529,6 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                                         <span className="text-xl font-bold">{formatCurrency(finalTotal)}</span>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        {/* Signature Area */}
-                        <div className="mt-12 pt-8 border-t border-stone-200 flex justify-between">
-                            <div className="text-center">
-                                <div className="w-40 h-px bg-stone-300 mb-2" />
-                                <p className="text-xs text-stone-400">Client Signature</p>
-                            </div>
-                            <div className="text-center">
-                                <div className="w-40 h-px bg-stone-300 mb-2" />
-                                <p className="text-xs text-stone-400">Authorized Signature</p>
                             </div>
                         </div>
                     </div>
