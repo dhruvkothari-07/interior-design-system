@@ -149,9 +149,6 @@ const Materials = () => {
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                         <div>
                             <div className="flex items-center gap-3 mb-2">
-                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center shadow-none">
-                                    <Package className="w-6 h-6 text-white" />
-                                </div>
                                 <div>
                                     <h1 className="text-2xl lg:text-3xl font-bold text-[var(--color-text-primary)]">Materials</h1>
                                     <p className="text-sm text-[var(--color-text-muted)]">Manage your materials and pricing catalog</p>
@@ -229,9 +226,6 @@ const Materials = () => {
                     </div>
                 ) : (
                     <div className="card p-12 text-center animate-fade-in">
-                        <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-[var(--color-accent)]/10 to-amber-50 flex items-center justify-center">
-                            <Package className="w-10 h-10 text-[var(--color-accent)]" />
-                        </div>
                         <h3 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">No materials found</h3>
                         <p className="text-[var(--color-text-secondary)] mb-6">
                             {searchTerm ? `No results for "${searchTerm}"` : 'Add your first material to get started'}

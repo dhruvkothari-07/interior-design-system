@@ -194,9 +194,9 @@ const QuotationDetail = () => {
     const StatusIcon = statusConfig.icon;
 
     const tabs = [
-        { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-        { id: 'worksheet', label: 'Rooms & Materials', icon: Layers, badge: rooms.length },
-        { id: 'preview', label: 'Preview & Export', icon: FileText }
+        { id: 'overview', label: 'Overview' },
+        { id: 'worksheet', label: 'Rooms & Materials' },
+        { id: 'preview', label: 'Preview & Export' }
     ];
 
     return (
@@ -268,7 +268,7 @@ const QuotationDetail = () => {
                                         : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-stone-50'}
                                 `}
                             >
-                                <tab.icon className="w-4 h-4" />
+                                {tab.icon && <tab.icon className="w-4 h-4" />}
                                 {tab.label}
                                 {tab.badge > 0 && activeTab !== tab.id && (
                                     <span className="ml-1 px-1.5 py-0.5 bg-[var(--color-accent)]/10 text-[var(--color-accent)] rounded text-[10px] font-semibold">
@@ -313,14 +313,13 @@ const QuotationDetail = () => {
                 </div>
             </main>
 
-            {/* Room Modal */}
+
             {/* Room Modal */}
             {isRoomModalOpen && createPortal(
                 <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex justify-center items-center z-[9999] p-4 animate-fade-in">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in-up">
                         <div className="px-6 py-5 border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-accent)]/5 to-amber-50 flex justify-between items-center">
                             <h3 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center gap-2">
-                                <Home className="w-5 h-5 text-[var(--color-accent)]" />
                                 {editingRoom ? 'Edit Room' : 'Add New Room'}
                             </h3>
                             <button onClick={() => setIsRoomModalOpen(false)} className="p-1.5 hover:bg-white rounded-lg transition">

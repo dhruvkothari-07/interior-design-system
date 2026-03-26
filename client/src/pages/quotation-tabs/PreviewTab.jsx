@@ -180,8 +180,7 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                 {/* Summary Card */}
                 <div className="card p-5">
                     <div className="flex items-center gap-2 mb-4">
-                        <Calculator className="w-5 h-5 text-[var(--color-accent)]" />
-                        <h3 className="font-semibold text-[var(--color-text-primary)]">Calculation</h3>
+                        <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">Calculation</h3>
                     </div>
 
                     <div className="space-y-3">
@@ -248,7 +247,7 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                         {/* Final Total */}
                         <div className="flex justify-between items-center py-3 border-t-2 border-[var(--color-accent)] bg-gradient-to-r from-[var(--color-accent)]/5 to-amber-50 -mx-5 px-5 mt-2">
                             <span className="font-bold text-[var(--color-text-primary)]">Grand Total</span>
-                            <span className="text-xl font-bold text-[var(--color-accent)]">{formatCurrency(finalTotal)}</span>
+                            <span className="text-2xl font-bold">{formatCurrency(finalTotal)}</span>
                         </div>
                     </div>
                 </div>
@@ -313,7 +312,7 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                                 </p>
                             </div>
                             <div className="text-right">
-                                <div className="inline-block px-4 py-2 bg-gradient-to-r from-[#A65D38] to-amber-600 text-white rounded-xl text-lg font-semibold tracking-wide mb-4">
+                                <div className="inline-block px-4 py-2 rounded-xl text-2xl font-semibold tracking-wide mb-4">
                                     QUOTATION
                                 </div>
                                 <div className="space-y-1 text-stone-600">
@@ -333,11 +332,11 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                         <div className="mb-10 p-5 bg-stone-50 rounded-xl">
                             <p className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">Bill To</p>
                             <p className="text-lg font-bold text-stone-900 flex items-center gap-2">
-                                <User className="w-4 h-4 text-[#A65D38]" />
+
                                 {quotation.client_name || 'Client Name'}
                             </p>
                             {quotation.client_address && (
-                                <p className="text-stone-600 mt-1 ml-6">{quotation.client_address}</p>
+                                <p className="text-stone-600 mt-1">{quotation.client_address}</p>
                             )}
                         </div>
 
@@ -352,12 +351,12 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                                         {/* Room Header */}
                                         <div className="flex justify-between items-center bg-gradient-to-r from-stone-100 to-stone-50 px-4 py-3 rounded-t-lg border border-stone-200 border-b-0">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-7 h-7 rounded-lg bg-[#A65D38] text-white flex items-center justify-center text-xs font-bold">
-                                                    {roomIndex + 1}
+                                                <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold">
+                                                    {roomIndex + 1}.
                                                 </div>
                                                 <span className="font-semibold text-stone-800">{room.name}</span>
                                             </div>
-                                            <span className="font-bold text-[#A65D38]">{formatCurrency(roomTotal)}</span>
+                                            <span className="font-bold">{formatCurrency(roomTotal)}</span>
                                         </div>
 
                                         {/* Materials Table */}
@@ -438,7 +437,7 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                                     </div>
                                     <div className="flex justify-between pt-4 mt-4 border-t-2 border-[#A65D38]">
                                         <span className="text-lg font-bold text-stone-900">Total</span>
-                                        <span className="text-xl font-bold text-[#A65D38]">{formatCurrency(finalTotal)}</span>
+                                        <span className="text-xl font-bold">{formatCurrency(finalTotal)}</span>
                                     </div>
                                 </div>
                             </div>

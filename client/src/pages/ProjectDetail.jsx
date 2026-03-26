@@ -45,6 +45,7 @@ const ProjectDetail = () => {
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
     const [newTaskData, setNewTaskData] = useState({ description: "", due_date: "", priority: "Medium", trade_category: "General" });
     const [newExpense, setNewExpense] = useState({ description: "", amount: "", category: "", expense_date: new Date().toISOString().split('T')[0] });
+    const [receiptFile, setReceiptFile] = useState(null);
 
     const fetchProjectDetails = useCallback(async () => {
         try {
@@ -88,9 +89,29 @@ const ProjectDetail = () => {
         e.preventDefault();
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.post(`${API_URL}/projects/${id}/expenses`, newExpense, { headers: { Authorization: `Bearer ${token}` } });
+
+            const formData = new FormData();
+            formData.append('description', newExpense.description);
+            formData.append('amount', newExpense.amount);
+            formData.append('category', newExpense.category);
+            formData.append('expense_date', newExpense.expense_date);
+            if (receiptFile) {
+                formData.append('receipt', receiptFile);
+            }
+
+            const res = await axios.post(`${API_URL}/projects/${id}/expenses`, formData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
             setProject(prev => ({ ...prev, expenses: [res.data, ...prev.expenses] }));
             setNewExpense({ description: "", amount: "", category: "", expense_date: new Date().toISOString().split('T')[0] });
+            setReceiptFile(null);
+            const fileInput = document.getElementById('receipt-file');
+            if (fileInput) fileInput.value = '';
+
             toast.success("Expense logged successfully");
         } catch (err) { toast.error("Failed to log expense"); }
     };
@@ -249,15 +270,15 @@ const ProjectDetail = () => {
                     </div>
                 </div>
 
-                {/* Stats Bento Grid */}
+                {/* Stats Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 animate-fade-in-up">
                     {/* Budget Card */}
-                    <div className="card p-5 relative overflow-hidden group hover:shadow-lg transition-all">
+                    <div className="card p-5 relative overflow-hidden hover:shadow-lg transition-all">
                         <div className="relative">
                             <div className="flex items-center justify-between mb-3">
-                                <span className="text-sm text-[var(--color-text-muted)]">Budget</span>
-                                <div className="w-9 h-9 rounded-lg bg-[var(--color-accent)] flex items-center justify-center">
-                                    <IndianRupee className="w-4 h-4 text-white" />
+                                <span className="text-xl text-[var(--color-text-muted)]">Budget</span>
+                                <div className="w-9 h-9 rounded-lg flex items-center justify-center">
+                                    <IndianRupee className="w-4 h-4" />
                                 </div>
                             </div>
                             <p className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{formatCurrency(project.budget)}</p>
@@ -265,38 +286,38 @@ const ProjectDetail = () => {
                     </div>
 
                     {/* Spent Card */}
-                    <div className="card p-5 group hover:shadow-lg transition-all">
+                    <div className="card p-5 hover:shadow-lg transition-all">
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-sm text-[var(--color-text-muted)]">Spent</span>
-                            <div className="w-9 h-9 rounded-lg bg-[var(--color-accent)] flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <TrendingUp className="w-4 h-4 text-white" />
+                            <span className="text-xl text-[var(--color-text-muted)]">Spent</span>
+                            <div className="w-9 h-9 rounded-lg flex items-center justify-center">
+                                <TrendingUp className="w-4 h-4" />
                             </div>
                         </div>
                         <p className="text-2xl font-bold text-[var(--color-text-primary)]">{formatCurrency(totalExpenses)}</p>
                     </div>
 
                     {/* Tasks Progress */}
-                    <div className="card p-5 group hover:shadow-lg transition-all">
+                    <div className="card p-5 hover:shadow-lg transition-all">
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-sm text-[var(--color-text-muted)]">Tasks</span>
-                            <div className="w-9 h-9 rounded-lg bg-[var(--color-accent)] flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <ListChecks className="w-4 h-4 text-white" />
+                            <span className="text-xl text-[var(--color-text-muted)]">Tasks</span>
+                            <div className="w-9 h-9 rounded-lg flex items-center justify-center">
+                                <ListChecks className="w-4 h-4" />
                             </div>
                         </div>
                         <p className="text-2xl font-bold text-[var(--color-text-primary)]">{tasksCompleted}/{totalTasks}</p>
                     </div>
 
                     {/* Remaining */}
-                    <div className="card p-5 group hover:shadow-lg transition-all">
+                    <div className="card p-5 hover:shadow-lg transition-all">
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-sm text-[var(--color-text-muted)]">Remaining</span>
-                            <div className="w-9 h-9 rounded-lg bg-[var(--color-accent)] flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <PieChart className="w-4 h-4 text-white" />
+                            <span className="text-xl text-[var(--color-text-muted)]">Remaining</span>
+                            <div className="w-9 h-9 rounded-lg flex items-center justify-center">
+                                <PieChart className="w-4 h-4" />
                             </div>
                         </div>
                         <p className={`text-2xl font-bold flex items-center gap-2 ${remainingBudget < 0 ? 'text-rose-600' : 'text-[var(--color-text-primary)]'}`}>
                             {formatCurrency(remainingBudget)}
-                            {remainingBudget < 0 && <AlertTriangle className="w-4 h-4" />}
+
                         </p>
                     </div>
                 </div>
@@ -381,7 +402,7 @@ const ProjectDetail = () => {
                                         <span className="flex items-center gap-2 font-medium">
                                             Add Task
                                         </span>
-                                        <ArrowRight className="w-4 h-4 text-[var(--color-text-muted)] group-hover:translate-x-1 transition-transform" />
+                                        <ArrowRight className="w-4 h-4 text-[var(--color-text-muted)]" />
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('financials')}
@@ -390,7 +411,7 @@ const ProjectDetail = () => {
                                         <span className="flex items-center gap-2 font-medium">
                                             Log Expense
                                         </span>
-                                        <ArrowRight className="w-4 h-4 text-[var(--color-text-muted)] group-hover:translate-x-1 transition-transform" />
+                                        <ArrowRight className="w-4 h-4 text-[var(--color-text-muted)] " />
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('files')}
@@ -399,7 +420,7 @@ const ProjectDetail = () => {
                                         <span className="flex items-center gap-2 font-medium">
                                             Upload Files
                                         </span>
-                                        <ArrowRight className="w-4 h-4 text-[var(--color-text-muted)] group-hover:translate-x-1 transition-transform" />
+                                        <ArrowRight className="w-4 h-4 text-[var(--color-text-muted)]" />
                                     </button>
                                 </div>
                             </div>
@@ -421,12 +442,12 @@ const ProjectDetail = () => {
                                             <div
                                                 key={task.id}
                                                 onClick={() => handleTaskToggle(task.id, task.status)}
-                                                className="group flex items-start gap-4 p-4 bg-[var(--color-bg-subtle)] rounded-xl hover:bg-stone-100 cursor-pointer transition-all hover:shadow-sm"
+                                                className="group flex items-start gap-4 p-4 bg-[var(--color-bg-subtle)] rounded-xl"
                                                 style={{ animationDelay: `${index * 50}ms` }}
                                             >
                                                 <div className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${task.status === 'Done'
                                                     ? 'bg-emerald-500 border-emerald-500'
-                                                    : 'border-stone-300 group-hover:border-[var(--color-accent)] group-hover:scale-110'
+                                                    : 'border-stone-300 group-hover:border-[var(--color-accent)] '
                                                     }`}>
                                                     {task.status === 'Done' && <Check className="w-3.5 h-3.5 text-white" />}
                                                 </div>
@@ -557,7 +578,20 @@ const ProjectDetail = () => {
                                             {project.expenses.map(expense => (
                                                 <div key={expense.id} className="py-4 flex items-center justify-between group hover:bg-stone-50 -mx-2 px-2 rounded-lg transition-colors">
                                                     <div>
-                                                        <p className="font-medium text-[var(--color-text-primary)]">{expense.description}</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="font-medium text-[var(--color-text-primary)]">{expense.description}</p>
+                                                            {expense.receipt_path && (
+                                                                <a
+                                                                    href={`${API_URL.replace('/api/v1', '')}/${expense.receipt_path}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors p-1 bg-stone-100 hover:bg-[var(--color-accent)]/10 rounded"
+                                                                    title="View Receipt"
+                                                                >
+                                                                    <FileText className="w-3.5 h-3.5" />
+                                                                </a>
+                                                            )}
+                                                        </div>
                                                         <p className="text-xs text-[var(--color-text-muted)]">
                                                             {new Date(expense.expense_date).toLocaleDateString()} • {expense.category}
                                                         </p>
@@ -592,7 +626,7 @@ const ProjectDetail = () => {
                                     <div>
                                         <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Amount</label>
                                         <div className="relative">
-                                            <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
+                                            <IndianRupee className="absolute left-1 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
                                             <input
                                                 type="number"
                                                 value={newExpense.amount}
@@ -618,6 +652,16 @@ const ProjectDetail = () => {
                                             <option value="Transport">Transport</option>
                                             <option value="Other">Other</option>
                                         </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Receipt</label>
+                                        <input
+                                            id="receipt-file"
+                                            type="file"
+                                            onChange={e => setReceiptFile(e.target.files[0])}
+                                            className="block w-full text-sm text-[var(--color-text-muted)] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[var(--color-accent)]/10 file:text-[var(--color-accent)] hover:file:bg-[var(--color-accent)]/20"
+                                            accept="image/*,.pdf"
+                                        />
                                     </div>
                                     <button type="submit" className="btn-primary w-full">Log Expense</button>
                                 </form>
@@ -660,7 +704,7 @@ const ProjectDetail = () => {
                                                         <img
                                                             src={fileUrl}
                                                             alt={file.file_name}
-                                                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                                            className="w-full h-full object-cover transition-transform"
                                                             onError={(e) => {
                                                                 e.target.onerror = null;
                                                                 e.target.src = 'https://via.placeholder.com/150?text=Error'; // Or hide/fallback

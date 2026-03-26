@@ -159,9 +159,6 @@ const Clients = () => {
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                         <div>
                             <div className="flex items-center gap-3 mb-2">
-                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center shadow-none">
-                                    <Users className="w-6 h-6 text-white" />
-                                </div>
                                 <div>
                                     <h1 className="text-2xl lg:text-3xl font-bold text-[var(--color-text-primary)]">Clients</h1>
                                 </div>
@@ -216,11 +213,8 @@ const Clients = () => {
                                 {/* Header */}
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center text-white shadow-none shrink-0">
-                                            <User className="w-6 h-6 md:w-7 md:h-7" />
-                                        </div>
                                         <div className="min-w-0">
-                                            <h3 className="font-semibold text-base md:text-lg text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors truncate">
+                                            <h3 className="font-semibold text-base md:text-lg text-[var(--color-text-primary)] transition-colors truncate">
                                                 {client.name}
                                             </h3>
                                             <p className="text-xs text-[var(--color-text-muted)]">
@@ -266,12 +260,12 @@ const Clients = () => {
                                 {/* Stats Footer */}
                                 <div className="flex items-center gap-4 pt-4 border-t border-[var(--color-border)]">
                                     <div className="flex items-center gap-1.5 text-sm">
-                                        <FolderKanban className="w-4 h-4 text-blue-500" />
+
                                         <span className="font-medium text-[var(--color-text-primary)]">{client.project_count || 0}</span>
                                         <span className="text-[var(--color-text-muted)]">Projects</span>
                                     </div>
                                     <div className="flex items-center gap-1.5 text-sm">
-                                        <FileText className="w-4 h-4 text-[var(--color-accent)]" />
+
                                         <span className="font-medium text-[var(--color-text-primary)]">{client.quotation_count || 0}</span>
                                         <span className="text-[var(--color-text-muted)]">Quotes</span>
                                     </div>
@@ -287,9 +281,6 @@ const Clients = () => {
                     </div>
                 ) : (
                     <div className="bg-white rounded-2xl border border-[var(--color-border)] p-12 text-center animate-fade-in">
-                        <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-[var(--color-accent)]/10 to-amber-50 flex items-center justify-center">
-                            <Users className="w-10 h-10 text-[var(--color-accent)]" />
-                        </div>
                         <h3 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">No clients found</h3>
                         <p className="text-[var(--color-text-secondary)] mb-6">
                             {searchTerm ? `No results for "${searchTerm}"` : 'Add your first client to get started'}
@@ -310,7 +301,7 @@ const Clients = () => {
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
                         <div className="px-6 py-5 border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-accent)]/5 to-amber-50 flex justify-between items-center">
                             <h3 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center gap-2">
-                                <UserPlus className="w-5 h-5 text-[var(--color-accent)]" />
+
                                 Add New Client
                             </h3>
                             <button onClick={() => setIsAddModalOpen(false)} className="p-1.5 hover:bg-white rounded-lg transition">
@@ -349,7 +340,6 @@ const Clients = () => {
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
                         <div className="px-6 py-5 border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-accent)]/5 to-amber-50 flex justify-between items-center">
                             <h3 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center gap-2">
-                                <Edit2 className="w-5 h-5 text-[var(--color-accent)]" />
                                 Edit Client
                             </h3>
                             <button onClick={() => { setIsEditModalOpen(false); setEditingClient(null); }} className="p-1.5 hover:bg-white rounded-lg transition">

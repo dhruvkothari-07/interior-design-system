@@ -65,9 +65,6 @@ const ClientDetail = () => {
                     </button>
 
                     <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center text-white shadow-lg shrink-0">
-                            <User className="w-7 h-7 md:w-8 md:h-8" />
-                        </div>
                         <div>
                             <h1 className="text-2xl md:text-3xl font-bold text-[var(--color-text-primary)] tracking-tight">{clientData.name}</h1>
                             <p className="text-sm md:text-base text-[var(--color-text-secondary)] mt-1">Client Overview & Activity</p>
@@ -114,7 +111,7 @@ const ClientDetail = () => {
                     {/* Quotations */}
                     <div className="card p-6 animate-fade-in-up animation-delay-100">
                         <div className="flex items-center gap-2 mb-5">
-                            <FileText className="w-5 h-5 text-[var(--color-accent)]" />
+
                             <h3 className="font-semibold text-lg text-[var(--color-text-primary)]">Quotations</h3>
                         </div>
 
@@ -127,7 +124,7 @@ const ClientDetail = () => {
                                         className="p-4 rounded-xl border border-[var(--color-border)] hover:border-[var(--color-accent)]/30 hover:bg-[var(--color-bg-subtle)] cursor-pointer transition-all group"
                                     >
                                         <div className="flex justify-between items-start mb-2">
-                                            <p className="font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors">
+                                            <p className="font-medium text-[var(--color-text-primary)]">
                                                 {q.title}
                                             </p>
                                             <span className={getStatusConfig(q.status)}>{q.status}</span>
@@ -146,7 +143,7 @@ const ClientDetail = () => {
                     {/* Projects */}
                     <div className="card p-6 animate-fade-in-up animation-delay-200">
                         <div className="flex items-center gap-2 mb-5">
-                            <FolderKanban className="w-5 h-5 text-[var(--color-accent)]" />
+
                             <h3 className="font-semibold text-lg text-[var(--color-text-primary)]">Projects</h3>
                         </div>
 
@@ -159,7 +156,7 @@ const ClientDetail = () => {
                                         className="p-4 rounded-xl border border-[var(--color-border)] hover:border-[var(--color-accent)]/30 hover:bg-[var(--color-bg-subtle)] cursor-pointer transition-all group"
                                     >
                                         <div className="flex justify-between items-start mb-2">
-                                            <p className="font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors">
+                                            <p className="font-medium text-[var(--color-text-primary)]">
                                                 {p.name}
                                             </p>
                                             <span className={getStatusConfig(p.status)}>{p.status}</span>

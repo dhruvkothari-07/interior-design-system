@@ -55,15 +55,27 @@ const MaterialCard = React.memo(({
                     {material.name}
                 </h4>
                 {isAdded && (
-                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[var(--color-accent)] flex items-center justify-center">
-                        <Check className="w-3 h-3 text-white" />
-                    </span>
+                    <div className="flex shrink-0 items-center gap-1.5 transition-opacity">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onEdit(roomMaterial || material);
+                            }}
+                            className="w-5 h-5 rounded flex items-center justify-center hover:bg-stone-100 hover:text-[var(--color-accent)] text-stone-400 transition-all"
+                            title="Edit Details"
+                        >
+                            <Edit2 className="w-3 h-3" />
+                        </button>
+                        <span className="w-5 h-5 rounded-full bg-[var(--color-accent)] flex items-center justify-center">
+                            <Check className="w-3 h-3 text-white" />
+                        </span>
+                    </div>
                 )}
             </div>
 
             {/* Price */}
             <div className="mb-3">
-                <span className="text-base font-bold text-[var(--color-accent)]">{formatCurrency(price)}</span>
+                <span className="text-base font-bold">{formatCurrency(price)}</span>
                 <span className="text-xs text-stone-400"> / {material.unit}</span>
             </div>
 
@@ -107,7 +119,7 @@ const MaterialCard = React.memo(({
             ) : (
                 <button
                     onClick={() => onAdd(material.id, 1)}
-                    className="w-full py-2 bg-stone-100 text-stone-600 font-medium text-sm rounded-lg hover:bg-[var(--color-accent)] hover:text-white transition-all"
+                    className="w-full py-2 bg-stone-100 text-stone-600 font-medium text-sm rounded-lg"
                 >
                     + Add
                 </button>
@@ -358,7 +370,7 @@ const WorksheetTab = ({
 
     return (
         <div className="flex flex-col md:flex-row md:h-[calc(100vh-180px)] h-auto bg-white rounded-2xl shadow-sm border border-slate-200 md:overflow-hidden overflow-visible animate-fade-in-up">
-            {/* Left Sidebar: Room List (Desktop Only) - Airy Design */}
+            {/* Left Sidebar: Room List */}
             <aside className="w-full md:w-[320px] hidden md:flex flex-none bg-white border-r border-slate-100 flex-col md:h-full md:max-h-full overflow-hidden">
                 <div className="p-6 border-b border-slate-100">
                     <div className="flex justify-between items-center mb-4">
@@ -395,21 +407,21 @@ const WorksheetTab = ({
                                 : 'hover:bg-stone-50 text-stone-700 border border-transparent'
                                 }`}
                         >
-                            <div className="flex justify-between items-center mb-2">
-                                <span className={`font-semibold text-base ${activeRoomId === room.id ? 'text-[var(--color-accent)]' : 'text-stone-700'}`}>{room.name}</span>
+                            <div className="flex justify-between items-start mb-2">
+                                <span className={`font-semibold text-base truncate pr-2 ${activeRoomId === room.id ? 'text-[var(--color-accent)]' : 'text-stone-700'}`}>{room.name}</span>
+                                <div className="flex items-center gap-1 shrink-0">
+                                    <button onClick={(e) => { e.stopPropagation(); onEditRoom(room); }} className="p-1.5 text-stone-400 rounded-md transition-colors"><Edit2 className="w-4 h-4" /></button>
+                                    <button onClick={(e) => { e.stopPropagation(); onDeleteRoom(room); }} className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"><Trash2 className="w-4 h-4" /></button>
+                                </div>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-sm text-stone-400">{room.dimensions || 'No dimensions'}</span>
+                                <span className="text-xs text-stone-400">
+                                    {room.length && room.width
+                                        ? `${room.length}' x ${room.width}'${room.height ? ` x ${room.height}'` : ''}`
+                                        : room.dimensions || 'No dimensions'}
+                                </span>
                                 <span className={`text-base font-semibold ${activeRoomId === room.id ? 'text-[var(--color-accent)]' : 'text-stone-600'}`}>{formatCurrency(room.room_total || 0)}</span>
                             </div>
-
-                            {/* Hover Actions */}
-                            {activeRoomId !== room.id && (
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex gap-1 transition-all">
-                                    <button onClick={(e) => { e.stopPropagation(); onEditRoom(room); }} className="p-2 hover:bg-white text-slate-400 hover:text-blue-600 rounded-lg transition-colors shadow-sm bg-white/80"><Edit2 className="w-3.5 h-3.5" /></button>
-                                    <button onClick={(e) => { e.stopPropagation(); onDeleteRoom(room); }} className="p-2 hover:bg-white text-slate-400 hover:text-red-600 rounded-lg transition-colors shadow-sm bg-white/80"><Trash2 className="w-3.5 h-3.5" /></button>
-                                </div>
-                            )}
                         </div>
                     ))}
                 </div>
@@ -433,7 +445,7 @@ const WorksheetTab = ({
                                     </div>
                                     <div className="text-right">
                                         <p className="text-xs text-stone-400 uppercase tracking-wide font-semibold mb-1">Room Total</p>
-                                        <p className="text-3xl font-bold text-[var(--color-accent)]">{formatCurrency(activeRoom?.room_total || 0)}</p>
+                                        <p className="text-3xl font-bold">{formatCurrency(activeRoom?.room_total || 0)}</p>
                                     </div>
                                 </div>
 
@@ -467,7 +479,7 @@ const WorksheetTab = ({
 
                                     <button
                                         onClick={() => setIsCustomModalOpen(true)}
-                                        className="px-5 py-3.5 bg-[var(--color-accent)] text-white font-semibold rounded-xl hover:opacity-90 transition shadow-md shadow-[var(--color-accent)]/20 flex items-center gap-2"
+                                        className="px-5 py-3.5 bg-stone-100 text-stone-600 hover:bg-stone-200 font-semibold rounded-xl flex items-center gap-2"
                                     >
                                         <Plus className="w-4 h-4" />
                                         Custom Item

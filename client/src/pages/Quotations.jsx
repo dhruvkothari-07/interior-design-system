@@ -213,9 +213,7 @@ const Quotations = () => {
                     <div className="relative p-6 lg:p-8">
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                             <div className="flex items-start gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center shadow-none">
-                                    <FileText className="w-7 h-7 text-white" />
-                                </div>
+
                                 <div>
                                     <h1 className="text-3xl lg:text-4xl font-bold text-[var(--color-text-primary)] tracking-tight">
                                         Quotations
@@ -264,9 +262,7 @@ const Quotations = () => {
                                         : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)]'}`}
                             >
                                 {tab.label}
-                                <span className={`ml-1.5 px-1.5 py-0.5 rounded text-xs font-semibold ${statusFilter === tab.value ? 'bg-white/20' : 'bg-stone-100'}`}>
-                                    {tab.count}
-                                </span>
+
                             </button>
                         ))}
                     </div>
@@ -303,10 +299,6 @@ const Quotations = () => {
                                     <div className="relative pt-2">
                                         {/* Header */}
                                         <div className="flex items-start justify-between mb-5">
-                                            {/* Solid colored icon box - Orange Theme */}
-                                            <div className="w-12 h-12 rounded-2xl bg-[var(--color-accent)] flex items-center justify-center shadow-none">
-                                                <FileText className="w-6 h-6 text-white" />
-                                            </div>
 
                                             {/* Status Badge */}
                                             <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${statusConfig.bg} ${statusConfig.text} border ${statusConfig.border} flex items-center gap-1.5`}>
@@ -319,7 +311,7 @@ const Quotations = () => {
 
                                         {/* Title & Client */}
                                         <div className="mb-6">
-                                            <h3 className="text-xl font-bold text-stone-800 mb-1 group-hover:text-[var(--color-accent)] transition-colors line-clamp-1">
+                                            <h3 className="text-xl font-bold text-stone-800 mb-1 ">
                                                 {quotation.title}
                                             </h3>
                                             <div className="flex items-center gap-2 text-stone-500">
@@ -332,7 +324,7 @@ const Quotations = () => {
                                         <div className="bg-[#F8F6F4] rounded-xl p-4 mb-5">
                                             <div className="flex items-center justify-between">
                                                 <span className="text-xs font-medium text-stone-500">Total Amount</span>
-                                                <span className="text-xl font-bold text-[var(--color-accent)]">
+                                                <span className="text-xl font-bold">
                                                     {formatCurrency(quotation.total_amount)}
                                                 </span>
                                             </div>
@@ -351,7 +343,7 @@ const Quotations = () => {
                                                 </button>
                                             ) : <div></div>}
 
-                                            <div className="flex items-center gap-1 text-sm font-semibold text-[var(--color-accent)] opacity-80 group-hover:opacity-100 transition-opacity cursor-pointer hover:gap-2 duration-300">
+                                            <div className="flex items-center gap-1 text-sm font-semibold opacity-80 group-hover:opacity-100 transition-opacity cursor-pointer duration-300">
                                                 <span>View</span>
                                                 <ArrowRight className="w-4 h-4" />
                                             </div>
@@ -364,15 +356,8 @@ const Quotations = () => {
 
                 ) : (
                     <div className="card p-16 text-center animate-fade-in-up">
-                        <div className="w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-[var(--color-accent)]/10 to-amber-100/50 flex items-center justify-center">
-                            <FileText className="w-10 h-10 text-[var(--color-accent)]" />
-                        </div>
                         <h3 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">No quotations found</h3>
-                        <p className="text-[var(--color-text-muted)] mb-6 max-w-sm mx-auto">
-                            {searchQuery || statusFilter !== 'all'
-                                ? 'Try adjusting your search or filters'
-                                : 'Start by creating your first quotation to begin managing your proposals'}
-                        </p>
+
                         <button
                             onClick={handleAddModalOpen}
                             className="btn-primary inline-flex items-center gap-2"

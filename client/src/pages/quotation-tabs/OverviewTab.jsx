@@ -122,10 +122,7 @@ const OverviewTab = ({ quotation, setQuotation, currentSubTotal, onTabChange }) 
                 {/* Subtotal Card */}
                 <div className="card p-6 bg-gradient-to-br from-white to-orange-50/30">
                     <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
-                            <IndianRupee className="w-5 h-5 text-[var(--color-accent)]" />
-                        </div>
-                        <span className="text-sm font-medium text-[var(--color-text-muted)]">Calculation Subtotal</span>
+                        <span className="text-lg font-medium text-[var(--color-text-muted)]">Calculation Subtotal</span>
                     </div>
                     <p className="text-3xl font-bold text-[var(--color-text-primary)]">{formatCurrency(currentSubTotal)}</p>
 
@@ -134,10 +131,7 @@ const OverviewTab = ({ quotation, setQuotation, currentSubTotal, onTabChange }) 
                 {/* Status Card */}
                 <div className="card p-6">
                     <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-10 h-10 rounded-xl ${statusConfig.bg} flex items-center justify-center`}>
-                            <FileText className={`w-5 h-5 ${statusConfig.text}`} />
-                        </div>
-                        <span className="text-sm font-medium text-[var(--color-text-muted)]">Status</span>
+                        <span className="text-lg font-medium text-[var(--color-text-muted)]">Status</span>
                     </div>
                     <select
                         value={quotation.status}
@@ -154,10 +148,8 @@ const OverviewTab = ({ quotation, setQuotation, currentSubTotal, onTabChange }) 
                 {/* Dates Card */}
                 <div className="card p-6">
                     <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center">
-                            <Calendar className="w-5 h-5 text-stone-600" />
-                        </div>
-                        <span className="text-sm font-medium text-[var(--color-text-muted)]">Timeline</span>
+
+                        <span className="text-lg font-medium text-[var(--color-text-muted)]">Timeline</span>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -177,7 +169,6 @@ const OverviewTab = ({ quotation, setQuotation, currentSubTotal, onTabChange }) 
                 {/* Client Information */}
                 <div className="card p-6">
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
-                        <User className="w-5 h-5 text-[var(--color-accent)]" />
                         Client Information
                     </h3>
                     <div className="space-y-4">
@@ -218,52 +209,52 @@ const OverviewTab = ({ quotation, setQuotation, currentSubTotal, onTabChange }) 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <button
                             onClick={() => onTabChange('preview')}
-                            className="group flex items-center justify-between p-4 bg-white rounded-xl border border-[var(--color-border)] hover:border-[var(--color-accent)]/30 hover:shadow-md transition-all"
+                            className="group flex items-center justify-between p-4 bg-white rounded-xl border"
                         >
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-lg bg-[var(--color-accent)]/10 flex items-center justify-center">
-                                    <FileText className="w-5 h-5 text-[var(--color-accent)]" />
+                                    <FileText className="w-5 h-5" />
                                 </div>
                                 <div className="text-left">
                                     <p className="font-medium text-[var(--color-text-primary)]">View & Print</p>
                                     <p className="text-xs text-[var(--color-text-muted)]">Preview summary document</p>
                                 </div>
                             </div>
-                            <ArrowRight className="w-5 h-5 text-[var(--color-text-muted)] group-hover:text-[var(--color-accent)] group-hover:translate-x-1 transition-all" />
+                            <ArrowRight className="w-5 h-5 text-[var(--color-text-muted)] transition-all" />
                         </button>
 
                         {quotation.status === 'Approved' && (
                             project ? (
                                 <button
                                     onClick={() => navigate(`/projects/${project.id}`)}
-                                    className="group flex items-center justify-between p-4 bg-white rounded-xl border border-[var(--color-border)] hover:border-emerald-300 hover:shadow-md transition-all"
+                                    className="group flex items-center justify-between p-4 bg-white rounded-xl border"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                                            <FolderKanban className="w-5 h-5 text-emerald-600" />
+                                        <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+                                            <FolderKanban className="w-5 h-5" />
                                         </div>
                                         <div className="text-left">
                                             <p className="font-medium text-[var(--color-text-primary)]">View Project</p>
                                             <p className="text-xs text-[var(--color-text-muted)]">Go to linked project</p>
                                         </div>
                                     </div>
-                                    <ArrowRight className="w-5 h-5 text-[var(--color-text-muted)] group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
+                                    <ArrowRight className="w-5 h-5 text-[var(--color-text-muted)]" />
                                 </button>
                             ) : (
                                 <button
                                     onClick={() => setIsCreateProjectModalOpen(true)}
-                                    className="group flex items-center justify-between p-4 bg-white rounded-xl border border-[var(--color-border)] hover:border-[var(--color-accent)]/30 hover:shadow-md transition-all"
+                                    className="group flex items-center justify-between p-4 bg-white rounded-xl border"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-[var(--color-accent)]/10 flex items-center justify-center">
-                                            <FolderKanban className="w-5 h-5 text-[var(--color-accent)]" />
+                                        <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+                                            <FolderKanban className="w-5 h-5" />
                                         </div>
                                         <div className="text-left">
                                             <p className="font-medium text-[var(--color-text-primary)]">Create Project</p>
                                             <p className="text-xs text-[var(--color-text-muted)]">From this quotation</p>
                                         </div>
                                     </div>
-                                    <ArrowRight className="w-5 h-5 text-[var(--color-text-muted)] group-hover:text-[var(--color-accent)] group-hover:translate-x-1 transition-all" />
+                                    <ArrowRight className="w-5 h-5 text-[var(--color-text-muted)]" />
                                 </button>
                             )
                         )}
@@ -286,7 +277,7 @@ const OverviewTab = ({ quotation, setQuotation, currentSubTotal, onTabChange }) 
                                 </div>
                                 <div className="col-span-2">
                                     <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-1">Budget (from Quotation)</label>
-                                    <p className="text-lg font-semibold text-[var(--color-accent)]">{formatCurrency(quotation.total_amount || currentSubTotal)}</p>
+                                    <p className="text-lg font-semibold">{formatCurrency(quotation.total_amount || currentSubTotal)}</p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-semibold text-[var(--color-text-secondary)] mb-2">Start Date</label>

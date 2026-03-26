@@ -24,7 +24,7 @@ import {
     BarChart3,
     Trash2
 } from 'lucide-react';
-import toast from 'react-hot-toast'; // Ensure toast is imported if not already, checked file it seems missing in imports shown but used in code? checking... wait, toast is not imported in the viewed file. I should add it.
+import toast from 'react-hot-toast';
 import { handleApiError, confirmAction } from '../utils/errorHandler.jsx';
 import { isAdmin } from '../utils/authUtils';
 
@@ -139,9 +139,7 @@ const Projects = () => {
                     <div className="relative p-6 lg:p-8">
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                             <div className="flex items-start gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center shadow-none">
-                                    <FolderKanban className="w-7 h-7 text-white" />
-                                </div>
+
                                 <div>
                                     <h1 className="text-3xl lg:text-4xl font-bold text-[var(--color-text-primary)] tracking-tight">
                                         Projects
@@ -195,17 +193,9 @@ const Projects = () => {
                                 `}
                             >
                                 {tab.label}
-                                <span className={`ml-1.5 px-1.5 py-0.5 rounded text-xs font-semibold ${statusFilter === tab.value
-                                    ? 'bg-white/20'
-                                    : 'bg-stone-100'
-                                    }`}>
-                                    {tab.count}
-                                </span>
                             </button>
                         ))}
                     </div>
-
-                    {/* View Toggle */}
 
                 </div>
 
@@ -249,9 +239,7 @@ const Projects = () => {
                                             {/* Header */}
                                             <div className="flex items-start justify-between mb-5">
                                                 {/* Solid colored icon box - Orange Theme */}
-                                                <div className="w-12 h-12 rounded-2xl bg-[var(--color-accent)] flex items-center justify-center shadow-none">
-                                                    <FolderKanban className="w-6 h-6 text-white" />
-                                                </div>
+
                                                 <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border} border flex items-center gap-1`}>
                                                     <StatusIcon className="w-3 h-3" />
                                                     {project.status}
@@ -262,7 +250,7 @@ const Projects = () => {
 
                                             {/* Title & Client */}
                                             <div className="mb-6">
-                                                <h3 className="text-xl font-bold text-stone-800 mb-1 group-hover:text-[var(--color-accent)] transition-colors line-clamp-1">
+                                                <h3 className="text-xl font-bold text-stone-800 mb-1 transition-colors line-clamp-1">
                                                     {project.name}
                                                 </h3>
                                                 <div className="flex flex-col gap-1.5">
@@ -351,9 +339,7 @@ const Projects = () => {
                                                 >
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-3">
-                                                            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${statusConfig.gradient} flex items-center justify-center`}>
-                                                                <FolderKanban className="w-5 h-5 text-white" />
-                                                            </div>
+
                                                             <span className="font-medium text-[var(--color-text-primary)]">{project.name}</span>
                                                         </div>
                                                     </td>
@@ -405,15 +391,8 @@ const Projects = () => {
                     )
                 ) : (
                     <div className="card p-16 text-center animate-fade-in-up">
-                        <div className="w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-[var(--color-accent)]/10 to-amber-100/50 flex items-center justify-center">
-                            <FolderKanban className="w-10 h-10 text-[var(--color-accent)]" />
-                        </div>
+
                         <h3 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">No projects found</h3>
-                        <p className="text-[var(--color-text-muted)] mb-6 max-w-sm mx-auto">
-                            {searchQuery || statusFilter !== 'all'
-                                ? 'Try adjusting your search or filters'
-                                : 'Start by creating your first project to begin tracking your interior design work'}
-                        </p>
                         <button
                             onClick={() => navigate('/quotations')}
                             className="btn-primary inline-flex items-center gap-2"

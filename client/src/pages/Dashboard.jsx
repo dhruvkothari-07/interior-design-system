@@ -267,24 +267,18 @@ const Dashboard = () => {
                         <div className="relative">
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--color-accent)] to-amber-600 flex items-center justify-center">
-                                        <IndianRupee className="w-6 h-6 text-white" />
+                                    <div className="w-12 h-12 rounded-xl flex items-center justify-center">
+                                        <IndianRupee className="w-6 h-6" />
                                     </div>
                                     <div>
                                         <p className="text-sm text-[var(--color-text-muted)]">Total Revenue</p>
-                                        <p className="text-xs text-[var(--color-success)] font-medium flex items-center gap-1">
-                                            <ArrowUpRight className="w-3 h-3" /> +12.5% vs last period
-                                        </p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="text-4xl font-bold text-[var(--color-text-primary)] mb-1">
-                                {isLoading ? <Skeleton className="h-10 w-36" /> : formatCompact(data.financials.revenueYTD)}
+                                {isLoading ? <Skeleton className="h-10 w-36" /> : formatCurrency(data.financials.revenueYTD)}
                             </div>
-                            <p className="text-sm text-[var(--color-text-muted)]">Year to date</p>
-
-
                         </div>
                     </div>
 
@@ -322,28 +316,28 @@ const Dashboard = () => {
                     </div>
 
                     {/* Net Flow Card - Accent */}
-                    <div className="col-span-12 md:col-span-6 lg:col-span-4 card p-6 bg-gradient-to-br from-[var(--color-accent)] to-amber-700 text-white relative overflow-hidden animate-fade-in-up" style={{ animationDelay: '150ms' }}>
+                    <div className="col-span-12 md:col-span-6 lg:col-span-4 card p-6 relative overflow-hidden animate-fade-in-up" style={{ animationDelay: '150ms' }}>
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
                         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
 
                         <div className="relative">
                             <div className="flex items-center gap-2 mb-4">
-                                <Wallet className="w-5 h-5 text-white/80" />
-                                <span className="text-sm text-white/80">{periodLabel} Net Flow</span>
+                                <Wallet className="w-5 h-5" />
+                                <span className="text-sm">{periodLabel} Net Flow</span>
                             </div>
 
                             <div className="flex items-center gap-3 mb-2">
                                 {netFlow >= 0 ? (
-                                    <ArrowUpRight className="w-6 h-6 text-white/80" />
+                                    <ArrowUpRight className="w-6 h-6" />
                                 ) : (
-                                    <ArrowDownRight className="w-6 h-6 text-white/60" />
+                                    <ArrowDownRight className="w-6 h-6" />
                                 )}
                                 <p className="text-3xl font-bold">
                                     {isLoading ? '...' : formatCurrency(netFlow)}
                                 </p>
                             </div>
 
-                            <p className="text-sm text-white/70">
+                            <p className="text-sm">
                                 {netFlow >= 0 ? `Positive flow for ${periodLabel.toLowerCase()}` : 'Monitor your expenses'}
                             </p>
                         </div>
@@ -474,7 +468,7 @@ const Dashboard = () => {
                                             <p className="text-xs text-[var(--color-text-muted)]">{data.pipeline.wonMonthCount} converted</p>
                                         </div>
                                     </div>
-                                    <p className="font-bold text-[var(--color-success)]">{formatCompact(data.pipeline.wonMonthValue)}</p>
+                                    <p className="font-bold">{formatCompact(data.pipeline.wonMonthValue)}</p>
                                 </div>
                             </div>
                         </div>
@@ -489,30 +483,30 @@ const Dashboard = () => {
                             <div className="grid grid-cols-2 gap-3">
                                 <button
                                     onClick={() => navigate('/quotations')}
-                                    className="p-3 rounded-xl bg-white border border-[var(--color-border)] hover:border-[var(--color-accent)] hover:shadow-md transition-all text-center group"
+                                    className="p-3 rounded-xl bg-white border border-[var(--color-border)] hover:shadow-md transition-all text-center group"
                                 >
-                                    <FileText className="w-5 h-5 text-[var(--color-accent)] mx-auto mb-1 group-hover:scale-110 transition-transform" />
+                                    <FileText className="w-5 h-5 text-[var(--color-accent)] mx-auto mb-1" />
                                     <span className="text-xs font-medium text-[var(--color-text-secondary)]">New Quote</span>
                                 </button>
                                 <button
                                     onClick={() => navigate('/clients')}
-                                    className="p-3 rounded-xl bg-white border border-[var(--color-border)] hover:border-[var(--color-accent)] hover:shadow-md transition-all text-center group"
+                                    className="p-3 rounded-xl bg-white border border-[var(--color-border)] hover:shadow-md transition-all text-center group"
                                 >
-                                    <Users className="w-5 h-5 text-[var(--color-accent)] mx-auto mb-1 group-hover:scale-110 transition-transform" />
+                                    <Users className="w-5 h-5 text-[var(--color-accent)] mx-auto mb-1" />
                                     <span className="text-xs font-medium text-[var(--color-text-secondary)]">Add Client</span>
                                 </button>
                                 <button
                                     onClick={() => navigate('/materials')}
-                                    className="p-3 rounded-xl bg-white border border-[var(--color-border)] hover:border-[var(--color-accent)] hover:shadow-md transition-all text-center group"
+                                    className="p-3 rounded-xl bg-white border border-[var(--color-border)] hover:shadow-md transition-all text-center group"
                                 >
-                                    <Package className="w-5 h-5 text-[var(--color-accent)] mx-auto mb-1 group-hover:scale-110 transition-transform" />
+                                    <Package className="w-5 h-5 text-[var(--color-accent)] mx-auto mb-1" />
                                     <span className="text-xs font-medium text-[var(--color-text-secondary)]">Materials</span>
                                 </button>
                                 <button
                                     onClick={() => navigate('/projects')}
-                                    className="p-3 rounded-xl bg-white border border-[var(--color-border)] hover:border-[var(--color-accent)] hover:shadow-md transition-all text-center group"
+                                    className="p-3 rounded-xl bg-white border border-[var(--color-border)] hover:shadow-md transition-all text-center group"
                                 >
-                                    <FolderKanban className="w-5 h-5 text-[var(--color-accent)] mx-auto mb-1 group-hover:scale-110 transition-transform" />
+                                    <FolderKanban className="w-5 h-5 text-[var(--color-accent)] mx-auto mb-1" />
                                     <span className="text-xs font-medium text-[var(--color-text-secondary)]">Projects</span>
                                 </button>
                             </div>
