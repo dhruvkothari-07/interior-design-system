@@ -32,7 +32,7 @@ const PreviewTab = ({ quotation, setQuotation }) => {
     const [rooms, setRooms] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
-    const [settings] = useState({
+    const [settings, setSettings] = useState({
         company_name: 'My Interior Design Co.',
         company_address: '123 Design Street, Creative City',
         company_email: 'contact@designco.com',
@@ -40,6 +40,15 @@ const PreviewTab = ({ quotation, setQuotation }) => {
         logo_url: '/logo.jpg',
         terms_and_conditions: '1. This quotation includes only the work and materials specifically mentioned above. Any additional or modified work will be charged separately.\n2. Prices are valid for a limited period and may change due to variation in material costs or project requirements.\n3. Payments must be made as per agreed milestones. Delay in payment may result in temporary suspension of work.\n4. The client shall ensure site readiness, including access, electricity, water, and necessary permissions before commencement of work.\n5. Once materials, designs, shades, or finishes are finalized and ordered, they cannot be cancelled or returned. Any changes will be charged additionally.\n6. The service provider shall not be responsible for delays or damages caused due to site conditions, third-party work, natural events, or circumstances beyond control.'
     });
+
+    const getImageUrl = (url) => {
+        if (!url) return null;
+        const normalizedUrl = url.replace(/\\/g, '/');
+        if (normalizedUrl.startsWith('http')) return normalizedUrl;
+        if (normalizedUrl === '/logo.jpg') return normalizedUrl;
+        const baseUrl = API_URL.replace('/api/v1', '');
+        return `${baseUrl}/${normalizedUrl.replace(/^\//, '')}`;
+    };
 
     const [taxPercentage, setTaxPercentage] = useState(18.00);
     const [laborCost, setLaborCost] = useState(0);
@@ -56,6 +65,18 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                 setLaborCost(Number(quotation.labor_cost) || 0);
                 setDesignFeeType(quotation.design_fee_type || 'percentage');
                 setDesignFeeValue(Number(quotation.design_fee_value) || 0);
+
+                const resSettings = await axios.get(`${API_URL}/settings`, { headers: { Authorization: `Bearer ${token}` } });
+                const dbSettings = resSettings.data || {};
+
+                setSettings({
+                    company_name: dbSettings.company_name || 'My Interior Design Co.',
+                    company_address: dbSettings.company_address || '123 Design Street, Creative City',
+                    company_email: dbSettings.company_email || 'contact@designco.com',
+                    company_phone: dbSettings.company_phone || '+91 98765 43210',
+                    logo_url: dbSettings.logo_url || '/logo.jpg',
+                    terms_and_conditions: dbSettings.default_terms || '1. This quotation includes only the work and materials specifically mentioned above.\n2. Prices are valid for a limited period and may change due to variation in material costs or project requirements.\n3. Payments must be made as per agreed milestones. Delay in payment may result in temporary suspension of work.\n4. The client shall ensure site readiness, including access, electricity, water, and necessary permissions before commencement of work.\n5. Once materials, designs, shades, or finishes are finalized and ordered, they cannot be cancelled or returned. Any changes will be charged additionally.\n6. The service provider shall not be responsible for delays or damages caused due to site conditions, third-party work, natural events, or circumstances beyond control.'
+                });
 
                 const resRooms = await axios.get(`${API_URL}/quotations/${quotation.id}/rooms`, {
                     headers: { Authorization: `Bearer ${token}` },
@@ -300,7 +321,7 @@ const PreviewTab = ({ quotation, setQuotation }) => {
                         {/* Document Header */}
                         <div className="flex justify-between items-start mb-10 pb-8 border-b-2 border-stone-100">
                             <div>
-                                {settings.logo_url && <img src={settings.logo_url} alt="Logo" className="h-14 mb-4 object-contain" />}
+                                {settings.logo_url && <img src={getImageUrl(settings.logo_url)} alt="Logo" className="h-14 mb-4 object-contain" />}
                                 <h1 className="text-2xl font-bold text-stone-900 tracking-tight">{settings.company_name}</h1>
                                 <p className="text-stone-500 mt-2 flex items-center gap-1.5">
                                     <MapPin className="w-3.5 h-3.5 flex-shrink-0" />

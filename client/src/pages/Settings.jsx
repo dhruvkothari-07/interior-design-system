@@ -30,10 +30,11 @@ const Settings = () => {
     // Helper to get full image URL
     const getImageUrl = (url) => {
         if (!url) return null;
-        if (url.startsWith('http')) return url;
-        // Assume API_URL is http://localhost:3001/api/v1, we want http://localhost:3001
+        const normalizedUrl = url.replace(/\\/g, '/');
+        if (normalizedUrl.startsWith('http')) return normalizedUrl;
+        if (normalizedUrl === '/logo.jpg') return normalizedUrl;
         const baseUrl = API_URL.replace('/api/v1', '');
-        return `${baseUrl}${url} `;
+        return `${baseUrl}/${normalizedUrl.replace(/^\//, '')}`;
     };
 
     useEffect(() => {
@@ -70,12 +71,12 @@ const Settings = () => {
             const defaultTermsText = '1. This quotation includes only the work and materials specifically mentioned above. Any additional or modified work will be charged separately.\n2. Prices are valid for a limited period and may change due to variation in material costs or project requirements.\n3. Payments must be made as per agreed milestones. Delay in payment may result in temporary suspension of work.\n4. The client shall ensure site readiness, including access, electricity, water, and necessary permissions before commencement of work.\n5. Once materials, designs, shades, or finishes are finalized and ordered, they cannot be cancelled or returned. Any changes will be charged additionally.\n6. The service provider shall not be responsible for delays or damages caused due to site conditions, third-party work, natural events, or circumstances beyond control.';
 
             setSettings({
-                company_name: res.data.company_name || '',
-                company_address: res.data.company_address || '',
-                company_email: res.data.company_email || '',
-                company_phone: res.data.company_phone || '',
+                company_name: res.data.company_name || 'My Interior Design Co.',
+                company_address: res.data.company_address || '123 Design Street, Creative City',
+                company_email: res.data.company_email || 'contact@designco.com',
+                company_phone: res.data.company_phone || '+91 98765 43210',
                 default_terms: res.data.default_terms || defaultTermsText,
-                logo_url: res.data.logo_url || ''
+                logo_url: res.data.logo_url || '/logo.jpg'
             });
         } catch (err) {
             console.error("Failed to fetch settings", err);
